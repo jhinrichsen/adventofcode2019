@@ -1,0 +1,17 @@
+image:https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019?status.svg["godoc",
+link="https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019"]
+image:https://goreportcard.com/badge/gitlab.com/jhinrichsen/adventofcode2019["Go report
+card", link="https://goreportcard.com/report/gitlab.com/jhinrichsen/adventofcode2019"]
+image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/coverage.svg?style=flat["coverage",
+link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs"]
+
+= Advent of Code 2019
+
+== Build from source
+
+----
+$ go get gitlab.com/jhinrichsen/adventofcode2019
+----
+
+This is an implementation of https://adventofcode.com/2019[Advent of Code 2019]
+in Go.
