@@ -78,3 +78,41 @@ func TestDay2Part1(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func TestDay2Part2(t *testing.T) {
+	lines, err := Lines("testdata/day2.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var solution int
+	for noun := 0; noun < 100; noun++ {
+		for verb := 0; verb < 100; verb++ {
+			// Restore 1202 program alarm
+			opcodes, err := Split(lines[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			opcodes[1] = noun
+			opcodes[2] = verb
+			opcodes, err = Run(opcodes)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := 19690720
+			got := opcodes[0]
+			if want == got {
+				solution = 100*noun + verb
+				goto solved
+			}
+		}
+	}
+	t.Fatalf("no solution found for noun 0..99, verb 0..99")
+solved:
+	want := 8298
+	got := solution
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
