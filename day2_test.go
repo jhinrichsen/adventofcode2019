@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-var examples = []struct {
+var day2Examples = []struct {
 	in, out string
 }{
 	{"1,0,0,0,99", "2,0,0,0,99"},
@@ -17,7 +17,7 @@ var examples = []struct {
 
 func TestDay2Len(t *testing.T) {
 	want := 99
-	opcodes, err := Split(examples[0].in)
+	opcodes, err := Split(day2Examples[0].in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestDay2Len(t *testing.T) {
 
 func TestDay2Split(t *testing.T) {
 	want := []int{1, 0, 0, 0, 99}
-	got, err := Split(examples[0].in)
+	got, err := Split(day2Examples[0].in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestDay2Split(t *testing.T) {
 }
 
 func TestDay2Part1Examples(t *testing.T) {
-	for _, tt := range examples {
+	for _, tt := range day2Examples {
 		id := fmt.Sprintf("Runs(%s)", tt.in)
 		t.Run(id, func(t *testing.T) {
 			want := tt.out
