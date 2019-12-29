@@ -63,3 +63,28 @@ func TestSize(t *testing.T) {
 		t.Fatalf("want height %d but got %d", wantY, gotY)
 	}
 }
+
+func TestDay3Part1(t *testing.T) {
+	lines, err := Lines("testdata/day3.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := 248
+	got, err := Day3(lines)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func BenchmarkDay3Part1(b *testing.B) {
+	lines, err := Lines("testdata/day3.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		Day3(lines)
+	}
+}
