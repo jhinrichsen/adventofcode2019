@@ -8,12 +8,17 @@ import (
 	"strings"
 )
 
+// Direction type
 type Direction int
 
 const (
+	// Up represents 'U'
 	Up Direction = iota
+	// Right represents 'R'
 	Right
+	// Down represents 'D'
 	Down
+	// Left represents 'L'
 	Left
 )
 
@@ -77,7 +82,8 @@ func MinimalDistance(b [][]uint) int {
 			// More than one bit set?
 			if bits.OnesCount(b[y][x]) > 1 {
 				manhattanDistance := abs(x-centerX) + abs(y-centerY)
-				if manhattanDistance < min {
+				// ignore center spot itself
+				if manhattanDistance > 0 && manhattanDistance < min {
 					min = manhattanDistance
 				}
 			}
