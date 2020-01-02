@@ -34,47 +34,48 @@ const (
 
 // Day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,
 // output, parameter mode and immediate mode.
-func Day5(ic IntCode, input <-chan int, output chan<- int) {
-	load := func(pc int, mode ParameterMode) int {
+func Day5(program IntCode, input <-chan int, output chan<- int) {
+	load := func(ip int, mode ParameterMode) int {
 		if mode == ImmediateMode {
-			return ic[pc]
+			return program[ip]
 		}
-		return ic[ic[pc]]
+		return program[program[ip]]
 	}
-	store := func(pc int, n int) {
-		ic[ic[pc]] = n
+	store := func(ip int, n int) {
+		program[program[ip]] = n
 	}
-	pc := 0
+	// instruction pointer, aka program counter
+	ip := 0
 	halt := false
 	for !halt {
 		instruction := make([]byte, 5)
-		DigitsInto(ic[pc], instruction)
+		DigitsInto(program[ip], instruction)
 		opcode := 10*instruction[3] + instruction[4]
 		mode2 := ParameterMode(instruction[1])
 		mode1 := ParameterMode(instruction[2])
 		switch opcode {
 		case OpcodeAdd:
-			v := load(pc+1, mode1) + load(pc+2, mode2)
-			store(pc+3, v)
-			pc += 4
+			v := load(ip+1, mode1) + load(ip+2, mode2)
+			store(ip+3, v)
+			ip += 4
 		case OpcodeMul:
-			v := load(pc+1, mode1) * load(pc+2, mode2)
-			store(pc+3, v)
-			pc += 4
+			v := load(ip+1, mode1) * load(ip+2, mode2)
+			store(ip+3, v)
+			ip += 4
 		case Input:
-			adr := ic[pc+1]
+			adr := program[ip+1]
 			val := <-input
-			ic[adr] = val
-			pc += 2
+			program[adr] = val
+			ip += 2
 		case Output:
-			val := load(pc+1, mode1)
+			val := load(ip+1, mode1)
 			output <- val
-			pc += 2
+			ip += 2
 		case OpcodeRet:
 			halt = true
 		default:
 			panic(fmt.Sprintf("unknown opcode %d at position %d",
-				ic[pc], pc))
+				program[ip], ip))
 		}
 	}
 	close(output)
