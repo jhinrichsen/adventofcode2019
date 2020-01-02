@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	// ADD opcode
-	ADD = 1
-	// MUL opcode
-	MUL = 2
-	// RET / HALT/ EXIT opcode
-	RET = 99
+	// OpcodeAdd adds parameter
+	OpcodeAdd = 1
+	// OpcodeMul multiplies parameter
+	OpcodeMul = 2
+	// OpcodeRet halts the program
+	OpcodeRet = 99
 )
 
 // Len calculates them maximum index into an array, i.e. the len of an array
@@ -52,12 +52,12 @@ func ToString(opcodes []int) string {
 // Run executes opcodes
 func Run(opcodes []int) ([]int, error) {
 	pc := 0
-	for opcodes[pc] != RET {
+	for opcodes[pc] != OpcodeRet {
 		switch opcodes[pc] {
-		case ADD:
+		case OpcodeAdd:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] + opcodes[opcodes[pc+2]]
 			pc += 4
-		case MUL:
+		case OpcodeMul:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] * opcodes[opcodes[pc+2]]
 			pc += 4
 		}

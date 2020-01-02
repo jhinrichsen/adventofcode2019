@@ -1,18 +1,9 @@
 package adventofcode2019
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 )
-
-var digitExamples = []struct {
-	in  int
-	out []byte
-}{
-	{Lower, []byte{1, 3, 6, 8, 1, 8}},
-	{Upper, []byte{6, 8, 5, 9, 7, 9}},
-}
 
 var day4ExamplesPart1 = []struct {
 	in  int
@@ -32,20 +23,6 @@ var day4ExamplesPart2 = []struct {
 	{111122, true},
 	{111223, true},
 	{144456, false},
-}
-
-func TestDigits(t *testing.T) {
-	for _, tt := range digitExamples {
-		id := fmt.Sprintf("%d", tt.in)
-		t.Run(id, func(t *testing.T) {
-			want := tt.out
-			got := Digits(tt.in)
-			if !bytes.Equal(want, got) {
-				t.Fatalf("%s: want %v but got %v", id,
-					want, got)
-			}
-		})
-	}
 }
 
 func TestDay4Part1Examples(t *testing.T) {

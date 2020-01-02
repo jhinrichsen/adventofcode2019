@@ -42,19 +42,6 @@ func CritIncreasing(n int, digits []byte) bool {
 	return true
 }
 
-// Digits splits n into its digits
-func Digits(n int) []byte {
-	var digits [6]byte
-	idx := len(digits) - 1
-	for n > 0 {
-		d := n % 10
-		digits[idx] = byte(d)
-		idx--
-		n /= 10
-	}
-	return digits[0:]
-}
-
 // MeetsCriteria returns true if all criteria are fulfilled for n, using short
 // circuit evaluation
 func MeetsCriteria(n int, digits []byte, crits []Criteria) bool {
