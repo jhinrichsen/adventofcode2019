@@ -13,6 +13,24 @@ const (
 
 	// Output outputs the value of its only parameter.
 	Output = 4
+
+	// JumpIfTrue sets the instruction pointer to the value from the second
+	// parameter if the first parameter is non-zero.
+	JumpIfTrue = 5
+
+	// JumpIfFalse sets the instruction pointer to the value from the second
+	// parameter if the first parameter is zero.
+	JumpIfFalse = 6
+
+	// LessThan stores 1 in the position given by the third parameter if
+	// the first parameter is less than the second parameter, otherwise
+	// it stores 0.
+	LessThan = 7
+
+	// Equals stores 1 in the position given by the third parameter if
+	// the first parameter is equal to the second parameter, otherwise
+	// it stores 0.
+	Equals = 8
 )
 
 // IntCode is both a low-level interpreted language used in bootstrapping the
@@ -31,6 +49,27 @@ const (
 	// ImmediateMode uses values directly
 	ImmediateMode = 1
 )
+
+// Boolean is a C style Boolean: false -> 0, true -> 1.
+func Boolean(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+// False returns false for 0, true otherwise.
+func False(boolean int) bool {
+	if boolean == 0 {
+		return true
+	}
+	return false
+}
+
+// True returns false for 0, true otherwise.
+func True(boolean int) bool {
+	return !False(boolean)
+}
 
 // Day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,
 // output, parameter mode and immediate mode.
@@ -51,6 +90,7 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		instruction := make([]byte, 5)
 		DigitsInto(program[ip], instruction)
 		opcode := 10*instruction[3] + instruction[4]
+		mode3 := ParameterMode(instruction[0])
 		mode2 := ParameterMode(instruction[1])
 		mode1 := ParameterMode(instruction[2])
 		switch opcode {
@@ -59,8 +99,8 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 			store(ip+3, v)
 			ip += 4
 		case OpcodeMul:
-			v := load(ip+1, mode1) * load(ip+2, mode2)
-			store(ip+3, v)
+			val := load(ip+1, mode1) * load(ip+2, mode2)
+			store(ip+3, val)
 			ip += 4
 		case Input:
 			adr := program[ip+1]
@@ -68,9 +108,41 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 			program[adr] = val
 			ip += 2
 		case Output:
-			val := load(ip+1, mode1)
+			// TODO does Output support immediate mode? seems as if no
+			val := program[ip+1]
 			output <- val
 			ip += 2
+		case JumpIfTrue:
+			p := load(ip+1, mode1)
+			if True(p) {
+				ip = load(ip+2, mode2)
+				// No IP alignment for jumps
+				continue
+			}
+			ip += 3
+		case JumpIfFalse:
+			p := load(ip+1, mode1)
+			if False(p) {
+				ip = load(ip+2, mode2)
+				// No IP alignment for jumps
+				continue
+			}
+			ip += 3
+		case LessThan:
+			p1 := load(ip+1, mode1)
+			p2 := load(ip+2, mode2)
+			p3 := load(ip+3, mode3)
+			val := Boolean(p1 < p2)
+			program[p3] = val
+			ip += 4
+		case Equals:
+			p1 := load(ip+1, mode1)
+			p2 := load(ip+2, mode2)
+			p3 := load(ip+3, mode3)
+			val := Boolean(p1 == p2)
+			program[p3] = val
+			ip += 4
+
 		case OpcodeRet:
 			halt = true
 		default:
