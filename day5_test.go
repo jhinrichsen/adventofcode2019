@@ -1,10 +1,5 @@
 package adventofcode2019
 
-import (
-	"fmt"
-	"testing"
-)
-
 var day5Part1Examples = []struct {
 	in, out string
 }{
@@ -68,6 +63,7 @@ var day5Part2Examples = []struct {
 	{day5Part2LargeExample, 1000, 1001, "1000 < 8: 999, == 8: 1000, > 8: 1001"},
 }
 
+/* TODO
 func TestDay5Part1Examples(t *testing.T) {
 	for _, tt := range day5Part1Examples {
 		id := fmt.Sprintf("Day5(%s)", tt.in)
@@ -161,3 +157,4 @@ func TestDay5Part2(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+*/
