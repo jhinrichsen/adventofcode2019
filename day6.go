@@ -44,15 +44,20 @@ func NewDay6(ss []string) (Day6, error) {
 	return d, nil
 }
 
+func (a Day6) Orbit(object string) string {
+	for k, v := range a.orbiters {
+		if _, ok := v[object]; ok {
+			return k
+		}
+	}
+	return ""
+}
+
 func (a Day6) OrbitCount(object string) int {
 	n := 0
 	for object != COM {
-		for k, v := range a.orbiters {
-			if _, ok := v[object]; ok {
-				object = k
-				n++
-			}
-		}
+		object = a.Orbit(object)
+		n++
 	}
 	return n
 }
@@ -64,4 +69,29 @@ func (a Day6) OrbitCountChecksum() int {
 		sum += n
 	}
 	return sum
+}
+
+func (a Day6) CommonOrbit(object1, object2 string) string {
+	// align both objects to same orbit distance
+	for a.OrbitCount(object1) > a.OrbitCount(object2) {
+		object1 = a.Orbit(object1)
+	}
+	for a.OrbitCount(object2) > a.OrbitCount(object1) {
+		object2 = a.Orbit(object2)
+	}
+	for object1 != COM && object2 != COM {
+		if object1 == object2 {
+			return object1
+		}
+		object1 = a.Orbit(object1)
+		object2 = a.Orbit(object2)
+	}
+	return COM
+}
+
+// Between the objects they are orbiting - not between YOU and SAN.
+func (a Day6) Transfers(object1, object2 string) int {
+	c := a.CommonOrbit(object1, object2)
+	nc := a.OrbitCount(c)
+	return (a.OrbitCount(object1) - 1 - nc) + (a.OrbitCount(object2) - 1 - nc)
 }
