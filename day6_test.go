@@ -164,3 +164,13 @@ func TestDay6Part2(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay6Part2(b *testing.B) {
+	d, err := day6FromFile("testdata/day6.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		d.Transfers("YOU", "SAN")
+	}
+}
