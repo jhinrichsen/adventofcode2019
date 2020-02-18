@@ -8,17 +8,13 @@ import (
 // Center of Mass
 const COM = "COM"
 
-type Objects map[string]bool
-
 type Day6 struct {
-	orbiters map[string]Objects
-	objects  Objects
+	orbits map[string]string
 }
 
 func NewDay6(ss []string) (Day6, error) {
 	d := Day6{
-		objects:  make(map[string]bool, 2*len(ss)),
-		orbiters: make(map[string]Objects),
+		orbits: make(map[string]string, len(ss)),
 	}
 	for i, s := range ss {
 		parts := strings.Split(s, ")")
@@ -27,30 +23,13 @@ func NewDay6(ss []string) (Day6, error) {
 		}
 
 		// Save object
-		d.objects[parts[0]] = true
-		d.objects[parts[1]] = true
-
-		// Its orbiter
-		if os, ok := d.orbiters[parts[0]]; ok {
-			// add orbiter to existing entry
-			os[parts[1]] = true
-		} else {
-			// add new orbit
-			os := make(Objects)
-			os[parts[1]] = true
-			d.orbiters[parts[0]] = os
-		}
+		d.orbits[parts[1]] = parts[0]
 	}
 	return d, nil
 }
 
 func (a Day6) Orbit(object string) string {
-	for k, v := range a.orbiters {
-		if _, ok := v[object]; ok {
-			return k
-		}
-	}
-	return ""
+	return a.orbits[object]
 }
 
 func (a Day6) OrbitCount(object string) int {
@@ -64,7 +43,7 @@ func (a Day6) OrbitCount(object string) int {
 
 func (a Day6) OrbitCountChecksum() int {
 	sum := 0
-	for object := range a.objects {
+	for object := range a.orbits {
 		n := a.OrbitCount(object)
 		sum += n
 	}
