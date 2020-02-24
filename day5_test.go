@@ -211,3 +211,20 @@ func TestDay5Part2(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay5Part2(b *testing.B) {
+	lines, err := Lines("testdata/day5.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	master := MustSplit(lines[0])
+	for i := 0; i < b.N; i++ {
+		// Run each step in its own copy
+		prog := make(IntCode, len(master))
+		copy(prog, master)
+		in, out := channels()
+		go Day5(prog, in, out)
+		in <- ThermalRadiatorController
+		<-out
+	}
+}
