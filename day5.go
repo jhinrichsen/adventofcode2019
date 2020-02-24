@@ -90,7 +90,7 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		instruction := make([]byte, 5)
 		DigitsInto(program[ip], instruction)
 		opcode := 10*instruction[3] + instruction[4]
-		mode3 := ParameterMode(instruction[0])
+		// mode3 := ParameterMode(instruction[0])
 		mode2 := ParameterMode(instruction[1])
 		mode1 := ParameterMode(instruction[2])
 		switch opcode {
@@ -108,8 +108,7 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 			program[adr] = val
 			ip += 2
 		case Output:
-			// TODO does Output support immediate mode? seems as if no
-			val := program[ip+1]
+			val := load(ip+1, mode1)
 			output <- val
 			ip += 2
 		case JumpIfTrue:
@@ -131,14 +130,14 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		case LessThan:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			p3 := load(ip+3, mode3)
+			p3 := load(ip+3, ImmediateMode)
 			val := Boolean(p1 < p2)
 			program[p3] = val
 			ip += 4
 		case Equals:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			p3 := load(ip+3, mode3)
+			p3 := load(ip+3, ImmediateMode)
 			val := Boolean(p1 == p2)
 			program[p3] = val
 			ip += 4
