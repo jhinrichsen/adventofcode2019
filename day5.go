@@ -75,32 +75,27 @@ func True(boolean int) bool {
 // output, parameter mode and immediate mode.
 func Day5(program IntCode, input <-chan int, output chan<- int) {
 	load := func(ip int, mode ParameterMode) int {
-		if mode == ImmediateMode {
-			return program[ip]
+		// assume immediate mode
+		val := program[ip]
+		if mode == PositionMode {
+			// nope, one more indirection
+			val = program[val]
 		}
-		return program[program[ip]]
-	}
-	store := func(ip int, n int) {
-		program[program[ip]] = n
+		return val
 	}
 	// instruction pointer, aka program counter
 	ip := 0
 	halt := false
 	for !halt {
-		instruction := make([]byte, 5)
-		DigitsInto(program[ip], instruction)
-		opcode := 10*instruction[3] + instruction[4]
-		// mode3 := ParameterMode(instruction[0])
-		mode2 := ParameterMode(instruction[1])
-		mode1 := ParameterMode(instruction[2])
+		opcode, mode1, mode2 := instruction(program[ip])
 		switch opcode {
 		case OpcodeAdd:
-			v := load(ip+1, mode1) + load(ip+2, mode2)
-			store(ip+3, v)
+			val := load(ip+1, mode1) + load(ip+2, mode2)
+			program[program[ip+3]] = val
 			ip += 4
 		case OpcodeMul:
 			val := load(ip+1, mode1) * load(ip+2, mode2)
-			store(ip+3, val)
+			program[program[ip+3]] = val
 			ip += 4
 		case Input:
 			adr := program[ip+1]
@@ -150,6 +145,15 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		}
 	}
 	close(output)
+}
+
+func instruction(instr int) (byte, ParameterMode, ParameterMode) {
+	var buf [5]byte
+	DigitsInto(instr, buf[:])
+	opcode := 10*buf[3] + buf[4]
+	mode2 := ParameterMode(buf[1])
+	mode1 := ParameterMode(buf[2])
+	return opcode, mode1, mode2
 }
 
 // MustSplit converts IntCode in string representation (a comma separated list
