@@ -37,6 +37,13 @@ const (
 // BCPL compiler, and a virtual language in advent of code.
 type IntCode []int
 
+// Copy provides a master copy because most programs are self modifying
+func (master IntCode) Copy() IntCode {
+	prog := make(IntCode, len(master))
+	copy(prog, master)
+	return prog
+}
+
 // IntCodeProcessor can run IntCode
 type IntCodeProcessor func(IntCode, <-chan int, chan<- int)
 
@@ -99,12 +106,15 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 			ip += 4
 		case Input:
 			adr := program[ip+1]
+			// fmt.Printf("proc: reading from %+v...\n", input)
 			val := <-input
+			// fmt.Printf("proc: read %d from %+v\n", val, input)
 			program[adr] = val
 			ip += 2
 		case Output:
 			val := load(ip+1, mode1)
 			output <- val
+			// fmt.Printf("proc: wrote %d into %+v\n", val, output)
 			ip += 2
 		case JumpIfTrue:
 			p := load(ip+1, mode1)
@@ -167,4 +177,8 @@ func MustSplit(program string) (ic IntCode) {
 		ic = append(ic, n)
 	}
 	return
+}
+
+func channels() (chan int, chan int) {
+	return make(chan int), make(chan int)
 }

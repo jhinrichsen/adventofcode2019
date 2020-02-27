@@ -86,10 +86,6 @@ func TestDay5Part1Examples(t *testing.T) {
 	}
 }
 
-func channels() (chan int, chan int) {
-	return make(chan int), make(chan int)
-}
-
 func TestDay5Part1(t *testing.T) {
 	want := 16225258
 	in, out := channels()
@@ -219,11 +215,9 @@ func BenchmarkDay5Part2(b *testing.B) {
 	}
 	master := MustSplit(lines[0])
 	for i := 0; i < b.N; i++ {
-		// Run each step in its own copy
-		prog := make(IntCode, len(master))
-		copy(prog, master)
 		in, out := channels()
-		go Day5(prog, in, out)
+		// Run each step in its own copy
+		go Day5(master.Copy(), in, out)
 		in <- ThermalRadiatorController
 		<-out
 	}
