@@ -56,3 +56,14 @@ func TestDay7Part1(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay7Part1(b *testing.B) {
+	buf, err := ioutil.ReadFile("testdata/day7.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	prog := MustSplit(string(buf))
+	for i := 0; i < b.N; i++ {
+		Day7Part1(prog, "01234")
+	}
+}
