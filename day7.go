@@ -87,3 +87,26 @@ func fac(n int) int {
 	}
 	return f
 }
+
+func Day7Part2(prog IntCode, phases string) int {
+	max := 0
+	perms := permutations(phases)
+	for perm := range perms {
+		// convert "0" -> 0, "1" -> 1, ...
+		buf := []byte(perm)
+		for i := 0; i < len(buf); i++ {
+			buf[i] -= '0'
+		}
+		in, out := amps(prog, buf)
+		in <- 0
+
+		// feedback loop
+		for n := range out {
+			if n > max {
+				max = n
+			}
+			in <- n
+		}
+	}
+	return max
+}

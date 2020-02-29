@@ -25,8 +25,9 @@ var day7Part1Examples = []struct {
 }
 
 func TestDay7Part1Examples(t *testing.T) {
-	for _, tt := range day7Part1Examples {
-		id := fmt.Sprintf("Day7(%s, %s)", "prog1", tt.phases)
+	for i, tt := range day7Part1Examples {
+		s := fmt.Sprintf("prog%d", i)
+		id := fmt.Sprintf("Day7Part1(%s, %s)", s, tt.phases)
 		t.Run(id, func(t *testing.T) {
 			got := Day7Part1(MustSplit(tt.prog), tt.phases)
 			if tt.want != got {
@@ -65,5 +66,48 @@ func BenchmarkDay7Part1(b *testing.B) {
 	prog := MustSplit(string(buf))
 	for i := 0; i < b.N; i++ {
 		Day7Part1(prog, "01234")
+	}
+}
+
+const (
+	prog4 = "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001," +
+		"28,-1,28,1005,28,6,99,0,0,5"
+	prog5 = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26," +
+		"1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1," +
+		"55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
+)
+
+var day7Part2Examples = []struct {
+	phases string
+	prog   string
+	want   int
+}{
+	{"98765", prog4, 139629729},
+	{"97856", prog5, 18216},
+}
+
+func TestDay7Part2Examples(t *testing.T) {
+	for i, tt := range day7Part2Examples {
+		s := fmt.Sprintf("prog%d", i)
+		id := fmt.Sprintf("Day7Part2(%s, %s)", s, tt.phases)
+		t.Run(id, func(t *testing.T) {
+			got := Day7Part2(MustSplit(tt.prog), tt.phases)
+			if tt.want != got {
+				t.Fatalf("%s: want %d but got %d", id,
+					tt.want, got)
+			}
+		})
+	}
+}
+
+func TestDay7Part2(t *testing.T) {
+	buf, err := ioutil.ReadFile("testdata/day7.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := 8271623
+	got := Day7Part2(MustSplit(string(buf)), "56789")
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
 }
