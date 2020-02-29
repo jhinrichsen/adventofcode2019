@@ -180,5 +180,5 @@ func MustSplit(program string) (ic IntCode) {
 }
 
 func channels() (chan int, chan int) {
-	return make(chan int), make(chan int)
+	return make(chan int, 2), make(chan int, 2)
 }
