@@ -6,5 +6,6 @@ stages:
 test-job:
     stage: test
     script:
+      - go version
       - go test -bench=. -cover
     coverage: '/coverage: \d+\.\d+%/'
