@@ -64,3 +64,17 @@ func TestDay8Part2(t *testing.T) {
 	}
 	fmt.Println()
 }
+
+func BenchmarkDay8Part2(b *testing.B) {
+	filename := "testdata/day8.txt"
+	digits, err := ioutil.ReadFile(filename)
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		_, err := Day8Part2(digits)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
