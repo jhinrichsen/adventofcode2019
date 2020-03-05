@@ -88,6 +88,7 @@ func fac(n int) int {
 	return f
 }
 
+// Day7Part2 returns the maximum thrust for a feedback loop.
 func Day7Part2(prog IntCode, phases string) int {
 	max := 0
 	perms := permutations(phases)
