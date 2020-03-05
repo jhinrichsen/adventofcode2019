@@ -31,6 +31,9 @@ const (
 	// the first parameter is equal to the second parameter, otherwise
 	// it stores 0.
 	Equals = 8
+
+	// AdjustRelBase changes the relative base
+	AdjustRelBase = 9
 )
 
 // IntCode is both a low-level interpreted language used in bootstrapping the
@@ -52,9 +55,13 @@ type ParameterMode int
 
 const (
 	// PositionMode reads memory via index
-	PositionMode = 0
+	PositionMode ParameterMode = iota
+
 	// ImmediateMode uses values directly
-	ImmediateMode = 1
+	ImmediateMode
+
+	// RelativeMode addresses via relative base
+	RelativeMode
 )
 
 // Boolean is a C style Boolean: false -> 0, true -> 1.
@@ -81,40 +88,84 @@ func True(boolean int) bool {
 // Day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,
 // output, parameter mode and immediate mode.
 func Day5(program IntCode, input <-chan int, output chan<- int) {
-	load := func(ip int, mode ParameterMode) int {
-		// assume immediate mode
-		val := program[ip]
-		if mode == PositionMode {
-			// nope, one more indirection
-			val = program[val]
-		}
-		return val
-	}
 	// instruction pointer, aka program counter
 	ip := 0
+
+	// relative position mode
+	relBase := 0
+
+	realloc := func(idx int) {
+		// day 9 extension:
+		// The computer's available memory should be much larger than
+		// the initial program. Memory beyond the initial program starts
+		// with the value 0 and can be read or written like any other
+		// memory. (It is invalid to try to access memory at a negative
+		// address, though.)
+		if idx < 0 {
+			s := fmt.Sprintf("trying to access address %d which "+
+				"is not allowed (ip=%d, relBase=%d)",
+				idx, ip, relBase)
+			panic(s)
+		}
+		if idx >= len(program) {
+			bigger := make(IntCode, idx+1)
+			copy(bigger, program)
+			program = bigger
+		}
+	}
+
+	load := func(idx int, mode ParameterMode) int {
+		// good old 6502
+		lda := func(idx int) int {
+			realloc(idx)
+			return program[idx]
+		}
+		switch mode {
+		case ImmediateMode:
+			return lda(idx)
+		case PositionMode:
+			return lda(lda(idx))
+		case RelativeMode:
+			return lda(relBase + lda(idx))
+		}
+		return -1
+	}
+
+	store := func(idx int, val int, mode ParameterMode) {
+		switch mode {
+		case ImmediateMode:
+			realloc(idx)
+			program[idx] = val
+		case PositionMode:
+			adr := program[idx]
+			realloc(adr)
+			program[adr] = val
+		case RelativeMode:
+			adr := relBase + program[idx]
+			realloc(adr)
+			program[adr] = val
+		}
+	}
+
 	halt := false
 	for !halt {
-		opcode, mode1, mode2 := instruction(program[ip])
+		opcode, mode1, mode2, mode3 := instruction(program[ip])
 		switch opcode {
 		case OpcodeAdd:
 			val := load(ip+1, mode1) + load(ip+2, mode2)
-			program[program[ip+3]] = val
+			store(ip+3, val, mode3)
 			ip += 4
 		case OpcodeMul:
 			val := load(ip+1, mode1) * load(ip+2, mode2)
-			program[program[ip+3]] = val
+			store(ip+3, val, mode3)
 			ip += 4
 		case Input:
-			adr := program[ip+1]
-			// fmt.Printf("proc: reading from %+v...\n", input)
 			val := <-input
-			// fmt.Printf("proc: read %d from %+v\n", val, input)
-			program[adr] = val
+			store(ip+1, val, mode1)
 			ip += 2
 		case Output:
 			val := load(ip+1, mode1)
 			output <- val
-			// fmt.Printf("proc: wrote %d into %+v\n", val, output)
 			ip += 2
 		case JumpIfTrue:
 			p := load(ip+1, mode1)
@@ -135,18 +186,19 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		case LessThan:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			p3 := load(ip+3, ImmediateMode)
 			val := Boolean(p1 < p2)
-			program[p3] = val
+			store(ip+3, val, mode3)
 			ip += 4
 		case Equals:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			p3 := load(ip+3, ImmediateMode)
 			val := Boolean(p1 == p2)
-			program[p3] = val
+			store(ip+3, val, mode3)
 			ip += 4
-
+		case AdjustRelBase:
+			p1 := load(ip+1, mode1)
+			relBase += p1
+			ip += 2
 		case OpcodeRet:
 			halt = true
 		default:
@@ -157,13 +209,14 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 	close(output)
 }
 
-func instruction(instr int) (byte, ParameterMode, ParameterMode) {
+func instruction(instr int) (byte, ParameterMode, ParameterMode, ParameterMode) {
 	var buf [5]byte
 	DigitsInto(instr, buf[:])
 	opcode := 10*buf[3] + buf[4]
+	mode3 := ParameterMode(buf[0])
 	mode2 := ParameterMode(buf[1])
 	mode1 := ParameterMode(buf[2])
-	return opcode, mode1, mode2
+	return opcode, mode1, mode2, mode3
 }
 
 // MustSplit converts IntCode in string representation (a comma separated list
