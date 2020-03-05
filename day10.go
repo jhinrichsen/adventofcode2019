@@ -12,27 +12,36 @@ type Asteroid struct {
 
 // NewDay10 parses newline separated strings into a Day 10 struct.
 func NewDay10(asteroids []byte) Day10 {
-	isAsteroid := func (b byte) bool {
+	isAsteroid := func(b byte) bool {
 		return b == '#'
 	}
-	isEmpty := func (b byte) bool {
+	isEmpty := func(b byte) bool {
 		return b == '.'
 	}
-	isNewline := func (b byte) bool {
+	isNewline := func(b byte) bool {
 		return b == '\n'
 	}
+	isWhitespace := func(b byte) bool {
+		return !(isAsteroid(b) || isEmpty(b))
+	}
 
+	// overread any leading whitespace
+	start := 0
+	for isWhitespace(asteroids[start]) {
+		start++
+	}
 	var d Day10
 	y := 0
 	x := 0
-	for i := range asteroids {
-		b := asteroids[i]
+	for _, b := range asteroids[start:] {
 		if isEmpty(b) {
 			x++
 		} else if isNewline(b) {
+			x = 0
 			y++
 		} else if isAsteroid(b) {
 			d.asteroids = append(d.asteroids, Asteroid{x, y})
+			x++
 		} else {
 			// whitespace, ignore
 		}
