@@ -75,3 +75,18 @@ func TestDay9Part1(t *testing.T) {
 		t.Fatalf("want %d, got %d", want, got)
 	}
 }
+
+func BenchmarkDay9Part1(b *testing.B) {
+	buf, err := ioutil.ReadFile("testdata/day9.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	prog := MustSplit(string(buf))
+	for i := 0; i < b.N; i++ {
+		in, out := channels()
+		in <- 1
+		var proc IntCodeProcessor = Day5
+		go proc(prog, in, out)
+		<-out
+	}
+}
