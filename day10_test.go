@@ -3,17 +3,8 @@ package adventofcode2019
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"testing"
 )
-
-func TestPolar(t *testing.T) {
-	r, φ := Polar(1, 1)
-	log.Printf("(%d,%d) -> r=%v,=%v\n", 1, 1, r, φ)
-	r, φ = Polar(1, -1)
-	r, φ = Polar(-1, -1)
-	r, φ = Polar(-1, 1)
-}
 
 const (
 	day10Example1 = `
@@ -94,7 +85,7 @@ func TestExample1(t *testing.T) {
 	if len(d.asteroids) != 10 {
 		t.Fatalf("want 10 but got %d", len(d.asteroids))
 	}
-	second := Asteroid{4, 0}
+	second := 4 + 0i
 	if d.asteroids[1] != second {
 		t.Fatalf("expected asteroid %+v at index 1, got %+v",
 			second, d.asteroids[1])
@@ -107,11 +98,11 @@ var day10Examples = []struct {
 	best        Asteroid
 	bestCount   int
 }{
-	{day10Example1, Asteroid{3, 4}, 8},
-	{day10Example2, Asteroid{5, 8}, 33},
-	{day10Example3, Asteroid{1, 2}, 35},
-	{day10Example4, Asteroid{6, 3}, 41},
-	{day10Example5, Asteroid{11, 13}, 210},
+	{day10Example1, 3 + 4i, 8},
+	{day10Example2, 5 + 8i, 33},
+	{day10Example3, 1 + 2i, 35},
+	{day10Example4, 6 + 3i, 41},
+	{day10Example5, 11 + 13i, 210},
 }
 
 func TestDay10Examples(t *testing.T) {
@@ -119,13 +110,14 @@ func TestDay10Examples(t *testing.T) {
 		id := fmt.Sprintf("Day10Part1 example #%d", i+1)
 		t.Run(id, func(t *testing.T) {
 			d := NewDay10([]byte(tt.asteroidMap))
+			wantA, want := tt.best, tt.bestCount
 			gotA, got := d.Best()
 			if tt.best != gotA {
-				t.Fatalf("%d: want %+v but got %+v",
-					tt.best.x, tt.best.y, gotA)
+				t.Fatalf("%s: want %+v but got %+v",
+					id, wantA, gotA)
 			}
-			if tt.bestCount != got {
-				t.Fatalf("want %d but got %d", tt.bestCount, got)
+			if want != got {
+				t.Fatalf("want %d but got %d", want, got)
 			}
 		})
 	}

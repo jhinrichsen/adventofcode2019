@@ -1,44 +1,14 @@
 package adventofcode2019
 
-import (
-	"math"
-)
-
-// Polar converts cartesian into polar coordinates
-// https://de.wikipedia.org/wiki/Polarkoordinaten#Umrechnung_von_kartesischen_Koordinaten_in_Polarkoordinaten
-func Polar(x, y int) (float64, float64) {
-	r := math.Sqrt(float64(x*x + y*y))
-	fx := float64(x)
-	fy := float64(y)
-	var φ float64
-
-	if x > 0 && y >= 0 {
-		φ = math.Atan(fy / fx)
-	} else if x > 0 && y < 0 {
-		φ = math.Atan(fy/fx) + 2*math.Pi
-	} else if x < 0 {
-		φ = math.Atan(fy/fx) + math.Pi
-	} else if x == 0 && y > 0 {
-		φ = math.Pi / 2
-	} else /* x == 0 && y < 0 */ {
-		φ = 3 * math.Pi / 2
-	}
-	return r, φ
-}
-
-// Day10 holds a cartesian map of asteroids.
-type Day10 struct {
-	asteroids []Asteroid
-}
+import "math/cmplx"
 
 // An Asteroid is identified by a dimensionless (x/y) position in a 2D space.
-type Asteroid struct {
-	x, y int
-}
+// Using a type _alias_ here to avoid casting
+type Asteroid = complex128
 
-// Distance returns the cartesian distance (dx, dy) from a to a2.
-func (a Asteroid) Distance(a2 Asteroid) (int, int) {
-	return a2.x - a.x, a2.y - a.y
+// Day10 holds asteroids.
+type Day10 struct {
+	asteroids []Asteroid
 }
 
 // NewDay10 parses newline separated strings into a Day 10 struct.
@@ -71,7 +41,8 @@ func NewDay10(asteroids []byte) Day10 {
 			x = 0
 			y++
 		} else if isAsteroid(b) {
-			d.asteroids = append(d.asteroids, Asteroid{x, y})
+			a := complex(float64(x), float64(y))
+			d.asteroids = append(d.asteroids, a)
 			x++
 		} else {
 			// whitespace, ignore
@@ -85,26 +56,26 @@ func NewDay10(asteroids []byte) Day10 {
 func (a Day10) Best() (Asteroid, int) {
 	var best Asteroid
 	var maxVisible int
-	// convert relative distance (dx/dy) into (phi, len)
 	for i := range a.asteroids {
-		// map of angles and one corresopnding min distance
-		visible := make(map[float64]float64, len(a.asteroids))
+		// map of angles
+		visible := make(map[float64]Asteroid, len(a.asteroids))
 		for j := range a.asteroids {
 			// skip ourself
 			if i == j {
 				continue
 			}
-			r, φ := Polar(a.asteroids[i].Distance(a.asteroids[j]))
+			rel := a.asteroids[j] - a.asteroids[i]
+			r, φ := cmplx.Polar(rel)
 			// already an asteroid at same angle?
-			if l, ok := visible[φ]; ok {
-				// are we closer?
-				if r < l {
+			if a, ok := visible[φ]; ok {
+				// is it closer?
+				if r < cmplx.Abs(a) {
 					// yes, make us visible, hide other
-					visible[φ] = r
+					visible[φ] = a
 				}
 			} else {
 				// no, just save us
-				visible[φ] = r
+				visible[φ] = rel
 			}
 		}
 		// found a better planet?
