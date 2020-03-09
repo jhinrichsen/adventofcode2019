@@ -111,7 +111,7 @@ func TestDay10Examples(t *testing.T) {
 		t.Run(id, func(t *testing.T) {
 			d := NewDay10([]byte(tt.asteroidMap))
 			wantA, want := tt.best, tt.bestCount
-			gotA, got := d.Best()
+			gotA, got := d.Part1()
 			if tt.best != gotA {
 				t.Fatalf("%s: want %+v but got %+v",
 					id, wantA, gotA)
@@ -134,7 +134,7 @@ func TestDay10Part1(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := 267
-	_, got := d.Best()
+	_, got := d.Part1()
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
@@ -151,6 +151,6 @@ func BenchmarkDay10Part1(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		d.Best()
+		d.Part1()
 	}
 }

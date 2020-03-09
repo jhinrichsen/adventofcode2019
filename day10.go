@@ -51,9 +51,9 @@ func NewDay10(asteroids []byte) Day10 {
 	return d
 }
 
-// Best returns the asteroid that can see most asteroids, and the number of
+// Part1 returns the asteroid that can see most asteroids, and the number of
 // visible asteroids.
-func (a Day10) Best() (Asteroid, int) {
+func (a Day10) Part1() (Asteroid, int) {
 	var best Asteroid
 	var maxVisible int
 	for i := range a.asteroids {
