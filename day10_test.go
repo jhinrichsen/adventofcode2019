@@ -105,7 +105,7 @@ var day10Examples = []struct {
 	{day10Example5, 11 + 13i, 210},
 }
 
-func TestDay10Examples(t *testing.T) {
+func TestDay10Part1Examples(t *testing.T) {
 	for i, tt := range day10Examples {
 		id := fmt.Sprintf("Day10Part1 example #%d", i+1)
 		t.Run(id, func(t *testing.T) {
