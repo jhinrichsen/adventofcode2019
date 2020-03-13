@@ -77,6 +77,14 @@ const (
 	#.#.#.#####.####.###
 	###.##.####.##.#..##
 	`
+
+	day10Part2Example1 = `
+	.#....#####...#..
+	##...##.#####..##
+	##...#...#.#####.
+	..#.....X...###..
+	..#.#.....#....##
+	`
 )
 
 var day10Examples = []struct {
@@ -92,16 +100,16 @@ var day10Examples = []struct {
 }
 
 func TestDay10Example1(t *testing.T) {
-	d := NewDay10([]byte(day10Example1))
+	as := ParseAsteroidMap([]byte(day10Example1))
 
 	// Check number of asteroids
-	if len(d.asteroids) != 10 {
-		t.Fatalf("want 10 but got %d", len(d.asteroids))
+	if len(as) != 10 {
+		t.Fatalf("want 10 but got %d", len(as))
 	}
 	second := 4 + 0i
-	if d.asteroids[1] != second {
+	if as[1] != second {
 		t.Fatalf("expected asteroid %+v at index 1, got %+v",
-			second, d.asteroids[1])
+			second, as[1])
 
 	}
 }
@@ -110,9 +118,9 @@ func TestDay10Part1Examples(t *testing.T) {
 	for i, tt := range day10Examples {
 		id := fmt.Sprintf("Day10Part1 example #%d", i+1)
 		t.Run(id, func(t *testing.T) {
-			d := NewDay10([]byte(tt.asteroidMap))
+			as := ParseAsteroidMap([]byte(tt.asteroidMap))
 			wantA, want := tt.best, tt.bestCount
-			gotA, got := d.Part1()
+			gotA, got := Day10Part1(as)
 			if tt.best != gotA {
 				t.Fatalf("%s: want %+v but got %+v",
 					id, wantA, gotA)
@@ -130,12 +138,12 @@ func TestDay10Part1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	d := NewDay10(buf)
+	as := ParseAsteroidMap(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
 	want := 267
-	_, got := d.Part1()
+	_, got := Day10Part1(as)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
@@ -147,43 +155,101 @@ func BenchmarkDay10Part1(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	d := NewDay10(buf)
+	as := ParseAsteroidMap(buf)
 	if err != nil {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		d.Part1()
-	}
-}
-
-func TestDay10FindUpIndex(t *testing.T) {
-	ex := day10Examples[4]
-	first := func() Asteroid {
-		d := NewDay10([]byte(ex.asteroidMap))
-		idx := d.findFirst(ex.best)
-		return d.asteroids[idx]
-	}
-	want := 11 + 12i
-	got := first()
-	if want != got {
-		t.Fatalf("want %v but got %v\n", want, got)
+		Day10Part1(as)
 	}
 }
 
 func TestDay10Vaporize(t *testing.T) {
 	ex := day10Examples[4]
-	d := NewDay10([]byte(ex.asteroidMap))
-	want := []Asteroid{11 + 12i, 12 + 1i, 12 + 2i}
-	got := d.vaporize(ex.best)[0:len(want)]
-	if !reflect.DeepEqual(want, got) {
-		t.Fatalf("want %v but got %v\n", want, got)
+	as := ParseAsteroidMap([]byte(ex.asteroidMap))
+	got := center(vaporize(byPhase(center(as, ex.best))), -ex.best)
+
+	wants := make(map[int]Asteroid)
+	// The 1st asteroid to be vaporized is at 11,12
+	wants[1-1] = 11 + 12i
+	wants[2-1] = 12 + 1i
+	wants[3-1] = 12 + 2i
+	wants[10-1] = 12 + 8i
+	wants[20-1] = 16 + 0i
+	wants[50-1] = 16 + 9i
+	wants[100-1] = 10 + 16i
+	wants[199-1] = 9 + 6i
+	wants[200-1] = 8 + 2i
+	wants[201-1] = 10 + 9i
+	wants[299-1] = 11 + 1i
+	for k := range wants {
+		if wants[k] != got[k] {
+			t.Fatalf("want asteroid[%d] == %v but got %v", k,
+				wants[k], got[k])
+		}
+	}
+	if got[10-1] != 12+8i {
+		t.Fatalf("want %v but got %v", got[10-1], 12+8i)
 	}
 }
-func TestDay10Part2Example(t *testing.T) {
+
+func TestDay10Part2Example1(t *testing.T) {
+	want := []Asteroid{
+		8 + 1i,
+		9 + 0i,
+		9 + 1i,
+		10 + 0i,
+		9 + 2i,
+		11 + 1i,
+		12 + 1i,
+		11 + 2i,
+		15 + 1i,
+	}
+	as := ParseAsteroidMap([]byte(day10Part2Example1))
+	base := 8 + 3i
+	as = center(as, base)
+	pgs := byPhase(as)
+
+	Δ := len(as) - countAsteroids(pgs)
+	if Δ != 0 {
+		t.Fatalf("byPhase() lost %d asteroids", Δ)
+	}
+
+	got := vaporize(pgs)
+	got = center(got, -base)
+
+	// make sure no asteroids got lost
+	Δ = len(as) - len(got)
+	if Δ != 0 {
+		t.Fatalf("vaporize() lost %d asteroids", Δ)
+	}
+
+	// check the first N known vaporized planets
+	if !reflect.DeepEqual(want, got[:len(want)]) {
+		t.Fatalf("want %+v but got %+v", want, got[:len(want)])
+	}
+}
+
+func TestDay10Part2Example2(t *testing.T) {
+	want := 802
 	ex := day10Examples[4]
-	d := NewDay10([]byte(ex.asteroidMap))
-	want := 508
-	got := d.Part2(ex.best)
+	as := ParseAsteroidMap([]byte(ex.asteroidMap))
+	got := Day10Part2(as, ex.best)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func TestDay10Part2(t *testing.T) {
+	want := 1309
+	filename := "testdata/day10.txt"
+	buf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	as := ParseAsteroidMap(buf)
+	best, _ := Day10Part1(as)
+	got := Day10Part2(as, best)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
