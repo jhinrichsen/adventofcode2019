@@ -1,9 +1,20 @@
 package adventofcode2019
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 )
+
+func TestDay11Pbm(t *testing.T) {
+	buf, err := ioutil.ReadFile("testdata/day11.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := registrationIdentifier(MustSplit(string(buf)))
+	fmt.Fprintln(os.Stdout, string(got.pbm()))
+}
 
 func TestDay11Part1(t *testing.T) {
 	buf, err := ioutil.ReadFile("testdata/day11.txt")
