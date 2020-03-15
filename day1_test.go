@@ -30,8 +30,7 @@ func TestDay1Part1Examples(t *testing.T) {
 }
 
 func TestDay1Part1(t *testing.T) {
-	filename := "testdata/day1.txt"
-	lines, err := Lines(filename)
+	lines, err := InputLines(1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,8 +68,7 @@ func TestDay1Part2Examples(t *testing.T) {
 }
 
 func TestDay1Part2(t *testing.T) {
-	filename := "testdata/day1.txt"
-	lines, err := Lines(filename)
+	lines, err := InputLines(1)
 	if err != nil {
 		t.Fatal(err)
 	}
