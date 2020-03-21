@@ -67,7 +67,7 @@ func TestSize(t *testing.T) {
 }
 
 func TestDay3Part1(t *testing.T) {
-	lines, err := InputLines(3)
+	lines, err := InputLinesForDay(3)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestDay3Part1(t *testing.T) {
 }
 
 func BenchmarkDay3Part1(b *testing.B) {
-	lines, err := InputLines(3)
+	lines, err := InputLinesForDay(3)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestDay3Part2Example(t *testing.T) {
 }
 
 func TestDay3Part2(t *testing.T) {
-	lines, err := InputLines(3)
+	lines, err := InputLinesForDay(3)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +124,7 @@ func TestDay3Part2(t *testing.T) {
 }
 
 func BenchmarkDay3Part2(b *testing.B) {
-	lines, err := InputLines(3)
+	lines, err := InputLinesForDay(3)
 	if err != nil {
 		b.Fatal(err)
 	}

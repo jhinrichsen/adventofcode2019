@@ -3,6 +3,7 @@ package adventofcode2019
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,17 +11,29 @@ import (
 
 // InputFilename returns the puzzle input filename for a given day.
 func InputFilename(day int) string {
-	return filepath.Join("testdata", fmt.Sprintf("day%d.txt", day))
+	return TestdataFilename(fmt.Sprintf("day%d.txt", day))
 }
 
-// InputLines returns all lines from given filename.
-func InputLines(day int) ([]string, error) {
-	var lines []string
-	f, err := os.Open(InputFilename(day))
+func TestdataFilename(filename string) string {
+	return filepath.Join("testdata", filename)
+}
+
+// InputLinesForDay returns all lines from given filename.
+func InputLinesForDay(day int) ([]string, error) {
+	return InputLines(InputFilename(day))
+}
+
+func InputLines(filename string) ([]string, error) {
+	f, err := os.Open(filename)
 	if err != nil {
-		return lines, err
+		return []string{}, err
 	}
-	sc := bufio.NewScanner(f)
+	return Lines(f)
+}
+
+func Lines(r io.Reader) ([]string, error) {
+	var lines []string
+	sc := bufio.NewScanner(r)
 	for sc.Scan() {
 		line := sc.Text()
 		lines = append(lines, line)

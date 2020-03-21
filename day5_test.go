@@ -89,7 +89,7 @@ func TestDay5Part1Examples(t *testing.T) {
 func TestDay5Part1(t *testing.T) {
 	want := 16225258
 	in, out := channels()
-	lines, err := InputLines(5)
+	lines, err := InputLinesForDay(5)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,7 +196,7 @@ func last(t *testing.T, c chan int) int {
 func TestDay5Part2(t *testing.T) {
 	want := 2808771
 	in, out := channels()
-	lines, err := InputLines(5)
+	lines, err := InputLinesForDay(5)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,7 +209,7 @@ func TestDay5Part2(t *testing.T) {
 }
 
 func BenchmarkDay5Part2(b *testing.B) {
-	lines, err := InputLines(5)
+	lines, err := InputLinesForDay(5)
 	if err != nil {
 		b.Fatal(err)
 	}

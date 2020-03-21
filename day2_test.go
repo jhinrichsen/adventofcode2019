@@ -56,7 +56,7 @@ func TestDay2Part1Examples(t *testing.T) {
 }
 
 func TestDay2Part1(t *testing.T) {
-	lines, err := InputLines(2)
+	lines, err := InputLinesForDay(2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestDay2Part1(t *testing.T) {
 }
 
 func TestDay2Part2(t *testing.T) {
-	lines, err := InputLines(2)
+	lines, err := InputLinesForDay(2)
 	if err != nil {
 		t.Fatal(err)
 	}
