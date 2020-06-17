@@ -2,10 +2,11 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"regexp"
+	"log"
 	"strconv"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 const day12Example1Steps = 10
@@ -16,30 +17,40 @@ const day12Example1Steps = 10
 // positions on a given axis are the same, the velocity on that axis does not
 // change for that pair of moons.
 func TestDay12GanymedeCallisto(t *testing.T) {
-	v := 42
-	ganymede := moon{
-		pos: D3{3, v, 0},
+	const (
+		v        = 42
+		ganymede = 0
+		callisto = 1
+	)
+	var u universe
+
+	u.moons[X][ganymede].pos = 3
+	u.moons[Y][ganymede].pos = v
+	u.moons[Z][ganymede].pos = 0
+
+	u.moons[X][callisto].pos = 5
+	u.moons[Y][callisto].pos = v
+	u.moons[Z][callisto].pos = 0
+	for dim := 0; dim < DIMS; dim++ {
+		u.gravity(dim, ganymede, callisto)
 	}
-	callisto := moon{
-		pos: D3{5, ganymede.pos[Y], 0},
-	}
-	ganymede.gravity(&callisto)
-	if ganymede.vel[X] != 1 {
-		t.Fatalf("ganymede's X velocity: want %d but got %d",
-			0, ganymede.vel[X])
-	}
-	if callisto.vel[X] != -1 {
-		t.Fatalf("callisto's X position: want %d but got %d",
-			-1, callisto.vel[X])
+	w1 := u.moons[X][ganymede].vel
+	const g1 = 1
+	if w1 != g1 {
+		t.Fatalf("ganymede's X velocity: want %d but got %d", w1, g1)
 	}
 
-	if ganymede.vel[Y] != 0 {
-		t.Fatalf("ganymede's Y velocity: want %d but got %d",
-			0, ganymede.vel[Y])
+	if u.moons[X][callisto].vel != -1 {
+		t.Fatalf("callisto's X velocity: want %d but got %d",
+			-1, u.moons[X][callisto].vel)
 	}
-	if callisto.vel[Y] != 0 {
+	if u.moons[Y][ganymede].vel != 0 {
+		t.Fatalf("ganymede's Y velocity: want %d but got %d",
+			0, u.moons[Y][ganymede].vel)
+	}
+	if u.moons[Y][callisto].vel != 0 {
 		t.Fatalf("callisto's Y velocity: want %d but got %d",
-			0, callisto.vel[X])
+			0, u.moons[Y][callisto].vel)
 	}
 }
 
@@ -48,17 +59,22 @@ func TestDay12GanymedeCallisto(t *testing.T) {
 // y=0,z=3, then its new position would be x=-1, y=2, z=6. This process does not
 // modify the velocity of any moon.
 func TestDay12Europa(t *testing.T) {
-	want := D3{-1, 2, 6}
-	europa := moon{
-		pos: D3{1, 2, 3},
-		vel: D3{-2, 0, 3},
+	want := [DIMS]point{
+		{-1, -2},
+		{2, 0},
+		{6, 3},
 	}
-	europa.velocity()
-	got := europa.pos
+	got := [DIMS]point{
+		{1, -2},
+		{2, 0},
+		{3, 3},
+	}
+	for i := 0; i < DIMS; i++ {
+		got[i].velocity()
+	}
 	if want != got {
 		t.Fatalf("want %+v but got %+v", want, got)
 	}
-
 }
 
 func day12Example1Universe() (universe, error) {
@@ -70,11 +86,7 @@ func day12FromFile(filename string) (universe, error) {
 	if err != nil {
 		return universe{}, err
 	}
-	positions, err := ParseUsingParser(input)
-	if err != nil {
-		return universe{}, err
-	}
-	return newUniverse(positions), nil
+	return parseUsingParser(input)
 }
 
 func TestDay12Example1Timeline(t *testing.T) {
@@ -91,16 +103,14 @@ func TestDay12Example1Timeline(t *testing.T) {
 	n := day12Example1Steps + 1
 	for i := 0; i < n; i++ {
 		fmt.Fprintf(&sb, "After %d steps:\n", i)
-		for j := 0; j < len(u.moons); j++ {
-			m := u.moons[j]
-			sb.WriteString(m.String())
-			sb.WriteString("\n")
-		}
+		sb.WriteString(u.String())
 		// separating line except for the last
 		if i+1 < n {
 			sb.WriteString("\n")
 		}
-		u.step()
+		for dim := 0; dim < DIMS; dim++ {
+			u.step(dim)
+		}
 	}
 	// fmt.Fprintf(os.Stdout, "%s", sb.String())
 	gotLines, err := Lines(strings.NewReader(sb.String()))
@@ -135,19 +145,20 @@ func EnergyFromFile(filename string, steps int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	positions, err := ParseUsingParser(input)
+	u, err := parseUsingParser(input)
 	if err != nil {
 		return 0, err
 	}
-	u := newUniverse(positions)
-	for i := 0; i < steps; i++ {
-		u.step()
+	for ; steps > 0; steps-- {
+		for dim := 0; dim < DIMS; dim++ {
+			u.step(dim)
+		}
 	}
 	return u.energy(), nil
 }
 
 func TestDay12Example1Energy(t *testing.T) {
-	want := 179
+	const want = 179
 	got, err := EnergyFromFile("day12_example1_input.txt", day12Example1Steps)
 	if err != nil {
 		t.Fatal(err)
@@ -158,8 +169,8 @@ func TestDay12Example1Energy(t *testing.T) {
 }
 
 func TestDay12Example2(t *testing.T) {
-	want := 1940
-	got, err := EnergyFromFile("day12_example2.txt", 100)
+	const want = 1940
+	got, err := EnergyFromFile("day12_example2_input.txt", 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,8 +179,8 @@ func TestDay12Example2(t *testing.T) {
 	}
 }
 
-func TestDay12Part2(t *testing.T) {
-	want := 7471
+func TestDay12Part1(t *testing.T) {
+	const want = 7471
 	got, err := EnergyFromFile("day12.txt", 1000)
 	if err != nil {
 		t.Fatal(err)
@@ -184,39 +195,24 @@ func TestDay12Parse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ps, err := ParseUsingParser(lines)
+	u, err := parseUsingParser(lines)
 	if err != nil {
 		t.Fatal(err)
 	}
-	newUniverse(ps)
-}
-
-func ParseUsingRegexp(lines []string) ([]D3, error) {
-	var ps []D3
-	r := regexp.MustCompile(`^<x=([\d-]+), y=([\d-]+), z=([\d-]+)>$`)
-	for _, line := range lines {
-		ss := r.FindAllStringSubmatch(line, 3)
-		var nums [3]int
-		var err error
-		for i := 0; i < 3; i++ {
-			nums[i], err = strconv.Atoi(ss[0][i+1])
-			if err != nil {
-				return ps, err
-			}
-		}
-		ps = append(ps, D3{nums[0], nums[1], nums[2]})
+	want := 2
+	got := u.moons[2][3].pos
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	return ps, nil
 }
 
-func ParseUsingParser(lines []string) ([]D3, error) {
-	var ps []D3
+func parseUsingParser(lines []string) (universe, error) {
+	var u universe
 	isNumeric := func(c byte) bool {
 		return c == '-' || c >= '0' && c <= '9'
 	}
-	for _, line := range lines {
+	for j, line := range lines {
 		buf := []byte(line)
-		var nums D3
 		idx := 0
 		l := len(line)
 		nextNum := func() (int, error) {
@@ -229,28 +225,17 @@ func ParseUsingParser(lines []string) ([]D3, error) {
 				idx++
 			}
 			n, err := strconv.Atoi(string(buf[from:idx]))
-			return n, err
+			return int(n), err
 		}
-		for num := 0; num < len(nums); num++ {
+		for i := 0; i < DIMS; i++ {
 			var err error
-			nums[num], err = nextNum()
+			u.moons[i][j].pos, err = nextNum()
 			if err != nil {
-				return ps, err
+				return u, err
 			}
 		}
-		ps = append(ps, nums)
 	}
-	return ps, nil
-}
-
-func BenchmarkParseUsingRegexp(b *testing.B) {
-	lines, err := InputLinesForDay(12)
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		ParseUsingRegexp(lines)
-	}
+	return u, nil
 }
 
 func BenchmarkParseUsingParser(b *testing.B) {
@@ -259,34 +244,69 @@ func BenchmarkParseUsingParser(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		ParseUsingParser(lines)
+		parseUsingParser(lines)
 	}
 }
 
-func BenchmarkDay12Part2(b *testing.B) {
+func BenchmarkDay12Example2(b *testing.B) {
 	input, err := InputLines(TestdataFilename("day12.txt"))
 	if err != nil {
 		b.Fatal(err)
 	}
-	positions, err := ParseUsingParser(input)
-	if err != nil {
-		b.Fatal(err)
-	}
 	for i := 0; i < b.N; i++ {
-		u := newUniverse(positions)
+		u, err := parseUsingParser(input)
+		if err != nil {
+			b.Fatal(err)
+		}
 		for j := 0; j < 1000; j++ {
-			u.step()
+			for dim := 0; dim < DIMS; dim++ {
+				u.step(dim)
+			}
 		}
 		u.energy()
 	}
 }
 
-/*
-func TestDay12Part2Example(t *testing.T) {
+func TestDay12Part2Example1(t *testing.T) {
+	want := 2772
 	u, err := day12FromFile(TestdataFilename("day12_example1_input.txt"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	states := make(map[universe]bool)
+	got := u.cycle()
+	if want != got {
+		t.Fatalf("want %d but got %d, factor %f", want, got,
+			float64(got)/float64(want))
+	}
 }
-*/
+
+func TestDay12Part2Example2(t *testing.T) {
+	want := 4686774924
+	u, err := day12FromFile(TestdataFilename("day12_example2_input.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := u.cycle()
+	if want != got {
+		t.Fatalf("want %d but got %d, factor %f", want, got,
+			float64(got)/float64(want))
+	}
+}
+
+func TestDay12Part2(t *testing.T) {
+	want := 376243355967784
+	u, err := day12FromFile(TestdataFilename("day12.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := u.cycle()
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func TestDay12Sizeof(t *testing.T) {
+	var u universe
+	n := unsafe.Sizeof(u)
+	log.Printf("sizeof universe: %d\n", n)
+}

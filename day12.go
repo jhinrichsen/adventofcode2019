@@ -1,35 +1,37 @@
 package adventofcode2019
 
-import "fmt"
-
-// DIM has three dimensions (x, y, z)
-const (
-	X   = 0
-	Y   = 1
-	Z   = 2
-	DIM = 3
+import (
+	"fmt"
+	"strings"
 )
 
-// D3 in outer space has 3 axis. 3D is not a valid Go identifier.
-type D3 = [DIM]int
+// DIMS has three dimensions (x, y, z)
+const (
+	X     = 0
+	Y     = 1
+	Z     = 2
+	DIMS  = 3
+	MOONS = 4
+)
 
-type moon struct {
-	pos D3
-	vel D3
+type point struct {
+	pos, vel int
 }
 
-func (a moon) energy() int {
-	pot := energy(a.pos)
-	kin := energy(a.vel)
-	return pot * kin
-}
-
-func energy(d D3) int {
-	sum := 0
-	for i := 0; i < DIM; i++ {
-		sum += abs(d[i])
+func (a *point) gravity(b *point) {
+	if a.pos < b.pos {
+		a.vel++
+		b.vel--
+	} else if a.pos > b.pos {
+		a.vel--
+		b.vel++
+	} else {
+		// no change
 	}
-	return sum
+}
+
+func (a *point) velocity() {
+	a.pos += a.vel
 }
 
 func abs(n int) int {
@@ -39,90 +41,142 @@ func abs(n int) int {
 	return -n
 }
 
-// pot A moon's potential energy is the sum of the absolute values of its x, y,
-// and z position coordinates.
-func (a moon) pot() int {
-	sum := 0
-	for i := 0; i < DIM; i++ {
-		sum += abs(a.pos[i])
-	}
-	return sum
+// +---------+---------+---------+-------+
+// | moon 0  | moon 1  | moon 2  | moon 3| X
+// +---------+---------+---------+-------+
+// | moon 0  | moon 1  | moon 2  | moon 3| Y
+// +---------+---------+---------+-------+
+// | moon 0  | moon 1  | moon 2  | moon 3| Z
+// +---------+---------+---------+-------+
+type universe struct {
+	moons [3][4]point
 }
 
-// gravity changes both moons, receiver and parameter.
-func (a *moon) gravity(m2 *moon) {
-	for dim := 0; dim < DIM; dim++ {
-		if a.pos[dim] < m2.pos[dim] {
-			a.vel[dim]++
-			m2.vel[dim]--
-		} else if a.pos[dim] > m2.pos[dim] {
-			a.vel[dim]--
-			m2.vel[dim]++
-		} else {
-			// no change
+// String() returns the textual representation in format
+// pos=<x= 2, y= 2, z= 0>, vel=<x=-1, y=-3, z= 1>
+func (a universe) String() string {
+	var sb strings.Builder
+	for i := 0; i < MOONS; i++ {
+		sb.WriteString(a.moon(i))
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
+func (a universe) moon(i int) string {
+	return fmt.Sprintf("pos=<x=%2d, y=%1d, z=%2d>, "+
+		"vel=<x=%2d, y=%1d, z=%2d>",
+		a.moons[X][i].pos, a.moons[Y][i].pos, a.moons[Z][i].pos,
+		a.moons[X][i].vel, a.moons[Y][i].vel, a.moons[Z][i].vel)
+}
+
+// gravity changes velocity of two moons for one axis
+func (a *universe) gravity(d int, m1, m2 int) {
+	if a.moons[d][m1].pos < a.moons[d][m2].pos {
+		a.moons[d][m1].vel++
+		a.moons[d][m2].vel--
+	} else if a.moons[d][m1].pos > a.moons[d][m2].pos {
+		a.moons[d][m1].vel--
+		a.moons[d][m2].vel++
+	} else {
+		// no change
+	}
+}
+
+func (a universe) dimension(dim int) [4]point {
+	return [4]point{
+		a.moons[dim][0],
+		a.moons[dim][1],
+		a.moons[dim][2],
+		a.moons[dim][3],
+	}
+}
+
+// cycle returns the number of discrete steps it takes a universe to return to
+// a state it has been before, and returns 0 in case of overflow.
+// some hints suggest that x, y, and z dimension all have their own cycle, and
+// the total cycle can be deducted by multiplying (?) single cycles.
+func (a universe) cycle() int {
+	c := make(chan int, 3)
+	fn := func(dim int, c chan int) {
+		n := 0
+		history := make(map[[4]point]bool)
+		for {
+			a.step(dim)
+			n++
+			d := a.dimension(dim)
+			if _, ok := history[d]; ok {
+				n--
+				c <- n
+				break
+			}
+			history[d] = true
 		}
 	}
-}
-
-func (a *moon) velocity() {
-	for dim := 0; dim < DIM; dim++ {
-		a.pos[dim] += a.vel[dim]
+	for dim := 0; dim < DIMS; dim++ {
+		go fn(dim, c)
 	}
+	c1 := <-c
+	c2 := <-c
+	c3 := <-c
+	// Multiplying creates a number ten times too high
+	// d1 := gcd(c1, c2)
+	d2 := gcd(c2, c3)
+	d3 := gcd(c3, c1)
+	return c1 * c2 / d2 * c3 / d3
 }
 
-// String() returns the textual representation of a moon in format
-// pos=<x= 2, y= 2, z= 0>, vel=<x=-1, y=-3, z= 1>
-func (a moon) String() string {
-	rep := func(d D3) string {
-		return fmt.Sprintf("<x=%2d, y=%1d, z=%2d>", d[X], d[Y], d[Z])
+func gcd(a, b int) int {
+	if a == 0 {
+		return abs(b)
 	}
-	return fmt.Sprintf("pos=%s, vel=%s", rep(a.pos), rep(a.vel))
-}
-
-type universe struct {
-	moons []moon
-}
-
-// newUniverse creates a new universe with given positions and velocity 0 for
-// all moons.
-func newUniverse(positions []D3) universe {
-	var u universe
-	u.moons = make([]moon, len(positions))
-	for i := 0; i < len(positions); i++ {
-		u.moons[i].pos = positions[i]
-		// velocity starts at 0
+	if b == 0 {
+		return abs(a)
 	}
-	return u
+	for {
+		h := a % b
+		a = b
+		b = h
+		if b == 0 {
+			break
+		}
+	}
+	return abs(a)
 }
 
-func (a *universe) applyGravity() {
+func (a *universe) step(dim int) {
+	// apply gravity
 	//    A   B   C
 	// A      *   *
 	// B          *
 	// C
-	for i := 0; i < len(a.moons); i++ {
-		for j := i + 1; j < len(a.moons); j++ {
-			a.moons[i].gravity(&a.moons[j])
+	for i := 0; i < MOONS; i++ {
+		for j := i + 1; j < MOONS; j++ {
+			a.moons[dim][i].gravity(&a.moons[dim][j])
 		}
 	}
-}
 
-func (a *universe) applyVelocity() {
-	for i := 0; i < len(a.moons); i++ {
-		a.moons[i].velocity()
+	// apply velocity
+	for i := 0; i < MOONS; i++ {
+		a.moons[dim][i].velocity()
 	}
 }
 
-func (a universe) step() {
-	a.applyGravity()
-	a.applyVelocity()
-}
-
-// energy of a universe is the sum of the energy of all moons.
+// energy of a universe is the sum of the energy of all moons. The total energy
+// for a single moon is its potential energy multiplied by its kinetic energy. A
+// moon's potential energy is the sum of the absolute values of its x, y, and
+// z position coordinates. A moon's kinetic energy is the sum of the absolute
+// values of its velocity coordinates.
 func (a universe) energy() int {
-	sum := 0
-	for i := range a.moons {
-		sum += a.moons[i].energy()
+	var sum int
+	for j := 0; j < MOONS; j++ {
+		var pot, kin int
+		for i := 0; i < DIMS; i++ {
+			moon := a.moons[i][j]
+			pot += abs(moon.pos)
+			kin += abs(moon.vel)
+		}
+		sum += pot * kin
 	}
 	return sum
 }
