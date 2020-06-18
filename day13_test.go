@@ -16,3 +16,15 @@ func TestDay13Part1(t *testing.T) {
 		t.Fatalf("want %v but got %v", want, got)
 	}
 }
+
+func TestDay13Part2(t *testing.T) {
+	want := 16171
+	prog, err := ioutil.ReadFile("testdata/day13.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := Day13Part2(Day5, MustSplit(string(prog)))
+	if want != got {
+		t.Fatalf("want %v but got %v", want, got)
+	}
+}
