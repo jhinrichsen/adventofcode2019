@@ -82,7 +82,7 @@ func day12Example1Universe() (universe, error) {
 }
 
 func day12FromFile(filename string) (universe, error) {
-	input, err := InputLines(filename)
+	input, err := linesFromFilename(filename)
 	if err != nil {
 		return universe{}, err
 	}
@@ -90,7 +90,7 @@ func day12FromFile(filename string) (universe, error) {
 }
 
 func TestDay12Example1Timeline(t *testing.T) {
-	wantLines, err := InputLines(TestdataFilename("day12_example1_output.txt"))
+	wantLines, err := linesFromFilename(TestdataFilename("day12_example1_output.txt"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func TestDay12Example1Timeline(t *testing.T) {
 		}
 	}
 	// fmt.Fprintf(os.Stdout, "%s", sb.String())
-	gotLines, err := Lines(strings.NewReader(sb.String()))
+	gotLines, err := linesFromReader(strings.NewReader(sb.String()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestDay12Example1Timeline(t *testing.T) {
 // energy returns the total energy of a universe identified by its moon
 // positions from file and the number of steps in a timeline.
 func EnergyFromFile(filename string, steps int) (int, error) {
-	input, err := InputLines(TestdataFilename(filename))
+	input, err := linesFromFilename(TestdataFilename(filename))
 	if err != nil {
 		return 0, err
 	}
@@ -249,7 +249,7 @@ func BenchmarkParseUsingParser(b *testing.B) {
 }
 
 func BenchmarkDay12Example2(b *testing.B) {
-	input, err := InputLines(TestdataFilename("day12.txt"))
+	input, err := linesFromFilename(TestdataFilename("day12.txt"))
 	if err != nil {
 		b.Fatal(err)
 	}

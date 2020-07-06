@@ -3,7 +3,7 @@ package adventofcode2019
 import "testing"
 
 func day6FromFile(filename string) (Day6, error) {
-	ss, err := InputLines(filename)
+	ss, err := linesFromFilename(filename)
 	if err != nil {
 		return Day6{}, err
 	}
