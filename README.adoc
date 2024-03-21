@@ -15,3 +15,38 @@ $ go get gitlab.com/jhinrichsen/adventofcode2019
 
 This is an implementation of https://adventofcode.com/2019[Advent of Code 2019]
 in Go.
+
+
+== Day 14
+
+10 ORE => 10 A
+1 ORE => 1 B
+7 A, 1 B => 1 C
+7 A, 1 C => 1 D
+7 A, 1 D => 1 E
+7 A, 1 E => 1 FUEL
+
+1 FUEL = 7 A + 1 E
+       = 7 A + 7 A + 1 D
+       = 7 A + 7 A + 7 A + 1 C
+       = 7 A + 7 A + 7 A + 7 A + 1 B
+       = 7 A + 7A + 7 A + 7 A + 1 ORE
+       = 28 A + 1 ORE
+       = 30 A - 2 A + 1 ORE
+       = 30 ORE - 2 A + 1 ORE
+       = 30 ORE - 2 A
+
+
+9 ORE => 2 A                	level 0
+8 ORE => 3 B			level 0
+7 ORE => 5 C			level 0
+3 A, 4 B => 1 AB		level 1
+5 B, 7 C => 1 BC		level 1
+4 C, 1 A => 1 CA		level 1
+2 AB, 3 BC, 4 CA => 1 FUEL	level 2
+
+1 FUEL = 2 AB      + 3 BC        + 4 CA
+       = 6 A + 8 B + 15 B + 21 C + 16 C + 4 A
+       = 10 A   + 23 B   + 37 C
+       = 45 ORE + 64 ORE + 56 ORE
+       = 165 ORE

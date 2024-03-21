@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 )
 
-var testDay14ExamplesWants = []int{
+var testDay14ExamplesWants = []uint{
 	31,
 	165,
 	13_312,
@@ -21,8 +20,7 @@ func day14ExampleFilename(i int) string {
 	return fmt.Sprintf("testdata/day14_example%d.txt", i+1)
 }
 
-func TestExample1(t *testing.T) {
-	want := testDay14ExamplesWants[0]
+func day14Example1(t *testing.T) Day14 {
 	f, err := os.Open(day14ExampleFilename(0))
 	if err != nil {
 		t.Fatal(err)
@@ -32,6 +30,12 @@ func TestExample1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	return d
+}
+
+func TestDay14Example1(t *testing.T) {
+	want := testDay14ExamplesWants[0]
+	d := day14Example1(t)
 	got, err := Day14Part1(d)
 	if err != nil {
 		t.Fatal(err)
@@ -67,19 +71,19 @@ func NoTestDay14Examples(t *testing.T) {
 
 func TestParseReaction(t *testing.T) {
 	want := reaction{
-		input: []value{
+		input: map[value]bool{
 			{
 				quantity: 2,
 				unit:     "AB",
-			},
+			}: true,
 			{
 				quantity: 3,
 				unit:     "BC",
-			},
+			}: true,
 			{
 				quantity: 4,
 				unit:     "CA",
-			},
+			}: true,
 		},
 		output: value{
 			quantity: 1,
@@ -120,32 +124,36 @@ func TestFuel(t *testing.T) {
 }
 
 func TestResolve(t *testing.T) {
-	s := strings.Join([]string{
-		"3 ORE => 5 a",
-		"7 a => 1 FUEL",
-	}, "\n")
-	d, err := NewDay14(strings.NewReader(s))
-	if err != nil {
-		t.Fatal(err)
+	r1 := reaction{
+		map[value]bool{{3, ore}: true},
+		value{5, "A"},
 	}
+	r2 := reaction{
+		map[value]bool{{7, "A"}: true},
+		value{1, fuel},
+	}
+	r := resolve(r1, r2)
+	const want = 6
+	got := r.input[ore].quantity
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
 
-	fuel, err := d.fuel()
-	if err != nil {
-		t.Fatal(err)
+func TestDay14Level(t *testing.T) {
+	const want = 5
+	d := day14Example1(t)
+	ls := level(d.reactions)
+	got := ls["FUEL"]
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	wantFuelInput := value{7, "a"}
-	gotFuelInput := fuel.input[0]
-	if wantFuelInput != gotFuelInput {
-		t.Fatalf("want fuel value %v but got %v", wantFuelInput,
-			gotFuelInput)
-	}
+}
 
-	wantOreValue := value{6, "ORE"}
-	gotOreValues, err := d.reduce(gotFuelInput)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if wantOreValue != gotOreValues[0] {
-		t.Fatalf("want %v but got %v", wantOreValue, gotOreValues[0])
+func TestDay14Sort(t *testing.T) {
+	const want = "FUEL"
+	got := day14Example1(t).reactions[0].output.unit
+	if want != got {
+		t.Fatalf("want %q but got %q", want, got)
 	}
 }

@@ -3,17 +3,33 @@ package adventofcode2019
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 )
 
-type Bom map[string]int
+const (
+	fuel = "FUEL"
+	ore  = "ORE"
+)
+
+// Bom holds chemicals during resolution.
+type Bom map[string]uint
 
 // Day14 holds a list of all reactions the nanofactory offers.
 type Day14 struct {
 	reactions []reaction
-	// store for rest, e.g. 3 if we need 7 but can only produce 10
-	store Bom
+	store     Bom
+}
+
+// sort reactions by resolution order.
+func (a *Day14) sort() {
+	ls := level(a.reactions)
+	sort.Slice(a.reactions, func(i, j int) bool {
+		left := ls[a.reactions[i].output.unit]
+		right := ls[a.reactions[j].output.unit]
+		return left > right
+	})
 }
 
 // fuel returns the first reaction that has FUEL as output.
@@ -27,36 +43,13 @@ func (a Day14) fuel() (reaction, error) {
 	return reaction{}, fmt.Errorf("no FUEL reaction")
 }
 
-func (a Day14) reduce(v value) ([]value, error) {
-	for i := range a.reactions {
-		r := a.reactions[i]
-		if r.output.unit == v.unit {
-			// factor * 5 >= 7
-			factor := v.quantity / r.output.quantity
-			if v.quantity%r.output.quantity > 0 {
-				factor++
-			}
-			return mul(r.input, factor), nil
-		}
-	}
-	return nil, fmt.Errorf("unit %q not found in reactions %+v",
-		v.unit, a.reactions)
-}
-
-func mul(rs []value, n int) []value {
-	for i := range rs {
-		rs[i].mul(n)
-	}
-	return rs
-}
-
 type reaction struct {
-	input  []value
+	input  map[value]bool
 	output value
 }
 
 type value struct {
-	quantity int
+	quantity uint
 	unit     string
 }
 
@@ -65,55 +58,38 @@ func (a value) isFuel() bool {
 }
 
 func (a value) isOre() bool {
-	return a.unit == "ORE"
-}
-
-func (a *value) mul(n int) {
-	a.quantity *= n
+	return a.unit == ore
 }
 
 // Day14Part1 returns number of Ore required to create 1 FUEL.
-func Day14Part1(d Day14) (int, error) {
-	fuel, err := d.fuel()
-	if err != nil {
-		return -1, fmt.Errorf("missing FUEL in %+v", d)
+func Day14Part1(d Day14) (uint, error) {
+	resolved := d.reactions[0]
+	for _, r := range d.reactions {
+		resolved = resolve(resolved, r)
 	}
-	bom := make(Bom)
-	for _, v := range fuel.input {
-		bom[v.unit] = v.quantity
-	}
-
-	// reduce until only one unit left
-	for len(bom) > 1 {
-		for unit, quantity := range bom {
-			v := value{quantity, unit}
-			if v.isOre() {
-				continue
-			}
-			vs, err := d.reduce(v)
-			if err != nil {
-				return -1,
-					fmt.Errorf("cannot reduce %+v in %+v",
-						v, d)
-			}
-
-			// add to map, optionally creating a new entry
-			for _, v := range vs {
-				if _, ok := bom[v.unit]; ok {
-					bom[v.unit] += v.quantity
-				} else {
-					bom[v.unit] = v.quantity
-				}
-			}
-
-			// reduced, remove original from bom
-			delete(bom, unit)
-		}
-	}
-	return bom["ORE"], nil
+	return resolved.input[0].quantity, nil
 }
 
-// NewDay14 returns a Day14 from a list of reactions.
+func resolve(base, dissolve reaction) reaction {
+	unit := dissolve.output.unit
+	for _, r := range base.input {
+		if r.unit == unit {
+			factor := base.output.quantity / dissolve.output.quantity
+			// add all ingredients one by one
+			for _, input := range dissolve.input {
+				// add to existing or new value?
+				_, ok := base.input[unit]
+				if !ok {
+					base.input[unit] = 1
+				}
+				base.input[unit] += factor * input.quantity
+			}
+		}
+	}
+}
+
+// NewDay14 returns a Day14 from a list of reactions. Reactions are sorted by
+// evaluation level, i.e. highest level of indirection first.
 func NewDay14(reactions io.Reader) (Day14, error) {
 	var d Day14
 	lines, err := linesFromReader(reactions)
@@ -128,6 +104,7 @@ func NewDay14(reactions io.Reader) (Day14, error) {
 		}
 		d.reactions = append(d.reactions, reaction)
 	}
+	d.sort()
 	return d, nil
 }
 
@@ -177,7 +154,31 @@ func parseValue(s string) (value, error) {
 	if err != nil {
 		return v, fmt.Errorf("error parsing quantity: %q", qs)
 	}
-	v.quantity = q
+	v.quantity = uint(q)
 	v.unit = strings.TrimSpace(ss[1])
 	return v, nil
+}
+
+func level(rs []reaction) Bom {
+	levels := make(Bom)
+	levels[ore] = 0
+
+	complete := false
+	for !complete {
+		complete = true
+		for _, r := range rs {
+			var max uint
+			for _, v := range r.input {
+				l, ok := levels[v.unit]
+				if !ok {
+					complete = false
+				}
+				if l > max {
+					max = l
+				}
+			}
+			levels[r.output.unit] = max + 1
+		}
+	}
+	return levels
 }
