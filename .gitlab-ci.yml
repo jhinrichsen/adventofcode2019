@@ -19,7 +19,7 @@ test-job:
     stage: test
     script:
         - make --version
-        - make -r coverage.xml junit.xml gl-code-quality-report.json
+        - make -r tidy coverage.xml junit.xml gl-code-quality-report.json
     coverage: '/coverage: \d+\.\d+%/'
     artifacts:
         reports:
