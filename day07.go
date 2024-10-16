@@ -1,7 +1,7 @@
 package adventofcode2019
 
 import (
-	"math/rand"
+	"math/rand/v2"
 )
 
 // Day7Part1 returns max thrust for given program, using a permutation of all

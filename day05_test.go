@@ -89,7 +89,7 @@ func TestDay5Part1Examples(t *testing.T) {
 func TestDay5Part1(t *testing.T) {
 	want := 16225258
 	in, out := channels()
-	lines, err := InputLinesForDay(5)
+	lines, err := linesFromFilename(input(5))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,24 +117,26 @@ func TestIdentity(t *testing.T) {
 // TestDay5Example2 runs a little program to check multiply.
 // For example, consider the program 1002,4,3,4,33.
 //
-//The first instruction, 1002,4,3,4, is a multiply instruction - the rightmost
-//two digits of the first value, 02, indicate opcode 2, multiplication. Then,
-//going right to left, the parameter modes are 0 (hundreds digit), 1 (thousands
-//digit), and 0 (ten-thousands digit, not present and therefore zero):
-//ABCDE
+// The first instruction, 1002,4,3,4, is a multiply instruction - the rightmost
+// two digits of the first value, 02, indicate opcode 2, multiplication. Then,
+// going right to left, the parameter modes are 0 (hundreds digit), 1 (thousands
+// digit), and 0 (ten-thousands digit, not present and therefore zero):
+// ABCDE
 // 1002
 //
-//DE - two-digit opcode,      02 == opcode 2
+// DE - two-digit opcode,      02 == opcode 2
 // C - mode of 1st parameter,  0 == position mode
 // B - mode of 2nd parameter,  1 == immediate mode
 // A - mode of 3rd parameter,  0 == position mode,
-//                                  omitted due to being a leading zero
-//This instruction multiplies its first two parameters. The first parameter, 4
-//in position mode, works like it did before - its value is the value stored at
-//address 4 (33). The second parameter, 3 in immediate mode, simply has value
-//3. The result of this operation, 33 * 3 = 99, is written according to the
-//third parameter, 4 in position mode, which also works like it did before - 99
-//is written to address 4.
+//
+//	omitted due to being a leading zero
+//
+// This instruction multiplies its first two parameters. The first parameter, 4
+// in position mode, works like it did before - its value is the value stored at
+// address 4 (33). The second parameter, 3 in immediate mode, simply has value
+// 3. The result of this operation, 33 * 3 = 99, is written according to the
+// third parameter, 4 in position mode, which also works like it did before - 99
+// is written to address 4.
 func TestDay5Part2Example(t *testing.T) {
 	prog := MustSplit("1002,4,3,4,33")
 	in, out := channels()
@@ -196,7 +198,7 @@ func last(t *testing.T, c chan int) int {
 func TestDay5Part2(t *testing.T) {
 	want := 2808771
 	in, out := channels()
-	lines, err := InputLinesForDay(5)
+	lines, err := linesFromFilename(input(5))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,7 +211,7 @@ func TestDay5Part2(t *testing.T) {
 }
 
 func BenchmarkDay5Part2(b *testing.B) {
-	lines, err := InputLinesForDay(5)
+	lines, err := linesFromFilename(input(5))
 	if err != nil {
 		b.Fatal(err)
 	}

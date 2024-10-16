@@ -1,26 +1,33 @@
 package adventofcode2019
 
 import (
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"testing"
 )
 
-// InputFilename returns the puzzle input filename for a given day.
-func InputFilename(day int) string {
-	return TestdataFilename(fmt.Sprintf("day%d.txt", day))
+func TestLinesFromFilename(t *testing.T) {
+	lines, err := linesFromFilename("testdata/input.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(lines) != 1 {
+		t.Fatalf("want 1 line but got %d", len(lines))
+	}
 }
 
-func TestdataFilename(filename string) string {
-	return filepath.Join("testdata", filename)
-}
-
-// InputLinesForDay returns all lines from given filename.
-func InputLinesForDay(day int) ([]string, error) {
-	return linesFromFilename(InputFilename(day))
-}
-
-// InputBuffer returns the puzzle input for a given day as bytes.
-func InputBuffer(day int) ([]byte, error) {
-	return ioutil.ReadFile(InputFilename(day))
+func TestLinesAsNumbers(t *testing.T) {
+	sample := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+	ints, err := linesAsNumbers(sample)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ints) != len(sample) {
+		t.Fatalf("want %d numbers but got %d", len(sample), len(ints))
+	}
+	for i := range sample {
+		want := i + 1 // entries are 1-based
+		got := ints[i]
+		if want != got {
+			t.Fatalf("line %d: want %d but got %d", i, want, got)
+		}
+	}
 }

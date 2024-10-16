@@ -1,7 +1,6 @@
 package adventofcode2019
 
 import (
-	"fmt"
 	"io/ioutil"
 	"reflect"
 	"testing"
@@ -48,7 +47,7 @@ func TestDay9LargeNumber(t *testing.T) {
 }
 
 func TestDay9Part1(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day9.txt")
+	buf, err := ioutil.ReadFile(input(9))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,9 +64,6 @@ func TestDay9Part1(t *testing.T) {
 	}
 	gotLen := len(codes)
 	if wantLen != gotLen {
-		for _, opcode := range codes {
-			fmt.Printf("broken opcode: %d\n", opcode)
-		}
 		t.Fatalf("want len %d, got len %d", wantLen, gotLen)
 	}
 	got := codes[len(codes)-1]
@@ -77,7 +73,7 @@ func TestDay9Part1(t *testing.T) {
 }
 
 func BenchmarkDay9Part1(b *testing.B) {
-	buf, err := ioutil.ReadFile("testdata/day9.txt")
+	buf, err := ioutil.ReadFile(input(9))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -92,7 +88,7 @@ func BenchmarkDay9Part1(b *testing.B) {
 }
 
 func TestDay9Part2(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day9.txt")
+	buf, err := ioutil.ReadFile(input(9))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +105,7 @@ func TestDay9Part2(t *testing.T) {
 }
 
 func BenchmarkDay9Part2(b *testing.B) {
-	buf, err := ioutil.ReadFile("testdata/day9.txt")
+	buf, err := ioutil.ReadFile(input(9))
 	if err != nil {
 		b.Fatal(err)
 	}

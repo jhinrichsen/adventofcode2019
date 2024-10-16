@@ -1,7 +1,6 @@
 package adventofcode2019
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -11,9 +10,10 @@ func TestDay11Pbm(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := newRegistrationID(MustSplit(string(buf)), colorBlack)
-	fmt.Println("Day 11, part 1")
-	fmt.Println(string(got.pbm()))
+	_ = newRegistrationID(MustSplit(string(buf)), colorBlack)
+	// TODO apply OCR
+	// fmt.Println("Day 11, part 1")
+	// fmt.Println(string(got.pbm()))
 }
 
 func TestDay11Part1(t *testing.T) {
@@ -49,7 +49,8 @@ func TestDay11Part2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := Day11Part2(MustSplit(string(buf)))
-	fmt.Println("Day 11, part 2:")
-	fmt.Println(string(got))
+	_ = Day11Part2(MustSplit(string(buf)))
+	// TODO apply OCR
+	// fmt.Println("Day 11, part 2:")
+	// fmt.Println(string(got))
 }

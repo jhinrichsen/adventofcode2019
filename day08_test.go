@@ -10,8 +10,7 @@ import (
 )
 
 func TestDay8Part1(t *testing.T) {
-	filename := "testdata/day8.txt"
-	digits, err := ioutil.ReadFile(filename)
+	digits, err := ioutil.ReadFile(input(8))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,8 +25,7 @@ func TestDay8Part1(t *testing.T) {
 }
 
 func BenchmarkDay8Part1(b *testing.B) {
-	filename := "testdata/day8.txt"
-	digits, err := ioutil.ReadFile(filename)
+	digits, err := ioutil.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -40,13 +38,12 @@ func BenchmarkDay8Part1(b *testing.B) {
 }
 
 func day8Part2Result() ([]byte, error) {
-	filename := "testdata/day8-part2-result.txt"
+	filename := "testdata/day08-part2-result.txt"
 	return ioutil.ReadFile(filename)
 }
 
 func TestDay8Part2(t *testing.T) {
-	filename := "testdata/day8.txt"
-	digits, err := ioutil.ReadFile(filename)
+	digits, err := ioutil.ReadFile(input(8))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,8 +79,7 @@ func TestDay8Part2(t *testing.T) {
 }
 
 func BenchmarkDay8Part2(b *testing.B) {
-	filename := "testdata/day8.txt"
-	digits, err := ioutil.ReadFile(filename)
+	digits, err := ioutil.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
 	}

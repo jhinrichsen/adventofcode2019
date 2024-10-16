@@ -2,7 +2,6 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"testing"
@@ -78,7 +77,7 @@ func TestDay12Europa(t *testing.T) {
 }
 
 func day12Example1Universe() (universe, error) {
-	return day12FromFile(TestdataFilename("day12_example1_input.txt"))
+	return day12FromFile("testdata/day12_example1_input.txt")
 }
 
 func day12FromFile(filename string) (universe, error) {
@@ -90,7 +89,7 @@ func day12FromFile(filename string) (universe, error) {
 }
 
 func TestDay12Example1Timeline(t *testing.T) {
-	wantLines, err := linesFromFilename(TestdataFilename("day12_example1_output.txt"))
+	wantLines, err := linesFromFilename("testdata/day12_example1_output.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +140,7 @@ func TestDay12Example1Timeline(t *testing.T) {
 // energy returns the total energy of a universe identified by its moon
 // positions from file and the number of steps in a timeline.
 func EnergyFromFile(filename string, steps int) (int, error) {
-	input, err := linesFromFilename(TestdataFilename(filename))
+	input, err := linesFromFilename(filename)
 	if err != nil {
 		return 0, err
 	}
@@ -159,7 +158,7 @@ func EnergyFromFile(filename string, steps int) (int, error) {
 
 func TestDay12Example1Energy(t *testing.T) {
 	const want = 179
-	got, err := EnergyFromFile("day12_example1_input.txt", day12Example1Steps)
+	got, err := EnergyFromFile("testdata/day12_example1_input.txt", day12Example1Steps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +169,7 @@ func TestDay12Example1Energy(t *testing.T) {
 
 func TestDay12Example2(t *testing.T) {
 	const want = 1940
-	got, err := EnergyFromFile("day12_example2_input.txt", 100)
+	got, err := EnergyFromFile("testdata/day12_example2_input.txt", 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +180,7 @@ func TestDay12Example2(t *testing.T) {
 
 func TestDay12Part1(t *testing.T) {
 	const want = 7471
-	got, err := EnergyFromFile("day12.txt", 1000)
+	got, err := EnergyFromFile(input(12), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +190,7 @@ func TestDay12Part1(t *testing.T) {
 }
 
 func TestDay12Parse(t *testing.T) {
-	lines, err := InputLinesForDay(12)
+	lines, err := linesFromFilename(input(12))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +238,7 @@ func parseUsingParser(lines []string) (universe, error) {
 }
 
 func BenchmarkParseUsingParser(b *testing.B) {
-	lines, err := InputLinesForDay(12)
+	lines, err := linesFromFilename(input(12))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -249,7 +248,7 @@ func BenchmarkParseUsingParser(b *testing.B) {
 }
 
 func BenchmarkDay12Example2(b *testing.B) {
-	input, err := linesFromFilename(TestdataFilename("day12.txt"))
+	input, err := linesFromFilename(input(12))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -269,33 +268,31 @@ func BenchmarkDay12Example2(b *testing.B) {
 
 func TestDay12Part2Example1(t *testing.T) {
 	want := 2772
-	u, err := day12FromFile(TestdataFilename("day12_example1_input.txt"))
+	u, err := day12FromFile("testdata/day12_example1_input.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 	got := u.cycle()
 	if want != got {
-		t.Fatalf("want %d but got %d, factor %f", want, got,
-			float64(got)/float64(want))
+		t.Fatalf("want %d but got %d, factor %f", want, got, float64(got)/float64(want))
 	}
 }
 
 func TestDay12Part2Example2(t *testing.T) {
 	want := 4686774924
-	u, err := day12FromFile(TestdataFilename("day12_example2_input.txt"))
+	u, err := day12FromFile("testdata/day12_example2_input.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 	got := u.cycle()
 	if want != got {
-		t.Fatalf("want %d but got %d, factor %f", want, got,
-			float64(got)/float64(want))
+		t.Fatalf("want %d but got %d, factor %f", want, got, float64(got)/float64(want))
 	}
 }
 
 func TestDay12Part2(t *testing.T) {
 	want := 376243355967784
-	u, err := day12FromFile(TestdataFilename("day12.txt"))
+	u, err := day12FromFile(input(12))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -306,7 +303,10 @@ func TestDay12Part2(t *testing.T) {
 }
 
 func TestDay12Sizeof(t *testing.T) {
+	const want = 192
 	var u universe
-	n := unsafe.Sizeof(u)
-	log.Printf("sizeof universe: %d\n", n)
+	got := unsafe.Sizeof(u)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
 }

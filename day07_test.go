@@ -47,7 +47,7 @@ func TestFac(t *testing.T) {
 }
 
 func TestDay7Part1(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day7.txt")
+	buf, err := ioutil.ReadFile(input(7))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestDay7Part1(t *testing.T) {
 }
 
 func BenchmarkDay7Part1(b *testing.B) {
-	buf, err := ioutil.ReadFile("testdata/day7.txt")
+	buf, err := ioutil.ReadFile(input(7))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -101,7 +101,7 @@ func TestDay7Part2Examples(t *testing.T) {
 }
 
 func TestDay7Part2(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day7.txt")
+	buf, err := ioutil.ReadFile(input(7))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,5 +109,16 @@ func TestDay7Part2(t *testing.T) {
 	got := Day7Part2(MustSplit(string(buf)), "56789")
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func BenchmarkDay7Part2(b *testing.B) {
+	buf, err := ioutil.ReadFile(input(7))
+	if err != nil {
+		b.Fatal(err)
+	}
+	prog := MustSplit(string(buf))
+	for i := 0; i < b.N; i++ {
+		_ = Day7Part2(prog, "01234")
 	}
 }

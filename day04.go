@@ -125,7 +125,6 @@ func Day4Part2() int {
 	// this range selection makes Crit1 superfluous
 	for n := Lower; n < Upper; n++ {
 		if MeetsCriteria(n, Digits(n), CriteriaPart2()) {
-			// log.Printf("%d\n", n)
 			count++
 		}
 	}

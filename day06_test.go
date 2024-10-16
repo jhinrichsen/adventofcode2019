@@ -15,7 +15,7 @@ func day6FromFile(filename string) (Day6, error) {
 }
 
 func example1() (Day6, error) {
-	return day6FromFile("testdata/day6_example.txt")
+	return day6FromFile(exampleInput(6))
 }
 
 func example1b(b *testing.B) Day6 {
@@ -35,7 +35,7 @@ func example1t(t *testing.T) Day6 {
 }
 
 func example2() (Day6, error) {
-	return day6FromFile("testdata/day6_example2.txt")
+	return day6FromFile("testdata/day06_example2.txt")
 }
 
 func example2t(t *testing.T) Day6 {
@@ -107,7 +107,7 @@ func TestDay6Example(t *testing.T) {
 }
 
 func TestDay6Part1(t *testing.T) {
-	d, err := day6FromFile("testdata/day6.txt")
+	d, err := day6FromFile(input(6))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestDay6Part1(t *testing.T) {
 }
 
 func BenchmarkDay6Part1(b *testing.B) {
-	d, err := day6FromFile("testdata/day6.txt")
+	d, err := day6FromFile(input(6))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestDay6Part2Example(t *testing.T) {
 }
 
 func TestDay6Part2(t *testing.T) {
-	d, err := day6FromFile("testdata/day6.txt")
+	d, err := day6FromFile(input(6))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestDay6Part2(t *testing.T) {
 }
 
 func BenchmarkDay6Part2(b *testing.B) {
-	d, err := day6FromFile("testdata/day6.txt")
+	d, err := day6FromFile(input(6))
 	if err != nil {
 		b.Fatal(err)
 	}
