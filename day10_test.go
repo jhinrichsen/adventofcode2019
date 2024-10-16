@@ -2,7 +2,7 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -133,8 +133,7 @@ func TestDay10Part1Examples(t *testing.T) {
 }
 
 func TestDay10Part1(t *testing.T) {
-	filename := "testdata/day10.txt"
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(input(10))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,8 +149,7 @@ func TestDay10Part1(t *testing.T) {
 }
 
 func BenchmarkDay10Part1(b *testing.B) {
-	filename := "testdata/day10.txt"
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(input(10))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -171,7 +169,7 @@ func TestDay10Vaporize(t *testing.T) {
 
 	wants := make(map[int]Asteroid)
 	// The 1st asteroid to be vaporized is at 11,12
-	wants[1-1] = 11 + 12i
+	wants[0] = 11 + 12i
 	wants[2-1] = 12 + 1i
 	wants[3-1] = 12 + 2i
 	wants[10-1] = 12 + 8i
@@ -242,8 +240,7 @@ func TestDay10Part2Example2(t *testing.T) {
 
 func TestDay10Part2(t *testing.T) {
 	want := 1309
-	filename := "testdata/day10.txt"
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(input(10))
 	if err != nil {
 		t.Fatal(err)
 	}

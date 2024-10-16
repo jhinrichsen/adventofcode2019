@@ -74,15 +74,12 @@ func Boolean(b bool) int {
 
 // False returns false for 0, true otherwise.
 func False(boolean int) bool {
-	if boolean == 0 {
-		return true
-	}
-	return false
+	return boolean == 0
 }
 
 // True returns false for 0, true otherwise.
 func True(boolean int) bool {
-	return !False(boolean)
+	return boolean != 0
 }
 
 // Day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,

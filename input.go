@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"strings"
 )
 
 func linesFromFilename(filename string) ([]string, error) {
@@ -35,22 +34,6 @@ func input(day int) string {
 	return fmt.Sprintf("testdata/day%02d.txt", day)
 }
 
-func lineAsNumbers(line string) ([]int, error) {
-	var (
-		n   int
-		ns  []int
-		err error
-	)
-	for _, s := range strings.Fields(line) {
-		n, err = strconv.Atoi(s)
-		if err != nil {
-			break
-		}
-		ns = append(ns, n)
-	}
-	return ns, err
-}
-
 // linesAsNumber converts strings into integer.
 func linesAsNumbers(lines []string) ([]int, error) {
 	var is []int
@@ -63,12 +46,4 @@ func linesAsNumbers(lines []string) ([]int, error) {
 		is = append(is, n)
 	}
 	return is, nil
-}
-
-func numbersFromFilename(filename string) ([]int, error) {
-	ls, err := linesFromFilename(filename)
-	if err != nil {
-		return nil, err
-	}
-	return linesAsNumbers(ls)
 }

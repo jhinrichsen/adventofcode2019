@@ -13,7 +13,7 @@ type Criteria func(int, []byte) bool
 
 // CritSixDigits It is a six-digit number
 func CritSixDigits(n int, digits []byte) bool {
-	return 6 == len(digits)
+	return len(digits) == 6
 }
 
 // CritWithinRange The value is within the range given in your puzzle input

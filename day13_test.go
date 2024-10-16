@@ -1,13 +1,13 @@
 package adventofcode2019
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
 func TestDay13Part1(t *testing.T) {
 	want := 315
-	prog, err := ioutil.ReadFile("testdata/day13.txt")
+	prog, err := os.ReadFile(input(13))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,7 +19,7 @@ func TestDay13Part1(t *testing.T) {
 
 func TestDay13Part2(t *testing.T) {
 	want := 16171
-	prog, err := ioutil.ReadFile("testdata/day13.txt")
+	prog, err := os.ReadFile(input(13))
 	if err != nil {
 		t.Fatal(err)
 	}

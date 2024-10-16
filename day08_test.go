@@ -3,14 +3,13 @@ package adventofcode2019
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 )
 
 func TestDay8Part1(t *testing.T) {
-	digits, err := ioutil.ReadFile(input(8))
+	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,7 +24,7 @@ func TestDay8Part1(t *testing.T) {
 }
 
 func BenchmarkDay8Part1(b *testing.B) {
-	digits, err := ioutil.ReadFile(input(8))
+	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -39,11 +38,11 @@ func BenchmarkDay8Part1(b *testing.B) {
 
 func day8Part2Result() ([]byte, error) {
 	filename := "testdata/day08-part2-result.txt"
-	return ioutil.ReadFile(filename)
+	return os.ReadFile(filename)
 }
 
 func TestDay8Part2(t *testing.T) {
-	digits, err := ioutil.ReadFile(input(8))
+	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +78,7 @@ func TestDay8Part2(t *testing.T) {
 }
 
 func BenchmarkDay8Part2(b *testing.B) {
-	digits, err := ioutil.ReadFile(input(8))
+	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
 	}

@@ -109,7 +109,7 @@ func Parse(path string) (Direction, int, error) {
 	case 'L':
 		return Left, n, nil
 	}
-	return Up, 0, fmt.Errorf("Illegal path %q", path)
+	return Up, 0, fmt.Errorf("illegal path: %q", path)
 }
 
 // Size calculates width and height of a wiring

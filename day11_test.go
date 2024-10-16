@@ -1,12 +1,12 @@
 package adventofcode2019
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
 func TestDay11Pbm(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day11.txt")
+	buf, err := os.ReadFile(input(11))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestDay11Part1(t *testing.T) {
 	// First try want := 9870
 	// Second try want := 907
 	want := 2343
-	buf, err := ioutil.ReadFile("testdata/day11.txt")
+	buf, err := os.ReadFile(input(11))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestMapOfBools(t *testing.T) {
 }
 
 func TestDay11Part2(t *testing.T) {
-	buf, err := ioutil.ReadFile("testdata/day11.txt")
+	buf, err := os.ReadFile(input(11))
 	if err != nil {
 		t.Fatal(err)
 	}

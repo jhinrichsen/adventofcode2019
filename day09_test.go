@@ -1,7 +1,7 @@
 package adventofcode2019
 
 import (
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -47,7 +47,7 @@ func TestDay9LargeNumber(t *testing.T) {
 }
 
 func TestDay9Part1(t *testing.T) {
-	buf, err := ioutil.ReadFile(input(9))
+	buf, err := os.ReadFile(input(9))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestDay9Part1(t *testing.T) {
 }
 
 func BenchmarkDay9Part1(b *testing.B) {
-	buf, err := ioutil.ReadFile(input(9))
+	buf, err := os.ReadFile(input(9))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func BenchmarkDay9Part1(b *testing.B) {
 }
 
 func TestDay9Part2(t *testing.T) {
-	buf, err := ioutil.ReadFile(input(9))
+	buf, err := os.ReadFile(input(9))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestDay9Part2(t *testing.T) {
 }
 
 func BenchmarkDay9Part2(b *testing.B) {
-	buf, err := ioutil.ReadFile(input(9))
+	buf, err := os.ReadFile(input(9))
 	if err != nil {
 		b.Fatal(err)
 	}

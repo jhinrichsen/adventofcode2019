@@ -2,7 +2,7 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -47,7 +47,7 @@ func TestFac(t *testing.T) {
 }
 
 func TestDay7Part1(t *testing.T) {
-	buf, err := ioutil.ReadFile(input(7))
+	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestDay7Part1(t *testing.T) {
 }
 
 func BenchmarkDay7Part1(b *testing.B) {
-	buf, err := ioutil.ReadFile(input(7))
+	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -101,7 +101,7 @@ func TestDay7Part2Examples(t *testing.T) {
 }
 
 func TestDay7Part2(t *testing.T) {
-	buf, err := ioutil.ReadFile(input(7))
+	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func TestDay7Part2(t *testing.T) {
 }
 
 func BenchmarkDay7Part2(b *testing.B) {
-	buf, err := ioutil.ReadFile(input(7))
+	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		b.Fatal(err)
 	}

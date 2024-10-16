@@ -21,7 +21,7 @@ bench:
 
 .PHONY: staticcheck
 staticcheck:
-	staticcheck || $(GO) install honnef.co/go/tools/cmd/staticcheck@latest
+	which staticcheck || $(GO) install honnef.co/go/tools/cmd/staticcheck@latest
 	staticcheck -version
 	
 .PHONY: tidy
