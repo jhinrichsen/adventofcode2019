@@ -19,12 +19,15 @@ clean:
 bench:
 	$(GO) test -bench=. -run="" -benchmem
 
-.PHONY: tidy
-tidy:
-	test -z $(gofmt -l .)
-	$(GO) vet
+.PHONY: staticcheck
+staticcheck:
 	staticcheck || $(GO) install honnef.co/go/tools/cmd/staticcheck@latest
 	staticcheck -version
+	
+.PHONY: tidy
+tidy: staticcheck
+	test -z $(gofmt -l .)
+	$(GO) vet
 	staticcheck
 
 .PHONY: prof
@@ -59,7 +62,7 @@ gl-code-quality-report.json: staticcheck.json
 	which golint-convert || $(GO) install github.com/banyansecurity/golint-convert
 	golint-convert > $@
 
-staticcheck.json:
+staticcheck.json: staticcheck
 	-staticcheck -f json > $@
 
 # Gitlab dependency report
