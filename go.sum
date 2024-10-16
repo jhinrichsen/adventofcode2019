@@ -1,3 +1,5 @@
+github.com/banyansecurity/golint-convert v0.0.2 h1:3niL6w/iBYV4pjtHaKJjxJCspGfJU4sXtvN2BNHde9I=
+github.com/banyansecurity/golint-convert v0.0.2/go.mod h1:Sd0/DNKlECyhkL9xHgQWUw0eIOLF41khPM4WJF0bnAE=
 github.com/boumenot/gocover-cobertura v1.2.0 h1:g+VROIASoEHBrEilIyaCmgo7HGm+AV5yKEPLk0qIY+s=
 github.com/boumenot/gocover-cobertura v1.2.0/go.mod h1:fz7ly8dslE42VRR5ZWLt2OHGDHjkTiA2oNvKgJEjLT0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
