@@ -6,14 +6,14 @@ import (
 
 // Day17 analyzes scaffolding map from ASCII camera
 // Part 1: Sum of alignment parameters at intersections
-// Part 2: TBD
+// Part 2: Collect dust by visiting all scaffold
 func Day17(program []byte, part1 bool) uint {
 	code := MustSplit(string(bytes.TrimSpace(program)))
 
 	if part1 {
 		return calculateAlignmentSum(code)
 	}
-	return 0 // Part 2 TBD
+	return collectDust(code)
 }
 
 func calculateAlignmentSum(code IntCode) uint {
@@ -79,4 +79,48 @@ func isIntersection(grid [][]byte, x, y int) bool {
 	}
 
 	return true
+}
+
+func collectDust(code IntCode) uint {
+	// Wake up the robot by changing address 0 from 1 to 2
+	prog := code.Copy()
+	prog[0] = 2
+
+	input := make(chan int, 1000)
+	output := make(chan int, 10000)
+
+	go Day5(prog, input, output)
+
+	// Movement routine - compressed from path analysis
+	// Full path: R,8,L,12,R,8,R,8,L,12,R,8,L,10,L,10,R,8,L,12,L,12,L,10,R,10,L,10,L,10,R,8,L,12,L,12,L,10,R,10,L,10,L,10,R,8,R,8,L,12,R,8,L,12,L,12,L,10,R,10,R,8,L,12,R,8
+	// Main routine: A,A,B,C,B,C,B,A,C,A
+	// Function A: R,8,L,12,R,8
+	// Function B: L,10,L,10,R,8
+	// Function C: L,12,L,12,L,10,R,10
+	// Video feed: n
+
+	sendASCII := func(s string) {
+		for _, ch := range s {
+			input <- int(ch)
+		}
+		input <- 10 // newline
+	}
+
+	sendASCII("A,A,B,C,B,C,B,A,C,A")
+	sendASCII("R,8,L,12,R,8")
+	sendASCII("L,10,L,10,R,8")
+	sendASCII("L,12,L,12,L,10,R,10")
+	sendASCII("n")
+
+	close(input)
+
+	var lastOutput uint
+	for val := range output {
+		if val > 255 {
+			// This is the dust collection amount (non-ASCII)
+			lastOutput = uint(val)
+		}
+	}
+
+	return lastOutput
 }

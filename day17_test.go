@@ -17,6 +17,18 @@ func TestDay17Part1(t *testing.T) {
 	}
 }
 
+func TestDay17Part2(t *testing.T) {
+	prog, err := os.ReadFile(filename(17))
+	if err != nil {
+		t.Fatal(err)
+	}
+	const want = 933214
+	got := Day17(prog, false)
+	if want != got {
+		t.Fatalf("want %v but got %v", want, got)
+	}
+}
+
 func BenchmarkDay17Part1(b *testing.B) {
 	prog, err := os.ReadFile(filename(17))
 	if err != nil {
@@ -25,5 +37,16 @@ func BenchmarkDay17Part1(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		Day17(prog, true)
+	}
+}
+
+func BenchmarkDay17Part2(b *testing.B) {
+	prog, err := os.ReadFile(filename(17))
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for range b.N {
+		Day17(prog, false)
 	}
 }
