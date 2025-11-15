@@ -55,10 +55,11 @@ func countBeamPoints(program IntCode, size int) uint {
 // findSquare finds the closest point where a square×square fits in the beam
 func findSquare(program IntCode, square int) uint {
 	// Start searching from a reasonable y position
+	// y represents the BOTTOM row of the square
 	y := square
 
 	for {
-		// Find the leftmost beam point in this row
+		// Find the leftmost beam point in this row (bottom-left of square)
 		x := 0
 		// Skip ahead based on beam angle
 		if y > 10 {
@@ -80,11 +81,16 @@ func findSquare(program IntCode, square int) uint {
 			continue
 		}
 
-		// Check if a square with top-left at (x, y) fits
-		// We need to check if top-right and bottom-left are also in beam
-		if testPoint(program, x+square-1, y) && testPoint(program, x, y+square-1) {
+		// Check if top-right corner of square is in beam
+		// Bottom-left is at (x, y)
+		// Top-right should be at (x + square - 1, y - square + 1)
+		topRightX := x + square - 1
+		topRightY := y - square + 1
+
+		if topRightY >= 0 && testPoint(program, topRightX, topRightY) {
 			// Square fits! Return top-left corner value
-			return uint(x*10000 + y)
+			// Top-left is at (x, topRightY)
+			return uint(x*10000 + topRightY)
 		}
 
 		y++
