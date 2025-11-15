@@ -6,39 +6,32 @@ import (
 	"testing"
 )
 
-const day22 = 22
-
 func TestDay22Part1Examples(t *testing.T) {
 	tests := []struct {
-		name         string
 		filenameFunc func(uint8) string
 		want         []uint
 	}{
 		{
-			name:         "example1",
 			filenameFunc: example1Filename,
 			want:         []uint{0, 3, 6, 9, 2, 5, 8, 1, 4, 7},
 		},
 		{
-			name:         "example2",
 			filenameFunc: example2Filename,
 			want:         []uint{3, 0, 7, 4, 1, 8, 5, 2, 9, 6},
 		},
 		{
-			name:         "example3",
 			filenameFunc: example3Filename,
 			want:         []uint{6, 3, 0, 7, 4, 1, 8, 5, 2, 9},
 		},
 		{
-			name:         "example4",
 			filenameFunc: example4Filename,
 			want:         []uint{9, 2, 5, 8, 1, 4, 7, 0, 3, 6},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			lines := testLinesFromFilename(t, tt.filenameFunc(day22))
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("example%d", i+1), func(t *testing.T) {
+			lines := testLinesFromFilename(t, tt.filenameFunc(22))
 			deck := shuffleDeck(lines, 10)
 			if !slices.Equal(deck, tt.want) {
 				t.Fatalf("want %v but got %v", tt.want, deck)
@@ -48,46 +41,41 @@ func TestDay22Part1Examples(t *testing.T) {
 }
 
 func TestDay22Part1(t *testing.T) {
-	testLines(t, day22, filename, true, Day22, 6289)
+	testLines(t, 22, filename, true, Day22, 6289)
 }
 
 func BenchmarkDay22Part1(b *testing.B) {
-	benchLines(b, day22, true, Day22)
+	benchLines(b, 22, true, Day22)
 }
 
 // TestDay22Part2InverseLogic verifies the inverse transformation logic works correctly
 // by checking that we can find which card is at each position for a small deck.
 func TestDay22Part2InverseLogic(t *testing.T) {
 	tests := []struct {
-		name         string
 		filenameFunc func(uint8) string
 		want         []uint
 	}{
 		{
-			name:         "example1",
 			filenameFunc: example1Filename,
 			want:         []uint{0, 3, 6, 9, 2, 5, 8, 1, 4, 7},
 		},
 		{
-			name:         "example2",
 			filenameFunc: example2Filename,
 			want:         []uint{3, 0, 7, 4, 1, 8, 5, 2, 9, 6},
 		},
 		{
-			name:         "example3",
 			filenameFunc: example3Filename,
 			want:         []uint{6, 3, 0, 7, 4, 1, 8, 5, 2, 9},
 		},
 		{
-			name:         "example4",
 			filenameFunc: example4Filename,
 			want:         []uint{9, 2, 5, 8, 1, 4, 7, 0, 3, 6},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			lines := testLinesFromFilename(t, tt.filenameFunc(day22))
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("example%d", i+1), func(t *testing.T) {
+			lines := testLinesFromFilename(t, tt.filenameFunc(22))
 			deckSize := int64(10)
 
 			// Use findCardAtPosition to verify we get the same result
@@ -104,7 +92,7 @@ func TestDay22Part2InverseLogic(t *testing.T) {
 // TestDay22Part2MultipleShuffles tests that the power transform works correctly
 // by comparing against simulated multiple shuffles for a small deck.
 func TestDay22Part2MultipleShuffles(t *testing.T) {
-	lines := testLinesFromFilename(t, example1Filename(day22))
+	lines := testLinesFromFilename(t, example1Filename(22))
 	deckSize := int64(10)
 
 	// Test with different numbers of shuffles
@@ -134,9 +122,9 @@ func TestDay22Part2MultipleShuffles(t *testing.T) {
 }
 
 func TestDay22Part2(t *testing.T) {
-	testLines(t, day22, filename, false, Day22, 58348342289943)
+	testLines(t, 22, filename, false, Day22, 58348342289943)
 }
 
 func BenchmarkDay22Part2(b *testing.B) {
-	benchLines(b, day22, false, Day22)
+	benchLines(b, 22, false, Day22)
 }
