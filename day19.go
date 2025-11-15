@@ -104,28 +104,28 @@ func findSquareFromMap(beamMap [][]bool, square int) uint {
 func findSquare(program IntCode, square int) uint {
 	// Start searching from a reasonable y position
 	// y represents the BOTTOM row of the square
-	y := square
+	y := square - 1
 
 	for {
+		y++
 		// Find the leftmost beam point in this row (bottom-left of square)
 		x := 0
-		// Skip ahead based on beam angle
-		if y > 10 {
-			x = (y - square) * 3 / 4
-		}
 
 		// Find first beam point in this row
 		found := false
-		for x < y*2 {
+		for {
 			if testPoint(program, x, y) {
 				found = true
 				break
 			}
 			x++
+			if x > y*3 {
+				// Safety limit
+				break
+			}
 		}
 
 		if !found {
-			y++
 			continue
 		}
 
@@ -140,7 +140,5 @@ func findSquare(program IntCode, square int) uint {
 			// Top-left is at (x, topRightY)
 			return uint(x*10000 + topRightY)
 		}
-
-		y++
 	}
 }
