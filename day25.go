@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// NewDay25 parses the input into an IntCode program.
+func NewDay25(lines []string) (IntCode, error) {
+	return MustSplit(strings.TrimSpace(lines[0])), nil
+}
+
 // Day25 solves the Cryostasis text adventure.
 func Day25(prog IntCode, part1 bool) uint {
 	if !part1 {
