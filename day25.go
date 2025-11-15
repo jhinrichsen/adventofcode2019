@@ -63,8 +63,22 @@ func buildRoomGraph(prog IntCode) map[string]*roomInfo {
 	graph := make(map[string]*roomInfo)
 	visited := make(map[string]bool)
 
-	var dfs func(path []string)
-	dfs = func(path []string) {
+	var dfs func(path []string, roomName string)
+	dfs = func(path []string, roomName string) {
+		// Skip if already visited
+		if visited[roomName] {
+			return
+		}
+
+		// Don't explore past security checkpoint
+		if strings.Contains(roomName, "Security") {
+			visited[roomName] = true
+			return
+		}
+
+		visited[roomName] = true
+
+		// Run Intcode once for this path to get room details
 		output := executeCommands(prog, path)
 		parsedRoom := parseRoom(output)
 
@@ -73,39 +87,26 @@ func buildRoomGraph(prog IntCode) map[string]*roomInfo {
 			graph[parsedRoom.name] = parsedRoom
 		}
 
-		// Get the room from the graph (in case it already existed)
-		room := graph[parsedRoom.name]
-
-		// Skip further exploration if we've already explored this room's exits
-		if visited[room.name] {
-			return
-		}
-
-		// Don't explore past security checkpoint
-		if strings.Contains(room.name, "Security") {
-			visited[room.name] = true
-			return
-		}
-
-		visited[room.name] = true
-
 		// Explore all exits
+		room := graph[parsedRoom.name]
 		for dir := range room.exits {
 			nextPath := append(append([]string{}, path...), dir)
+			// Peek at next room to get its name for the graph
 			nextOutput := executeCommands(prog, nextPath)
 			nextRoom := parseRoom(nextOutput)
 
 			// Record where this direction leads
 			room.exits[dir] = nextRoom.name
 
-			// Only continue DFS if we haven't visited this room yet
-			if !visited[nextRoom.name] {
-				dfs(nextPath)
-			}
+			// Recurse with the room name to avoid re-execution
+			dfs(nextPath, nextRoom.name)
 		}
 	}
 
-	dfs([]string{})
+	// Start exploration from Hull Breach
+	output := executeCommands(prog, []string{})
+	startRoom := parseRoom(output)
+	dfs([]string{}, startRoom.name)
 	return graph
 }
 
@@ -233,63 +234,266 @@ func findRoomPath(graph map[string]*roomInfo, start, target string) []string {
 
 // tryItemCombos tries all combinations of items.
 func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint {
-	for mask := range 1 << len(items) {
-		cmds := make([]string, len(path))
-		copy(cmds, path)
+	// Pre-build input for the base path (getting to security with all items)
+	baseInput := buildInput(path)
 
-		// Drop all
+	for mask := range 1 << len(items) {
+		// Start with base path input
+		var input []int
+		input = append(input, baseInput...)
+
+		// Drop all items
 		for _, item := range items {
-			cmds = append(cmds, "drop "+item)
+			input = appendCommand(input, "drop "+item)
 		}
 
-		// Take selected
+		// Take selected items
 		for i, item := range items {
 			if mask&(1<<i) != 0 {
-				cmds = append(cmds, "take "+item)
+				input = appendCommand(input, "take "+item)
 			}
 		}
 
 		// Try security
-		cmds = append(cmds, dir)
+		input = appendCommand(input, dir)
 
-		output := executeCommands(prog, cmds)
-		if pw := getPassword(output); pw != 0 {
+		// Run Intcode with this input
+		output := runIntcodeSync(prog.Copy(), input)
+		outputStr := intsToString(output)
+
+		if pw := getPassword(outputStr); pw != 0 {
 			return pw
 		}
 	}
 	return 0
 }
 
+func buildInput(commands []string) []int {
+	var input []int
+	for _, cmd := range commands {
+		input = appendCommand(input, cmd)
+	}
+	return input
+}
+
+func appendCommand(input []int, cmd string) []int {
+	for _, ch := range cmd {
+		input = append(input, int(ch))
+	}
+	return append(input, 10) // newline
+}
+
+func intsToString(output []int) string {
+	result := make([]byte, len(output))
+	for i, val := range output {
+		result[i] = byte(val)
+	}
+	return string(result)
+}
+
 func executeCommands(prog IntCode, commands []string) string {
-	input := make(chan int, 10000)
-	output := make(chan int, 10000)
+	// Build all input upfront
+	var inputBytes []int
+	for _, cmd := range commands {
+		for _, ch := range cmd {
+			inputBytes = append(inputBytes, int(ch))
+		}
+		inputBytes = append(inputBytes, 10) // newline
+	}
 
-	go Day5(prog.Copy(), input, output)
+	// Run synchronously
+	output := runIntcodeSync(prog.Copy(), inputBytes)
 
-	var result strings.Builder
-	cmdIdx := 0
+	// Convert output to string
+	result := make([]byte, len(output))
+	for i, val := range output {
+		result[i] = byte(val)
+	}
+	return string(result)
+}
+
+// runIntcodeSync runs IntCode synchronously without channels
+func runIntcodeSync(program IntCode, input []int) []int {
+	// Pre-allocate memory to avoid reallocations
+	memSize := len(program)
+	if memSize < 10000 {
+		memSize = 10000
+	}
+	mem := make([]int, memSize)
+	copy(mem, program)
+
+	ip := 0
+	relBase := 0
+	inputIdx := 0
+	output := make([]int, 0, 100000) // Pre-allocate output buffer
+
+	// Inline memory access for speed
+	get := func(addr int) int {
+		if addr < 0 {
+			panic("negative address")
+		}
+		if addr >= len(mem) {
+			newMem := make([]int, addr+1)
+			copy(newMem, mem)
+			mem = newMem
+		}
+		return mem[addr]
+	}
+
+	set := func(addr, val int) {
+		if addr < 0 {
+			panic("negative address")
+		}
+		if addr >= len(mem) {
+			newMem := make([]int, addr+1)
+			copy(newMem, mem)
+			mem = newMem
+		}
+		mem[addr] = val
+	}
 
 	for {
-		select {
-		case val, ok := <-output:
-			if !ok {
-				return result.String()
-			}
-			result.WriteByte(byte(val))
+		opcode, mode1, mode2, mode3 := instruction(mem[ip])
 
-			if strings.HasSuffix(result.String(), "Command?\n") {
-				if cmdIdx < len(commands) {
-					cmd := commands[cmdIdx]
-					cmdIdx++
-					for _, ch := range cmd {
-						input <- int(ch)
-					}
-					input <- 10
-				} else {
-					close(input)
-					return result.String()
-				}
+		// Inline parameter loading
+		var p1, p2 int
+		if opcode != OpcodeRet {
+			switch mode1 {
+			case ImmediateMode:
+				p1 = get(ip + 1)
+			case PositionMode:
+				p1 = get(get(ip + 1))
+			case RelativeMode:
+				p1 = get(relBase + get(ip+1))
 			}
+		}
+
+		switch opcode {
+		case OpcodeAdd:
+			switch mode2 {
+			case ImmediateMode:
+				p2 = get(ip + 2)
+			case PositionMode:
+				p2 = get(get(ip + 2))
+			case RelativeMode:
+				p2 = get(relBase + get(ip+2))
+			}
+			addr := get(ip + 3)
+			if mode3 == RelativeMode {
+				addr = relBase + addr
+			}
+			set(addr, p1+p2)
+			ip += 4
+
+		case OpcodeMul:
+			switch mode2 {
+			case ImmediateMode:
+				p2 = get(ip + 2)
+			case PositionMode:
+				p2 = get(get(ip + 2))
+			case RelativeMode:
+				p2 = get(relBase + get(ip+2))
+			}
+			addr := get(ip + 3)
+			if mode3 == RelativeMode {
+				addr = relBase + addr
+			}
+			set(addr, p1*p2)
+			ip += 4
+
+		case Input:
+			if inputIdx >= len(input) {
+				return output
+			}
+			addr := get(ip + 1)
+			if mode1 == RelativeMode {
+				addr = relBase + addr
+			}
+			set(addr, input[inputIdx])
+			inputIdx++
+			ip += 2
+
+		case Output:
+			output = append(output, p1)
+			ip += 2
+
+		case JumpIfTrue:
+			if p1 != 0 {
+				switch mode2 {
+				case ImmediateMode:
+					ip = get(ip + 2)
+				case PositionMode:
+					ip = get(get(ip + 2))
+				case RelativeMode:
+					ip = get(relBase + get(ip+2))
+				}
+			} else {
+				ip += 3
+			}
+
+		case JumpIfFalse:
+			if p1 == 0 {
+				switch mode2 {
+				case ImmediateMode:
+					ip = get(ip + 2)
+				case PositionMode:
+					ip = get(get(ip + 2))
+				case RelativeMode:
+					ip = get(relBase + get(ip+2))
+				}
+			} else {
+				ip += 3
+			}
+
+		case LessThan:
+			switch mode2 {
+			case ImmediateMode:
+				p2 = get(ip + 2)
+			case PositionMode:
+				p2 = get(get(ip + 2))
+			case RelativeMode:
+				p2 = get(relBase + get(ip+2))
+			}
+			addr := get(ip + 3)
+			if mode3 == RelativeMode {
+				addr = relBase + addr
+			}
+			if p1 < p2 {
+				set(addr, 1)
+			} else {
+				set(addr, 0)
+			}
+			ip += 4
+
+		case Equals:
+			switch mode2 {
+			case ImmediateMode:
+				p2 = get(ip + 2)
+			case PositionMode:
+				p2 = get(get(ip + 2))
+			case RelativeMode:
+				p2 = get(relBase + get(ip+2))
+			}
+			addr := get(ip + 3)
+			if mode3 == RelativeMode {
+				addr = relBase + addr
+			}
+			if p1 == p2 {
+				set(addr, 1)
+			} else {
+				set(addr, 0)
+			}
+			ip += 4
+
+		case AdjustRelBase:
+			relBase += p1
+			ip += 2
+
+		case OpcodeRet:
+			return output
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %d at position %d", mem[ip], ip))
 		}
 	}
 }
