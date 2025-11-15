@@ -8,39 +8,42 @@ import (
 
 const day22 = 22
 
-func TestDay22Example1(t *testing.T) {
-	lines := testLinesFromFilename(t, example1Filename(day22))
-	deck := shuffleDeck(lines, 10)
-	want := []uint{0, 3, 6, 9, 2, 5, 8, 1, 4, 7}
-	if !slices.Equal(deck, want) {
-		t.Fatalf("want %v but got %v", want, deck)
+func TestDay22Part1Examples(t *testing.T) {
+	tests := []struct {
+		name         string
+		filenameFunc func(uint8) string
+		want         []uint
+	}{
+		{
+			name:         "example1",
+			filenameFunc: example1Filename,
+			want:         []uint{0, 3, 6, 9, 2, 5, 8, 1, 4, 7},
+		},
+		{
+			name:         "example2",
+			filenameFunc: example2Filename,
+			want:         []uint{3, 0, 7, 4, 1, 8, 5, 2, 9, 6},
+		},
+		{
+			name:         "example3",
+			filenameFunc: example3Filename,
+			want:         []uint{6, 3, 0, 7, 4, 1, 8, 5, 2, 9},
+		},
+		{
+			name:         "example4",
+			filenameFunc: example4Filename,
+			want:         []uint{9, 2, 5, 8, 1, 4, 7, 0, 3, 6},
+		},
 	}
-}
 
-func TestDay22Example2(t *testing.T) {
-	lines := testLinesFromFilename(t, example2Filename(day22))
-	deck := shuffleDeck(lines, 10)
-	want := []uint{3, 0, 7, 4, 1, 8, 5, 2, 9, 6}
-	if !slices.Equal(deck, want) {
-		t.Fatalf("want %v but got %v", want, deck)
-	}
-}
-
-func TestDay22Example3(t *testing.T) {
-	lines := testLinesFromFilename(t, example3Filename(day22))
-	deck := shuffleDeck(lines, 10)
-	want := []uint{6, 3, 0, 7, 4, 1, 8, 5, 2, 9}
-	if !slices.Equal(deck, want) {
-		t.Fatalf("want %v but got %v", want, deck)
-	}
-}
-
-func TestDay22Example4(t *testing.T) {
-	lines := testLinesFromFilename(t, example4Filename(day22))
-	deck := shuffleDeck(lines, 10)
-	want := []uint{9, 2, 5, 8, 1, 4, 7, 0, 3, 6}
-	if !slices.Equal(deck, want) {
-		t.Fatalf("want %v but got %v", want, deck)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lines := testLinesFromFilename(t, tt.filenameFunc(day22))
+			deck := shuffleDeck(lines, 10)
+			if !slices.Equal(deck, tt.want) {
+				t.Fatalf("want %v but got %v", tt.want, deck)
+			}
+		})
 	}
 }
 
@@ -52,9 +55,9 @@ func BenchmarkDay22Part1(b *testing.B) {
 	benchLines(b, day22, true, Day22)
 }
 
-// TestDay22InverseLogic verifies the inverse transformation logic works correctly
+// TestDay22Part2InverseLogic verifies the inverse transformation logic works correctly
 // by checking that we can find which card is at each position for a small deck.
-func TestDay22InverseLogic(t *testing.T) {
+func TestDay22Part2InverseLogic(t *testing.T) {
 	tests := []struct {
 		name         string
 		filenameFunc func(uint8) string
@@ -98,9 +101,9 @@ func TestDay22InverseLogic(t *testing.T) {
 	}
 }
 
-// TestDay22MultipleShuffles tests that the power transform works correctly
+// TestDay22Part2MultipleShuffles tests that the power transform works correctly
 // by comparing against simulated multiple shuffles for a small deck.
-func TestDay22MultipleShuffles(t *testing.T) {
+func TestDay22Part2MultipleShuffles(t *testing.T) {
 	lines := testLinesFromFilename(t, example1Filename(day22))
 	deckSize := int64(10)
 
