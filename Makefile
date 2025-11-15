@@ -1,4 +1,6 @@
 GO ?= CGO_ENABLED=0 go
+CPU_NAME := $(shell go run cmd/cpuname/main.go)
+BENCH_FILE := benches/$(shell go env GOOS)-$(shell go env GOARCH)-$(CPU_NAME).txt
 
 .PHONY: all
 all: tidy test
@@ -12,6 +14,8 @@ clean:
 		gl-code-quality-report.json \
 		govulncheck.sarif \
 		junit.xml \
+		README.html \
+		golangci-lint.json \
 		staticcheck.json \
 		test.log
 
@@ -23,21 +27,25 @@ bench:
 staticcheck:
 	which staticcheck || $(GO) install honnef.co/go/tools/cmd/staticcheck@latest
 	staticcheck -version
-	
+
 .PHONY: tidy
 tidy: staticcheck
 	test -z $(gofmt -l .)
 	$(GO) vet
 	staticcheck
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest --version
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
+
+cpu.profile:
+	$(GO) test -run=^$ -bench=Day10Part1$ -benchmem -memprofile mem.profile -cpuprofile $@
 
 .PHONY: prof
-prof:
-	$(GO) test -bench=. -benchmem -memprofile mprofile.out -cpuprofile cprofile.out
-	$(GO) pprof cpu.profile
+prof: cpu.profile
+	$(GO) tool pprof $^
 
 .PHONY: test
 test:
-	$(GO) test -run=Day
+	$(GO) test -run=Day -short -vet=all
 
 .PHONY: sast
 sast: coverage.xml gl-code-quality-report.json govulncheck.sarif junit.xml
@@ -54,13 +62,16 @@ junit.xml: test.log
 
 # Gitlab coverage report
 coverage.xml: coverage.txt
-	which gocover-cobertura || $(GO) install github.com/boumenot/gocover-cobertura
+	which gocover-cobertura || $(GO) install github.com/boumenot/gocover-cobertura@latest
 	gocover-cobertura < $< > $@
 
 # Gitlab code quality report
-gl-code-quality-report.json: staticcheck.json
-	which golint-convert || $(GO) install github.com/banyansecurity/golint-convert
-	golint-convert > $@
+gl-code-quality-report.json: golangci-lint.json
+	which golint-convert || $(GO) install github.com/banyansecurity/golint-convert@latest
+	golint-convert < $< > $@
+
+golangci-lint.json:
+	-$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run --out-format json > $@
 
 staticcheck.json: staticcheck
 	-staticcheck -f json > $@
@@ -71,3 +82,13 @@ govulncheck.sarif:
 	govulncheck -version
 	govulncheck -format=sarif ./... > $@
 
+$(BENCH_FILE): $(wildcard *.go)
+	echo "Running benchmarks and saving to $@..."
+	$(GO) test -run=^$$ -bench=Day..Part.$$ -benchmem | tee $@
+
+README.html: README.adoc
+	asciidoc $^
+
+.PHONY: total
+total: $(BENCH_FILE)
+	awk -f total.awk < $(BENCH_FILE)
