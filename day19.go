@@ -52,7 +52,34 @@ func countBeamPoints(program IntCode, size int) uint {
 	return count
 }
 
-// findSquare finds the closest point where a square×square fits in the beam
+// testPointFromMap checks a point against a precomputed beam map (for testing)
+func testPointFromMap(beamMap [][]bool, x, y int) bool {
+	if y < 0 || y >= len(beamMap) || x < 0 || x >= len(beamMap[y]) {
+		return false
+	}
+	return beamMap[y][x]
+}
+
+// findSquareFromMap finds square in a precomputed map (for testing)
+func findSquareFromMap(beamMap [][]bool, square int) uint {
+	for y := square - 1; y < len(beamMap); y++ {
+		for x := range len(beamMap[y]) {
+			if !beamMap[y][x] {
+				continue
+			}
+
+			// Check if top-right corner is in beam
+			topRightX := x + square - 1
+			topRightY := y - square + 1
+
+			if topRightY >= 0 && testPointFromMap(beamMap, topRightX, topRightY) {
+				return uint(x*10000 + topRightY)
+			}
+		}
+	}
+	return 0
+}
+
 func findSquare(program IntCode, square int) uint {
 	// Start searching from a reasonable y position
 	// y represents the BOTTOM row of the square

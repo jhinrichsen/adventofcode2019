@@ -4,6 +4,24 @@ import (
 	"testing"
 )
 
+func TestDay19Part2Example(t *testing.T) {
+	// Parse the beam map
+	lines := testLinesFromFilename(t, "testdata/day19_part2_example.txt")
+	beamMap := make([][]bool, len(lines))
+	for y, line := range lines {
+		beamMap[y] = make([]bool, len(line))
+		for x, ch := range line {
+			beamMap[y][x] = (ch == '#' || ch == 'O')
+		}
+	}
+
+	got := findSquareFromMap(beamMap, 10)
+	const want = 250020
+	if got != want {
+		t.Fatalf("Part 2 example: want %v but got %v", want, got)
+	}
+}
+
 func TestDay19Part1(t *testing.T) {
 	testBytes(t, 19, filename, true, Day19, 160)
 }
