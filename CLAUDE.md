@@ -59,3 +59,29 @@
 - `func NewDayXX()` + `DayXX(puzzle)` - use for complex data structures
 - Choose the most appropriate input format for each puzzle's needs
 - Use appropriate `input_test.go` helper functions
+
+## Commit Message Convention
+
+Use conventional commits with day number as scope:
+
+**Format:** `<type>(<scope>): <description>`
+
+**Examples:**
+- `feat(day14): add part 1 solution`
+- `feat(day14): add part 2 with binary search`
+- `test(day14): add example tests for part 1`
+- `refactor(day14): convert to table-driven tests`
+- `fix(day14): correct ORE calculation for surplus`
+- `docs(day14): add algorithm explanation`
+
+**Types:**
+- `feat`: New feature/solution
+- `fix`: Bug fix
+- `refactor`: Code refactoring
+- `test`: Test additions/changes
+- `docs`: Documentation
+- `chore`: Build/tooling changes
+
+**Scope:**
+- Use `dayXX` (lowercase, zero-padded) for day-specific commits
+- Omit scope for repository-wide changes (e.g., `chore: update CLAUDE.md`)
