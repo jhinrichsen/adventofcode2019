@@ -7,7 +7,7 @@ import (
 
 var day14Part1Examples = []struct {
 	filename string
-	want     int
+	want     uint
 }{
 	{"testdata/day14_example1.txt", 31},
 	{"testdata/day14_example2.txt", 165},
@@ -24,10 +24,7 @@ func TestDay14Part1Examples(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			got, err := Day14Part1(lines)
-			if err != nil {
-				t.Fatal(err)
-			}
+			got := Day14(lines, true)
 			if tt.want != got {
 				t.Fatalf("want %d but got %d", tt.want, got)
 			}
@@ -37,7 +34,7 @@ func TestDay14Part1Examples(t *testing.T) {
 
 var day14Part2Examples = []struct {
 	filename string
-	want     int
+	want     uint
 }{
 	{"testdata/day14_example3.txt", 82892753},
 	{"testdata/day14_example4.txt", 82892753},
@@ -52,10 +49,7 @@ func TestDay14Part2Examples(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			got, err := Day14Part2(lines)
-			if err != nil {
-				t.Fatal(err)
-			}
+			got := Day14(lines, false)
 			if tt.want != got {
 				t.Fatalf("want %d but got %d", tt.want, got)
 			}
@@ -106,10 +100,7 @@ func BenchmarkDay14Part1Example1(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := Day14Part1(lines)
-		if err != nil {
-			b.Fatal(err)
-		}
+		Day14(lines, true)
 	}
 }
 
@@ -119,10 +110,7 @@ func BenchmarkDay14Part1Example6(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := Day14Part1(lines)
-		if err != nil {
-			b.Fatal(err)
-		}
+		Day14(lines, true)
 	}
 }
 
@@ -132,15 +120,12 @@ func BenchmarkDay14Part2Example6(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := Day14Part2(lines)
-		if err != nil {
-			b.Fatal(err)
-		}
+		Day14(lines, false)
 	}
 }
 
 // Example usage for documentation
-func ExampleDay14Part1() {
+func ExampleDay14() {
 	input := []string{
 		"10 ORE => 10 A",
 		"1 ORE => 1 B",
@@ -149,11 +134,7 @@ func ExampleDay14Part1() {
 		"7 A, 1 D => 1 E",
 		"7 A, 1 E => 1 FUEL",
 	}
-	ore, err := Day14Part1(input)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	ore := Day14(input, true)
 	fmt.Println(ore)
 	// Output: 31
 }

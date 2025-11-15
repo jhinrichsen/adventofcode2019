@@ -9,7 +9,7 @@ import (
 // Chemical represents a chemical with its quantity
 type Chemical struct {
 	Name     string
-	Quantity int
+	Quantity uint
 }
 
 // Reaction represents a chemical reaction
@@ -69,101 +69,111 @@ func parseChemical(s string) (Chemical, error) {
 		return Chemical{}, fmt.Errorf("invalid chemical format: %s", s)
 	}
 
-	quantity, err := strconv.Atoi(parts[0])
+	quantity, err := strconv.ParseUint(parts[0], 10, 64)
 	if err != nil {
 		return Chemical{}, fmt.Errorf("invalid quantity: %s", parts[0])
 	}
 
 	return Chemical{
 		Name:     parts[1],
-		Quantity: quantity,
+		Quantity: uint(quantity),
 	}, nil
 }
 
-// CalculateOre calculates the minimum ORE needed to produce the target chemical
-func CalculateOre(reactions ReactionMap, target string, targetQty int) int {
-	// Track surplus materials
-	surplus := make(map[string]int)
+// calculateOre calculates the minimum ORE needed to produce the target chemical
+// using an iterative algorithm with explicit dependency tracking
+func calculateOre(reactions ReactionMap, target string, targetQty uint) uint {
+	// Track what we need to produce
+	needs := make(map[string]uint)
+	needs[target] = targetQty
 
-	return calculateOreRecursive(reactions, target, targetQty, surplus)
-}
+	// Track surplus materials from over-production
+	surplus := make(map[string]uint)
 
-// calculateOreRecursive recursively calculates ORE needed
-func calculateOreRecursive(reactions ReactionMap, chemical string, needed int, surplus map[string]int) int {
-	// Base case: ORE is the raw material
-	if chemical == "ORE" {
-		return needed
-	}
-
-	// Use surplus if available
-	if surplus[chemical] > 0 {
-		if surplus[chemical] >= needed {
-			surplus[chemical] -= needed
-			return 0
+	// Iteratively resolve dependencies until only ORE remains
+	for {
+		// Find a chemical to process (not ORE)
+		var chemical string
+		for chem := range needs {
+			if chem != "ORE" {
+				chemical = chem
+				break
+			}
 		}
-		needed -= surplus[chemical]
-		surplus[chemical] = 0
+
+		// If no non-ORE chemical found, we're done
+		if chemical == "" {
+			break
+		}
+
+		needed := needs[chemical]
+		delete(needs, chemical)
+
+		// Use surplus if available
+		if surplus[chemical] > 0 {
+			if surplus[chemical] >= needed {
+				surplus[chemical] -= needed
+				continue
+			}
+			needed -= surplus[chemical]
+			surplus[chemical] = 0
+		}
+
+		// Get the reaction for this chemical
+		reaction, ok := reactions[chemical]
+		if !ok {
+			panic(fmt.Sprintf("no reaction found for %s", chemical))
+		}
+
+		// Calculate how many times we need to run this reaction
+		outputQty := reaction.Output.Quantity
+		times := (needed + outputQty - 1) / outputQty // Ceiling division
+
+		// Track surplus from over-production
+		produced := times * outputQty
+		if produced > needed {
+			surplus[chemical] += produced - needed
+		}
+
+		// Add input requirements to needs
+		for _, input := range reaction.Inputs {
+			requiredQty := input.Quantity * times
+			needs[input.Name] += requiredQty
+		}
 	}
 
-	// Get the reaction for this chemical
-	reaction, ok := reactions[chemical]
-	if !ok {
-		panic(fmt.Sprintf("no reaction found for %s", chemical))
-	}
-
-	// Calculate how many times we need to run this reaction
-	outputQty := reaction.Output.Quantity
-	times := (needed + outputQty - 1) / outputQty // Ceiling division
-
-	// Track surplus from over-production
-	produced := times * outputQty
-	if produced > needed {
-		surplus[chemical] += produced - needed
-	}
-
-	// Calculate ORE needed for all inputs
-	totalOre := 0
-	for _, input := range reaction.Inputs {
-		requiredQty := input.Quantity * times
-		totalOre += calculateOreRecursive(reactions, input.Name, requiredQty, surplus)
-	}
-
-	return totalOre
+	return needs["ORE"]
 }
 
-// Day14Part1 calculates minimum ORE needed to produce 1 FUEL
-func Day14Part1(lines []string) (int, error) {
+// Day14 calculates either minimum ORE for 1 FUEL (part1) or
+// maximum FUEL from 1 trillion ORE (part2)
+func Day14(lines []string, part1 bool) uint {
 	reactions, err := ParseReactions(lines)
 	if err != nil {
-		return 0, err
+		panic(err)
 	}
 
-	ore := CalculateOre(reactions, "FUEL", 1)
-	return ore, nil
-}
-
-// Day14Part2 calculates maximum FUEL that can be produced from 1 trillion ORE
-func Day14Part2(lines []string) (int, error) {
-	reactions, err := ParseReactions(lines)
-	if err != nil {
-		return 0, err
+	if part1 {
+		// Part 1: minimum ORE needed to produce 1 FUEL
+		return calculateOre(reactions, "FUEL", 1)
 	}
 
-	totalOre := 1000000000000 // 1 trillion
+	// Part 2: maximum FUEL that can be produced from 1 trillion ORE
+	totalOre := uint(1000000000000) // 1 trillion
 
 	// Binary search for the maximum fuel
 	// First get the ORE per fuel as a baseline
-	orePerFuel := CalculateOre(reactions, "FUEL", 1)
+	orePerFuel := calculateOre(reactions, "FUEL", 1)
 
 	// Lower bound estimate
 	low := totalOre / orePerFuel
 	// Upper bound estimate (generous)
 	high := low * 2
 
-	result := 0
+	var result uint
 	for low <= high {
 		mid := (low + high) / 2
-		ore := CalculateOre(reactions, "FUEL", mid)
+		ore := calculateOre(reactions, "FUEL", mid)
 
 		if ore <= totalOre {
 			result = mid
@@ -173,5 +183,5 @@ func Day14Part2(lines []string) (int, error) {
 		}
 	}
 
-	return result, nil
+	return result
 }
