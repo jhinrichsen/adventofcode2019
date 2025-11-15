@@ -68,6 +68,38 @@ func TestDay16Part1(t *testing.T) {
 	}
 }
 
+func TestDay16Part2Examples(t *testing.T) {
+	tests := []struct {
+		input string
+		want  uint
+	}{
+		{"03036732577212944063491565474664", 84462026},
+		{"02935109699940807407585447034323", 78725270},
+		{"03081770884921959731165446850517", 53553731},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("example%d", i+1), func(t *testing.T) {
+			got := fftPart2([]byte(tt.input))
+			if got != tt.want {
+				t.Fatalf("want %v but got %v", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestDay16Part2(t *testing.T) {
+	prog, err := os.ReadFile(filename(16))
+	if err != nil {
+		t.Fatal(err)
+	}
+	const want = 96062868
+	got := Day16(prog, false)
+	if want != got {
+		t.Fatalf("want %v but got %v", want, got)
+	}
+}
+
 func BenchmarkDay16Part1(b *testing.B) {
 	prog, err := os.ReadFile(filename(16))
 	if err != nil {
@@ -76,5 +108,16 @@ func BenchmarkDay16Part1(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		Day16(prog, true)
+	}
+}
+
+func BenchmarkDay16Part2(b *testing.B) {
+	prog, err := os.ReadFile(filename(16))
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for range b.N {
+		Day16(prog, false)
 	}
 }
