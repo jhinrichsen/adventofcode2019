@@ -17,8 +17,7 @@ func TestDay18Part1Examples(t *testing.T) {
 }
 
 func TestDay18Part1(t *testing.T) {
-	t.Skip("TODO: Update expected value once puzzle is solved")
-	testBytes(t, 18, filename, true, Day18, 0)
+	testBytes(t, 18, filename, true, Day18, 3962)
 }
 
 func BenchmarkDay18Part1(b *testing.B) {
