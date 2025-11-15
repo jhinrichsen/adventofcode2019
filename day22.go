@@ -203,13 +203,36 @@ func modAdd(a, b, m int64) int64 {
 	return res
 }
 
-// modMul performs (a * b) mod m, handling potential overflow
+// modMul performs (a * b) mod m, handling potential overflow using binary multiplication
 func modMul(a, b, m int64) int64 {
-	// Use Go's native mod handling (doesn't overflow for int64)
-	res := (a % m) * (b % m) % m
-	if res < 0 {
-		res += m
+	// Normalize inputs
+	a = a % m
+	b = b % m
+	if a < 0 {
+		a += m
 	}
+	if b < 0 {
+		b += m
+	}
+
+	// For small enough values, use direct multiplication
+	// int64 max is about 9.2e18, so if both a and b < 3e9, we're safe
+	if a < 1000000000 && b < 1000000000 {
+		return (a * b) % m
+	}
+
+	// Use binary multiplication for large values to avoid overflow
+	res := int64(0)
+	a = a % m
+
+	for b > 0 {
+		if b%2 == 1 {
+			res = (res + a) % m
+		}
+		a = (a * 2) % m
+		b /= 2
+	}
+
 	return res
 }
 
