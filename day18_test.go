@@ -55,10 +55,7 @@ func TestDay18Part2Examples(t *testing.T) {
 }
 
 func TestDay18Part2(t *testing.T) {
-	buf := fileFromFilename(t, filename, 18)
-	got := Day18(buf, false)
-	t.Logf("Day 18 Part 2 result: %d", got)
-	// TODO: Update with expected value once verified
+	testBytes(t, 18, filename, false, Day18, 1844)
 }
 
 func BenchmarkDay18Part2(b *testing.B) {

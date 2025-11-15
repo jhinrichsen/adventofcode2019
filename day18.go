@@ -179,26 +179,79 @@ func modifyMazeForPart2(maze *Maze) {
 	maze.robots4[3] = image.Point{X: cx + 1, Y: cy + 1}
 }
 
-type state4 struct {
-	robots [4]image.Point
-	keys   uint32
+// pathInfo stores distance and required keys to reach a destination
+type pathInfo struct {
+	dist         uint
+	requiredKeys uint32
 }
 
-type queueItem4 struct {
-	state4
-	steps uint
+// bfsFrom computes distances from a position to all reachable keys
+func bfsFrom(maze Maze, start image.Point, keyBits map[byte]uint32) map[byte]pathInfo {
+	result := make(map[byte]pathInfo)
+	visited := make(map[image.Point]bool)
+
+	type bfsState struct {
+		pos          image.Point
+		dist         uint
+		requiredKeys uint32
+	}
+
+	queue := []bfsState{{start, 0, 0}}
+	visited[start] = true
+	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		for _, dir := range dirs {
+			newPos := image.Point{X: curr.pos.X + dir.X, Y: curr.pos.Y + dir.Y}
+
+			if newPos.X < 0 || newPos.X >= maze.dimX || newPos.Y < 0 || newPos.Y >= maze.dimY {
+				continue
+			}
+			if visited[newPos] {
+				continue
+			}
+
+			cell := maze.grid[newPos.Y][newPos.X]
+			if cell == '#' {
+				continue
+			}
+
+			visited[newPos] = true
+			newRequired := curr.requiredKeys
+
+			// If it's a door, we need the corresponding key
+			if cell >= 'A' && cell <= 'Z' {
+				newRequired |= keyBits[cell-'A'+'a']
+			}
+
+			// If it's a key, record the path to it
+			if cell >= 'a' && cell <= 'z' {
+				result[cell] = pathInfo{curr.dist + 1, newRequired}
+			}
+
+			queue = append(queue, bfsState{newPos, curr.dist + 1, newRequired})
+		}
+	}
+
+	return result
+}
+
+type state4 struct {
+	robotKeys [4]byte // which key each robot is at ('@' for start)
+	collected uint32
 }
 
 func solvePart2(maze Maze) uint {
-	// Modify maze for part 2
 	modifyMazeForPart2(&maze)
 
-	// Build key-to-bit mapping (deterministic order)
+	// Build key list and bits
 	keyList := make([]byte, 0, len(maze.keys))
 	for key := range maze.keys {
 		keyList = append(keyList, key)
 	}
-	// Sort to ensure deterministic bit assignment
 	for i := range len(keyList) - 1 {
 		for j := i + 1; j < len(keyList); j++ {
 			if keyList[i] > keyList[j] {
@@ -213,70 +266,84 @@ func solvePart2(maze Maze) uint {
 	}
 	allKeys := (uint32(1) << len(keyList)) - 1
 
-	// BFS with state = (4 robot positions, collected keys)
-	queue := []queueItem4{{state4{maze.robots4, 0}, 0}}
-	visited := make(map[state4]bool)
-	visited[state4{maze.robots4, 0}] = true
-
-	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
-
-	for len(queue) > 0 {
-		item := queue[0]
-		queue = queue[1:]
-
-		// Try moving each robot
-		for robotIdx := range 4 {
-			currentPos := item.robots[robotIdx]
-
-			// Try all 4 directions for this robot
-			for _, dir := range dirs {
-				newPos := image.Point{X: currentPos.X + dir.X, Y: currentPos.Y + dir.Y}
-
-				// Check bounds
-				if newPos.X < 0 || newPos.X >= maze.dimX || newPos.Y < 0 || newPos.Y >= maze.dimY {
-					continue
-				}
-
-				cell := maze.grid[newPos.Y][newPos.X]
-
-				// Wall
-				if cell == '#' {
-					continue
-				}
-
-				// Door - check if we have the key
-				if cell >= 'A' && cell <= 'Z' {
-					keyNeeded := keyBits[cell-'A'+'a']
-					if item.keys&keyNeeded == 0 {
-						continue // don't have the key
-					}
-				}
-
-				// Calculate new key state
-				newKeys := item.keys
-				if cell >= 'a' && cell <= 'z' {
-					newKeys |= keyBits[cell]
-				}
-
-				// Check if we've collected all keys
-				if newKeys == allKeys {
-					return item.steps + 1
-				}
-
-				// Create new robot positions
-				newRobots := item.robots
-				newRobots[robotIdx] = newPos
-
-				newState := state4{newRobots, newKeys}
-				if visited[newState] {
-					continue
-				}
-
-				visited[newState] = true
-				queue = append(queue, queueItem4{newState, item.steps + 1})
+	// Build position map: '@' + robot index for starts, keys for key positions
+	keyPos := make(map[byte]image.Point)
+	for y := range maze.dimY {
+		for x := range maze.dimX {
+			cell := maze.grid[y][x]
+			if cell >= 'a' && cell <= 'z' {
+				keyPos[cell] = image.Point{X: x, Y: y}
 			}
 		}
 	}
 
-	return 0 // no solution found
+	// Precompute distances from each robot start and from each key
+	distances := make(map[byte]map[byte]pathInfo)
+
+	// From each robot starting position
+	for i, startPos := range maze.robots4 {
+		robotID := byte('@' + i) // '@', 'A', 'B', 'C' for 4 robots
+		distances[robotID] = bfsFrom(maze, startPos, keyBits)
+	}
+
+	// From each key position
+	for key, pos := range keyPos {
+		distances[key] = bfsFrom(maze, pos, keyBits)
+	}
+
+	// DP with memoization
+	memo := make(map[state4]uint)
+
+	var solve func(state4) uint
+	solve = func(s state4) uint {
+		if s.collected == allKeys {
+			return 0
+		}
+
+		if val, ok := memo[s]; ok {
+			return val
+		}
+
+		best := uint(1<<31 - 1) // large value
+
+		// Try moving each robot to an uncollected key
+		for i := range 4 {
+			currentKey := s.robotKeys[i]
+			paths := distances[currentKey]
+
+			for nextKey, path := range paths {
+				keyBit := keyBits[nextKey]
+
+				// Already collected
+				if s.collected&keyBit != 0 {
+					continue
+				}
+
+				// Don't have required keys
+				if path.requiredKeys&s.collected != path.requiredKeys {
+					continue
+				}
+
+				// Move robot i to nextKey
+				newState := s
+				newState.robotKeys[i] = nextKey
+				newState.collected |= keyBit
+
+				cost := path.dist + solve(newState)
+				if cost < best {
+					best = cost
+				}
+			}
+		}
+
+		memo[s] = best
+		return best
+	}
+
+	initialState := state4{
+		robotKeys: [4]byte{'@', '@' + 1, '@' + 2, '@' + 3},
+		collected: 0,
+	}
+
+	return solve(initialState)
 }
