@@ -9,7 +9,7 @@ func TestDay19Part1(t *testing.T) {
 }
 
 func TestDay19Part2(t *testing.T) {
-	testBytes(t, 19, filename, false, Day19, 21062710)
+	testBytes(t, 19, filename, false, Day19, 15362148)
 }
 
 func BenchmarkDay19Part1(b *testing.B) {
