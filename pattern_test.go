@@ -61,6 +61,23 @@ func testLines[R comparable](
 	}
 }
 
+// testBytes is a generic test helper for day part tests that work directly with []byte.
+func testBytes[R comparable](
+	t *testing.T,
+	day uint8,
+	filenameFunc func(uint8) string,
+	part1 bool,
+	solver func([]byte, bool) R,
+	want R,
+) {
+	t.Helper()
+	buf := fileFromFilename(t, filenameFunc, day)
+	got := solver(buf, part1)
+	if want != got {
+		t.Fatalf("want %v but got %v", want, got)
+	}
+}
+
 // benchWithParser is a generic benchmark helper for day part benchmarks using a parser and solver.
 func benchWithParser[P any, R any](
 	b *testing.B,
@@ -88,5 +105,19 @@ func benchLines[R any](
 	lines := testLinesFromFilename(b, filename(day))
 	for b.Loop() {
 		_ = solver(lines, part1)
+	}
+}
+
+// benchBytes is a generic benchmark helper for day part benchmarks that work directly with []byte.
+func benchBytes[R any](
+	b *testing.B,
+	day uint8,
+	part1 bool,
+	solver func([]byte, bool) R,
+) {
+	b.Helper()
+	buf := fileFromFilename(b, filename, day)
+	for b.Loop() {
+		_ = solver(buf, part1)
 	}
 }

@@ -1,7 +1,7 @@
 package adventofcode2019
 
 import (
-	"os"
+	"fmt"
 	"testing"
 )
 
@@ -10,40 +10,17 @@ func TestDay18Part1Examples(t *testing.T) {
 
 	for i, want := range wants {
 		example := uint8(i + 1)
-		t.Run(exampleNFilename(18, example), func(t *testing.T) {
-			maze, err := os.ReadFile(exampleNFilename(18, example))
-			if err != nil {
-				t.Fatal(err)
-			}
-			got := Day18(maze, true)
-			if got != want {
-				t.Fatalf("example %d: want %v but got %v", example, want, got)
-			}
+		t.Run(fmt.Sprintf("example%d", example), func(t *testing.T) {
+			testBytes(t, 18, func(d uint8) string { return exampleNFilename(d, example) }, true, Day18, want)
 		})
 	}
 }
 
 func TestDay18Part1(t *testing.T) {
-	maze, err := os.ReadFile(filename(18))
-	if err != nil {
-		t.Fatal(err)
-	}
-	// TODO: Update with actual expected value once puzzle is solved
-	const want = 0
-	got := Day18(maze, true)
-	if want != 0 && want != got {
-		t.Fatalf("want %v but got %v", want, got)
-	}
-	t.Logf("Day 18 Part 1: %v", got)
+	t.Skip("TODO: Update expected value once puzzle is solved")
+	testBytes(t, 18, filename, true, Day18, 0)
 }
 
 func BenchmarkDay18Part1(b *testing.B) {
-	maze, err := os.ReadFile(filename(18))
-	if err != nil {
-		b.Fatal(err)
-	}
-	b.ResetTimer()
-	for range b.N {
-		Day18(maze, true)
-	}
+	benchBytes(b, 18, true, Day18)
 }
