@@ -4,10 +4,8 @@ import (
 	"testing"
 )
 
-const day25Part1Want = 229384
-
 func TestDay25Part1(t *testing.T) {
-	testWithParser(t, 25, filename, true, NewDay25, Day25, day25Part1Want)
+	testWithParser(t, 25, filename, true, NewDay25, Day25, 229384)
 }
 
 func BenchmarkDay25Part1(b *testing.B) {
