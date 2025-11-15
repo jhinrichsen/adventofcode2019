@@ -5,28 +5,25 @@ import (
 	"testing"
 )
 
-func TestDay14Part1Example1(t *testing.T) {
-	testLines(t, 14, example1Filename, true, Day14, 31)
-}
+func TestDay14Part1Examples(t *testing.T) {
+	tests := []struct {
+		name         string
+		filenameFunc func(uint8) string
+		want         uint
+	}{
+		{"example1", example1Filename, 31},
+		{"example2", example2Filename, 165},
+		{"example3", example3Filename, 13312},
+		{"example4", example4Filename, 13312},
+		{"example5", example5Filename, 180697},
+		{"example6", example6Filename, 2210736},
+	}
 
-func TestDay14Part1Example2(t *testing.T) {
-	testLines(t, 14, example2Filename, true, Day14, 165)
-}
-
-func TestDay14Part1Example3(t *testing.T) {
-	testLines(t, 14, example3Filename, true, Day14, 13312)
-}
-
-func TestDay14Part1Example4(t *testing.T) {
-	testLines(t, 14, example4Filename, true, Day14, 13312)
-}
-
-func TestDay14Part1Example5(t *testing.T) {
-	testLines(t, 14, example5Filename, true, Day14, 180697)
-}
-
-func TestDay14Part1Example6(t *testing.T) {
-	testLines(t, 14, example6Filename, true, Day14, 2210736)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testLines(t, 14, tt.filenameFunc, true, Day14, tt.want)
+		})
+	}
 }
 
 func TestDay14Part1(t *testing.T) {
@@ -37,20 +34,23 @@ func BenchmarkDay14Part1(b *testing.B) {
 	benchLines(b, 14, true, Day14)
 }
 
-func TestDay14Part2Example3(t *testing.T) {
-	testLines(t, 14, example3Filename, false, Day14, 82892753)
-}
+func TestDay14Part2Examples(t *testing.T) {
+	tests := []struct {
+		name         string
+		filenameFunc func(uint8) string
+		want         uint
+	}{
+		{"example3", example3Filename, 82892753},
+		{"example4", example4Filename, 82892753},
+		{"example5", example5Filename, 5586022},
+		{"example6", example6Filename, 460664},
+	}
 
-func TestDay14Part2Example4(t *testing.T) {
-	testLines(t, 14, example4Filename, false, Day14, 82892753)
-}
-
-func TestDay14Part2Example5(t *testing.T) {
-	testLines(t, 14, example5Filename, false, Day14, 5586022)
-}
-
-func TestDay14Part2Example6(t *testing.T) {
-	testLines(t, 14, example6Filename, false, Day14, 460664)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testLines(t, 14, tt.filenameFunc, false, Day14, tt.want)
+		})
+	}
 }
 
 func TestDay14Part2(t *testing.T) {
