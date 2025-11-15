@@ -19,9 +19,9 @@ func Day22(lines []string, part1 bool) uint {
 	}
 
 	// Part 2: Find which card is at position 2020 after many shuffles
-	deckSize := int64(119315717514047)
-	shuffles := int64(101741582076661)
-	targetPos := int64(2020)
+	deckSize := uint64(119315717514047)
+	shuffles := uint64(101741582076661)
+	targetPos := uint64(2020)
 
 	card := findCardAtPosition(lines, deckSize, shuffles, targetPos)
 	return uint(card)
@@ -124,7 +124,12 @@ func shuffleDeck(lines []string, deckSize uint) []uint {
 
 // findCardAtPosition finds which card ends up at a given position after applying
 // the shuffle operations a specified number of times.
-func findCardAtPosition(lines []string, deckSize, times, position int64) int64 {
+func findCardAtPosition(lines []string, deckSize, times, position uint64) uint64 {
+	// Convert to signed for modular arithmetic (needed for negative intermediate values)
+	m := int64(deckSize)
+	n := int64(times)
+	pos := int64(position)
+
 	// Build the inverse transformation (to work backward from position to card)
 	a, b := int64(1), int64(0)
 
@@ -139,33 +144,33 @@ func findCardAtPosition(lines []string, deckSize, times, position int64) int64 {
 			// Inverse of reverse: pos -> deckSize - 1 - pos
 			// As linear: new_pos = -1 * pos + (deckSize - 1)
 			// Inverse is same: a' = -1, b' = deckSize - 1
-			a = modMul(-a, 1, deckSize)
-			b = modAdd(modMul(-b, 1, deckSize), deckSize-1, deckSize)
+			a = modMul(-a, 1, m)
+			b = modAdd(modMul(-b, 1, m), m-1, m)
 		} else if strings.HasPrefix(line, "cut ") {
 			nStr := strings.TrimPrefix(line, "cut ")
-			n, _ := strconv.ParseInt(nStr, 10, 64)
+			cutN, _ := strconv.ParseInt(nStr, 10, 64)
 			// Forward: pos -> pos - n
 			// Inverse: pos -> pos + n
 			// a' = a, b' = b + n
-			b = modAdd(b, n, deckSize)
+			b = modAdd(b, cutN, m)
 		} else if strings.HasPrefix(line, "deal with increment ") {
 			nStr := strings.TrimPrefix(line, "deal with increment ")
-			n, _ := strconv.ParseInt(nStr, 10, 64)
+			inc, _ := strconv.ParseInt(nStr, 10, 64)
 			// Forward: pos -> pos * n
 			// Inverse: pos -> pos * n^(-1)
-			nInv := modInverse(n, deckSize)
-			a = modMul(a, nInv, deckSize)
-			b = modMul(b, nInv, deckSize)
+			incInv := modInverse(inc, m)
+			a = modMul(a, incInv, m)
+			b = modMul(b, incInv, m)
 		}
 	}
 
 	// Now we have the inverse transformation for one shuffle: f^(-1)(x) = a*x + b
 	// Apply it 'times' times using exponentiation
-	aFinal, bFinal := powerTransform(a, b, times, deckSize)
+	aFinal, bFinal := powerTransform(a, b, n, m)
 
 	// Apply to the target position
-	card := modAdd(modMul(aFinal, position, deckSize), bFinal, deckSize)
-	return card
+	card := modAdd(modMul(aFinal, pos, m), bFinal, m)
+	return uint64(card)
 }
 
 // powerTransform applies a linear transformation (a*x + b) n times using

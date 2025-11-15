@@ -81,7 +81,7 @@ func TestDay22Part2InverseLogic(t *testing.T) {
 
 			// Use findCardAtPosition to verify we get the same result
 			for pos := range deckSize {
-				card := findCardAtPosition(lines, deckSize, 1, int64(pos))
+				card := findCardAtPosition(lines, deckSize, 1, uint64(pos))
 				if uint(card) != tt.want[pos] {
 					t.Errorf("at position %d: want card %d but got %d", pos, tt.want[pos], card)
 				}
@@ -98,7 +98,7 @@ func TestDay22Part2MultipleShuffles(t *testing.T) {
 	lines := testLinesFromFilename(t, example1Filename(22))
 
 	// Test with different numbers of shuffles
-	for _, times := range []int64{1, 2, 3, 5, 10} {
+	for _, times := range []uint64{1, 2, 3, 5, 10} {
 		t.Run(fmt.Sprintf("shuffles=%d", times), func(t *testing.T) {
 			// Simulate by tracking each card through multiple shuffles
 			deck := make([]uint, deckSize)
@@ -114,7 +114,7 @@ func TestDay22Part2MultipleShuffles(t *testing.T) {
 
 			// Now verify our findCardAtPosition gives the same result
 			for pos := range deckSize {
-				card := findCardAtPosition(lines, deckSize, times, int64(pos))
+				card := findCardAtPosition(lines, deckSize, times, uint64(pos))
 				if uint(card) != deck[pos] {
 					t.Errorf("shuffle %d, pos %d: want card %d but got %d", times, pos, deck[pos], card)
 				}
