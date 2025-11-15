@@ -5,104 +5,60 @@ import (
 	"testing"
 )
 
-var day14Part1Examples = []struct {
-	filename string
-	want     uint
-}{
-	{"testdata/day14_example1.txt", 31},
-	{"testdata/day14_example2.txt", 165},
-	{"testdata/day14_example3.txt", 13312},
-	{"testdata/day14_example4.txt", 13312},
-	{"testdata/day14_example5.txt", 180697},
-	{"testdata/day14_example6.txt", 2210736},
+func TestDay14Part1Example1(t *testing.T) {
+	testLines(t, 14, example1Filename, true, Day14, 31)
 }
 
-func TestDay14Part1Examples(t *testing.T) {
-	for i, tt := range day14Part1Examples {
-		id := fmt.Sprintf("Day14Part1 example #%d", i+1)
-		t.Run(id, func(t *testing.T) {
-			lines, err := linesFromFilename(tt.filename)
-			if err != nil {
-				t.Fatal(err)
-			}
-			want := tt.want
-			got := Day14(lines, true)
-			if want != got {
-				t.Fatalf("want %d but got %d", want, got)
-			}
-		})
-	}
+func TestDay14Part1Example2(t *testing.T) {
+	testLines(t, 14, example2Filename, true, Day14, 165)
+}
+
+func TestDay14Part1Example3(t *testing.T) {
+	testLines(t, 14, example3Filename, true, Day14, 13312)
+}
+
+func TestDay14Part1Example4(t *testing.T) {
+	testLines(t, 14, example4Filename, true, Day14, 13312)
+}
+
+func TestDay14Part1Example5(t *testing.T) {
+	testLines(t, 14, example5Filename, true, Day14, 180697)
+}
+
+func TestDay14Part1Example6(t *testing.T) {
+	testLines(t, 14, example6Filename, true, Day14, 2210736)
 }
 
 func TestDay14Part1(t *testing.T) {
-	lines, err := linesFromFilename(input(14))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := uint(337862)
-	got := Day14(lines, true)
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+	testLines(t, 14, filename, true, Day14, 337862)
 }
 
 func BenchmarkDay14Part1(b *testing.B) {
-	lines, err := linesFromFilename(input(14))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day14(lines, true)
-	}
+	benchLines(b, 14, true, Day14)
 }
 
-var day14Part2Examples = []struct {
-	filename string
-	want     uint
-}{
-	{"testdata/day14_example3.txt", 82892753},
-	{"testdata/day14_example4.txt", 82892753},
-	{"testdata/day14_example5.txt", 5586022},
-	{"testdata/day14_example6.txt", 460664},
+func TestDay14Part2Example3(t *testing.T) {
+	testLines(t, 14, example3Filename, false, Day14, 82892753)
 }
 
-func TestDay14Part2Examples(t *testing.T) {
-	for i, tt := range day14Part2Examples {
-		id := fmt.Sprintf("Day14Part2 example #%d", i+1)
-		t.Run(id, func(t *testing.T) {
-			lines, err := linesFromFilename(tt.filename)
-			if err != nil {
-				t.Fatal(err)
-			}
-			want := tt.want
-			got := Day14(lines, false)
-			if want != got {
-				t.Fatalf("want %d but got %d", want, got)
-			}
-		})
-	}
+func TestDay14Part2Example4(t *testing.T) {
+	testLines(t, 14, example4Filename, false, Day14, 82892753)
+}
+
+func TestDay14Part2Example5(t *testing.T) {
+	testLines(t, 14, example5Filename, false, Day14, 5586022)
+}
+
+func TestDay14Part2Example6(t *testing.T) {
+	testLines(t, 14, example6Filename, false, Day14, 460664)
 }
 
 func TestDay14Part2(t *testing.T) {
-	lines, err := linesFromFilename(input(14))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := uint(3687786)
-	got := Day14(lines, false)
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+	testLines(t, 14, filename, false, Day14, 3687786)
 }
 
 func BenchmarkDay14Part2(b *testing.B) {
-	lines, err := linesFromFilename(input(14))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day14(lines, false)
-	}
+	benchLines(b, 14, false, Day14)
 }
 
 func TestParseReactions(t *testing.T) {

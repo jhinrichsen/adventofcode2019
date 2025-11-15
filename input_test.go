@@ -1,33 +1,94 @@
 package adventofcode2019
 
 import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
 	"testing"
 )
 
-func TestLinesFromFilename(t *testing.T) {
-	lines, err := linesFromFilename("testdata/input.txt")
+func testLinesFromFilename(tb testing.TB, filename string) []string {
+	tb.Helper()
+	f, err := os.Open(filename)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	if len(lines) != 1 {
-		t.Fatalf("want 1 line but got %d", len(lines))
+	lines := testLinesFromReader(tb, f)
+	if b, ok := tb.(*testing.B); ok {
+		b.ResetTimer()
 	}
+	return lines
 }
 
-func TestLinesAsNumbers(t *testing.T) {
-	sample := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
-	ints, err := linesAsNumbers(sample)
+func testLinesFromReader(tb testing.TB, r io.Reader) []string {
+	tb.Helper()
+	var lines []string
+	sc := bufio.NewScanner(r)
+	for sc.Scan() {
+		line := sc.Text()
+		lines = append(lines, line)
+	}
+	if err := sc.Err(); err != nil {
+		tb.Fatal(err)
+	}
+	return lines
+}
+
+func exampleFilename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example.txt", int(day))
+}
+
+func example1Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example1.txt", int(day))
+}
+
+func example2Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example2.txt", int(day))
+}
+
+func example3Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example3.txt", int(day))
+}
+
+func example4Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example4.txt", int(day))
+}
+
+func example5Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example5.txt", int(day))
+}
+
+func example6Filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example6.txt", int(day))
+}
+
+func filename(day uint8) string {
+	return fmt.Sprintf("testdata/day%02d.txt", int(day))
+}
+
+// file reads the main input file bytes for day N (zero-padded).
+func file(tb testing.TB, day uint8) []byte {
+	tb.Helper()
+	buf, err := os.ReadFile(filename(day))
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	if len(ints) != len(sample) {
-		t.Fatalf("want %d numbers but got %d", len(sample), len(ints))
+	if b, ok := tb.(*testing.B); ok {
+		b.ResetTimer()
 	}
-	for i := range sample {
-		want := i + 1 // entries are 1-based
-		got := ints[i]
-		if want != got {
-			t.Fatalf("line %d: want %d but got %d", i, want, got)
-		}
+	return buf
+}
+
+// fileFromFilename reads file bytes using a filename function (e.g., filename or exampleFilename).
+func fileFromFilename(tb testing.TB, filenameFunc func(uint8) string, day uint8) []byte {
+	tb.Helper()
+	buf, err := os.ReadFile(filenameFunc(day))
+	if err != nil {
+		tb.Fatal(err)
 	}
+	if b, ok := tb.(*testing.B); ok {
+		b.ResetTimer()
+	}
+	return buf
 }
