@@ -1,5 +1,10 @@
 package adventofcode2019
 
+import (
+	"sync"
+	"time"
+)
+
 // Packet represents a network packet with X and Y values.
 type Packet struct {
 	X, Y int
@@ -12,12 +17,16 @@ func Day23(prog IntCode, part1 bool) uint {
 	const networkSize = 50
 	const natAddress = 255
 
+	// Packet queues for each computer
+	queues := make([][]Packet, networkSize)
+	var queuesMutex sync.Mutex
+
 	// Create channels for each computer
 	inputs := make([]chan int, networkSize)
 	outputs := make([]chan int, networkSize)
 	for i := range networkSize {
-		inputs[i] = make(chan int, 1000)
-		outputs[i] = make(chan int, 1000)
+		inputs[i] = make(chan int, 10)
+		outputs[i] = make(chan int, 10)
 	}
 
 	// Start all computers
@@ -27,20 +36,44 @@ func Day23(prog IntCode, part1 bool) uint {
 		inputs[i] <- i
 	}
 
+	// Input feeder goroutines
+	for i := range networkSize {
+		addr := i
+		go func() {
+			for {
+				queuesMutex.Lock()
+				if len(queues[addr]) > 0 {
+					// Send packet from queue
+					p := queues[addr][0]
+					queues[addr] = queues[addr][1:]
+					queuesMutex.Unlock()
+					inputs[addr] <- p.X
+					inputs[addr] <- p.Y
+				} else {
+					queuesMutex.Unlock()
+					// Queue empty, send -1
+					inputs[addr] <- -1
+				}
+				// Small delay to avoid busy loop
+				time.Sleep(time.Microsecond)
+			}
+		}()
+	}
+
 	// Track NAT state for part 2
 	var natPacket *Packet
 	var lastNATY *int
-	idleCount := 0
+	idleCycles := 0
 
 	// Packet routing loop
 	for {
-		allIdle := true
+		packetSent := false
 
 		// Process outputs from all computers
 		for addr := range networkSize {
 			select {
 			case dest := <-outputs[addr]:
-				allIdle = false
+				packetSent = true
 				// Read X and Y values
 				x := <-outputs[addr]
 				y := <-outputs[addr]
@@ -52,36 +85,49 @@ func Day23(prog IntCode, part1 bool) uint {
 					// Part 2: NAT stores the packet
 					natPacket = &Packet{X: x, Y: y}
 				} else if dest >= 0 && dest < networkSize {
-					// Send to destination computer
-					inputs[dest] <- x
-					inputs[dest] <- y
+					// Queue packet for destination
+					queuesMutex.Lock()
+					queues[dest] = append(queues[dest], Packet{X: x, Y: y})
+					queuesMutex.Unlock()
 				}
 			default:
-				// No output from this computer, send -1 if idle
-				select {
-				case inputs[addr] <- -1:
-				default:
-				}
+				// No output from this computer
 			}
 		}
 
-		// Part 2: Check if network is idle and NAT should send packet
-		if !part1 {
-			if allIdle {
-				idleCount++
-				if idleCount > 10 && natPacket != nil {
-					// Network is idle, send NAT packet to address 0
-					if lastNATY != nil && *lastNATY == natPacket.Y {
-						return uint(natPacket.Y)
+		// Part 2: Check if network is idle
+		if !part1 && natPacket != nil {
+			// Check if all queues are empty
+			queuesMutex.Lock()
+			allQueuesEmpty := true
+			for i := range networkSize {
+				if len(queues[i]) > 0 {
+					allQueuesEmpty = false
+					break
+				}
+			}
+
+			if !packetSent && allQueuesEmpty {
+				idleCycles++
+				// Network appears idle - wait a bit to confirm
+				if idleCycles > 100 {
+					// Send NAT packet to address 0
+					y := natPacket.Y
+					if lastNATY != nil && *lastNATY == y {
+						queuesMutex.Unlock()
+						return uint(y)
 					}
-					lastNATY = &natPacket.Y
-					inputs[0] <- natPacket.X
-					inputs[0] <- natPacket.Y
-					idleCount = 0
+					lastNATY = &y
+					queues[0] = append(queues[0], *natPacket)
+					idleCycles = 0
 				}
 			} else {
-				idleCount = 0
+				idleCycles = 0
 			}
+			queuesMutex.Unlock()
 		}
+
+		// Small delay to avoid busy loop
+		time.Sleep(time.Microsecond * 10)
 	}
 }
