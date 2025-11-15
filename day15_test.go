@@ -10,8 +10,8 @@ func TestDay15Part1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	const want = 272
 	got := Day15(prog, true)
-	want := uint(272)
 	if want != got {
 		t.Fatalf("want %v but got %v", want, got)
 	}
@@ -22,8 +22,8 @@ func TestDay15Part2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	const want = 398
 	got := Day15(prog, false)
-	want := uint(398)
 	if want != got {
 		t.Fatalf("want %v but got %v", want, got)
 	}
