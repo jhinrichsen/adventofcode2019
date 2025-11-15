@@ -6,12 +6,6 @@ import (
 )
 
 func TestDay20Part1Example1(t *testing.T) {
-	buf, err := os.ReadFile(example1Filename(20))
-	if err != nil {
-		t.Fatal(err)
-	}
-	maze := parseMaze20(buf)
-	t.Logf("Example1 - Start: %v, End: %v, dimX=%d, dimY=%d", maze.start, maze.end, maze.dimX, maze.dimY)
 	testBytes(t, 20, example1Filename, true, Day20, 23)
 }
 
@@ -24,14 +18,19 @@ func TestDay20Part1(t *testing.T) {
 }
 
 func TestDay20Part2Example(t *testing.T) {
-	t.Skip("Part 2 example file appears to be malformed - skipping for now")
+	buf, err := os.ReadFile("testdata/day20_part2_example.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := Day20(buf, false)
+	const want = 396
+	if got != want {
+		t.Fatalf("Part 2 example: want %v but got %v", want, got)
+	}
 }
 
 func TestDay20Part2(t *testing.T) {
-	buf := fileFromFilename(t, filename, 20)
-	got := Day20(buf, false)
-	t.Logf("Day 20 Part 2 result: %d", got)
-	// TODO: Update with expected value once verified
+	testBytes(t, 20, filename, false, Day20, 7844)
 }
 
 func BenchmarkDay20Part1(b *testing.B) {

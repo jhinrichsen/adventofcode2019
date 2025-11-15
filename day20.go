@@ -101,8 +101,8 @@ func (m *Maze20) findBoundaries() {
 }
 
 func (m *Maze20) isOuterPortal(pos image.Point) bool {
-	// Check if position is on outer edge of maze (within 3 cells of the border)
-	return pos.X < 3 || pos.X > m.dimX-4 || pos.Y < 3 || pos.Y > m.dimY-4
+	// Check if position is on outer edge of maze (near the border)
+	return pos.X <= 2 || pos.X >= m.dimX-3 || pos.Y <= 2 || pos.Y >= m.dimY-4
 }
 
 func (m *Maze20) checkPortal(x, y int) {
@@ -229,6 +229,7 @@ func solveMaze20Part2(maze Maze20) uint {
 	visited[visitKey(maze.start, 0)] = true
 
 	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+	const maxLevel = 500 // Reasonable depth limit
 
 	for len(queue) > 0 {
 		curr := queue[0]
@@ -293,6 +294,10 @@ func solveMaze20Part2(maze Maze20) uint {
 			} else {
 				// Inner portal: go down a level (inward)
 				newLevel++
+				if newLevel > maxLevel {
+					// Don't go too deep
+					continue
+				}
 			}
 
 			key := visitKey(toPos, newLevel)
