@@ -2,6 +2,7 @@ package adventofcode2019
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 )
 
@@ -11,16 +12,18 @@ func Day20(input []byte, part1 bool) uint {
 	if part1 {
 		return solveMaze20Part1(maze)
 	}
-	return 0 // TODO: Part 2
+	return solveMaze20Part2(maze)
 }
 
 type Maze20 struct {
-	grid    [][]byte
-	dimX    int
-	dimY    int
-	portals map[string][]image.Point // portal name -> list of positions
-	start   image.Point
-	end     image.Point
+	grid       [][]byte
+	dimX       int
+	dimY       int
+	portals    map[string][]image.Point // portal name -> list of positions
+	start      image.Point
+	end        image.Point
+	innerEdge  image.Point // Track inner boundary for determining inner/outer portals
+	outerEdge  image.Point
 }
 
 func parseMaze20(input []byte) Maze20 {
@@ -52,6 +55,10 @@ func parseMaze20(input []byte) Maze20 {
 		}
 	}
 
+	// Find inner/outer boundaries
+	// Outer boundary is near edges, inner boundary is around the donut hole
+	maze.findBoundaries()
+
 	// Find portals
 	for y := range dimY {
 		for x := range dimX {
@@ -63,6 +70,39 @@ func parseMaze20(input []byte) Maze20 {
 	}
 
 	return maze
+}
+
+func (m *Maze20) findBoundaries() {
+	// Find the donut hole (area with no passages in the middle)
+	minHoleX, maxHoleX := m.dimX, 0
+	minHoleY, maxHoleY := m.dimY, 0
+
+	for y := range m.dimY {
+		for x := range m.dimX {
+			if m.grid[y][x] == ' ' && x > 2 && x < m.dimX-2 && y > 2 && y < m.dimY-2 {
+				if x < minHoleX {
+					minHoleX = x
+				}
+				if x > maxHoleX {
+					maxHoleX = x
+				}
+				if y < minHoleY {
+					minHoleY = y
+				}
+				if y > maxHoleY {
+					maxHoleY = y
+				}
+			}
+		}
+	}
+
+	m.innerEdge = image.Point{X: minHoleX, Y: minHoleY}
+	m.outerEdge = image.Point{X: maxHoleX, Y: maxHoleY}
+}
+
+func (m *Maze20) isOuterPortal(pos image.Point) bool {
+	// Check if position is on outer edge of maze (within 3 cells of the border)
+	return pos.X < 3 || pos.X > m.dimX-4 || pos.Y < 3 || pos.Y > m.dimY-4
 }
 
 func (m *Maze20) checkPortal(x, y int) {
@@ -167,6 +207,101 @@ func solveMaze20Part1(maze Maze20) uint {
 					queue = append(queue, state{positions[0], curr.steps + 1})
 				}
 			}
+		}
+	}
+
+	return 0
+}
+
+func solveMaze20Part2(maze Maze20) uint {
+	// BFS from start to end with recursive levels
+	type state struct {
+		pos   image.Point
+		level int
+		steps uint
+	}
+
+	queue := []state{{maze.start, 0, 0}}
+	visited := make(map[string]bool)
+	visitKey := func(pos image.Point, level int) string {
+		return fmt.Sprintf("%d,%d,%d", pos.X, pos.Y, level)
+	}
+	visited[visitKey(maze.start, 0)] = true
+
+	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		// Check if we reached the end at level 0
+		if curr.pos == maze.end && curr.level == 0 {
+			return curr.steps
+		}
+
+		// Try normal moves
+		for _, dir := range dirs {
+			newPos := image.Point{X: curr.pos.X + dir.X, Y: curr.pos.Y + dir.Y}
+
+			if newPos.X < 0 || newPos.X >= maze.dimX || newPos.Y < 0 || newPos.Y >= maze.dimY {
+				continue
+			}
+
+			if maze.grid[newPos.Y][newPos.X] != '.' {
+				continue
+			}
+
+			key := visitKey(newPos, curr.level)
+			if visited[key] {
+				continue
+			}
+
+			visited[key] = true
+			queue = append(queue, state{newPos, curr.level, curr.steps + 1})
+		}
+
+		// Try portal teleport
+		for _, positions := range maze.portals {
+			if len(positions) != 2 {
+				continue
+			}
+
+			var fromPos, toPos image.Point
+			var isOuter bool
+
+			if positions[0] == curr.pos {
+				fromPos = positions[0]
+				toPos = positions[1]
+				isOuter = maze.isOuterPortal(fromPos)
+			} else if positions[1] == curr.pos {
+				fromPos = positions[1]
+				toPos = positions[0]
+				isOuter = maze.isOuterPortal(fromPos)
+			} else {
+				continue
+			}
+
+			// Determine new level
+			newLevel := curr.level
+			if isOuter {
+				// Outer portal: go up a level (outward)
+				newLevel--
+				if newLevel < 0 {
+					// Can't go beyond level 0
+					continue
+				}
+			} else {
+				// Inner portal: go down a level (inward)
+				newLevel++
+			}
+
+			key := visitKey(toPos, newLevel)
+			if visited[key] {
+				continue
+			}
+
+			visited[key] = true
+			queue = append(queue, state{toPos, newLevel, curr.steps + 1})
 		}
 	}
 
