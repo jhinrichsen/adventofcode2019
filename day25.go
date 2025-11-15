@@ -6,208 +6,259 @@ import (
 	"strings"
 )
 
-// Day25 solves the Cryostasis text adventure by exploring programmatically.
+// Day25 solves the Cryostasis text adventure.
 func Day25(prog IntCode, part1 bool) uint {
 	if !part1 {
 		return 0
 	}
 
-	// Programmatically explore the ship
-	exp := &gameExplorer{
-		prog: prog,
-		dangerous: map[string]bool{
-			"giant electromagnet": true,
-			"escape pod":          true,
-			"molten lava":         true,
-			"photons":             true,
-			"infinite loop":       true,
-		},
+	// Build room graph using DFS
+	graph := buildRoomGraph(prog)
+
+	// Find all safe items and security checkpoint
+	var items []string
+	var securityRoom string
+	var securityDir string
+
+	dangerous := map[string]bool{
+		"giant electromagnet": true,
+		"escape pod":          true,
+		"molten lava":         true,
+		"photons":             true,
+		"infinite loop":       true,
 	}
 
-	items, pathToCheckpoint, checkpointDir := exp.exploreShip()
-
-	// Brute force all item combinations at security
-	return bruteForce(prog, items, pathToCheckpoint, checkpointDir)
-}
-
-type gameExplorer struct {
-	prog      IntCode
-	dangerous map[string]bool
-}
-
-// exploreShip explores all rooms and finds safe items and path to security.
-func (g *gameExplorer) exploreShip() ([]string, []string, string) {
-	// For now, use hardcoded solution
-	// Full BFS exploration would be complex and slow
-	return g.hardcodedSolution()
-}
-
-// hardcodedSolution returns the working solution path.
-func (g *gameExplorer) hardcodedSolution() ([]string, []string, string) {
-	// Map determined through programmatic exploration:
-	// Hull Breach -> north -> Warp Drive Maintenance (hologram)
-	//   -> north -> Hallway (astrolabe)
-	//     -> north -> Navigation (space law space brochure)
-	//   -> south -> Storage (easter egg)
-	// Hull Breach -> south -> Corridor (manifold)
-	//   -> south -> Arcade (ornament)
-	//     -> west -> Hot Chocolate Fountain (coin)
-	//       -> west -> Engineering (monolith)
-	//         -> north -> Security Checkpoint
-
-	path := []string{
-		// Collect from Warp Drive Maintenance branch
-		"north", // Hull Breach -> Warp Drive Maintenance
-		"take hologram",
-		"north", // -> Hallway
-		"take astrolabe",
-		"north", // -> Navigation
-		"take space law space brochure",
-		"south", // back to Hallway
-		"south", // back to Warp Drive Maintenance
-		"south", // -> Storage
-		"take easter egg",
-		"north", // back to Warp Drive Maintenance
-		"south", // back to Hull Breach
-
-		// Collect from Corridor branch
-		"south", // Hull Breach -> Corridor
-		"take manifold",
-		"south", // -> Arcade
-		"take ornament",
-		"west", // -> Hot Chocolate Fountain
-		"take coin",
-		"west", // -> Engineering
-		"take monolith",
-		"north", // -> Security Checkpoint (we're now at the checkpoint)
+	for roomName, room := range graph {
+		if strings.Contains(roomName, "Security") {
+			securityRoom = roomName
+			for dir := range room.exits {
+				securityDir = dir
+				break
+			}
+		}
+		for _, item := range room.items {
+			if !dangerous[item] {
+				items = append(items, item)
+			}
+		}
 	}
 
-	items := []string{
-		"hologram",
-		"astrolabe",
-		"space law space brochure",
-		"easter egg",
-		"manifold",
-		"ornament",
-		"coin",
-		"monolith",
-	}
+	// Build path to collect all items and reach security
+	path := buildCollectionPath(graph, items, securityRoom)
 
-	return items, path, "north"
+	// Try all item combinations
+	return tryItemCombos(prog, items, path, securityDir)
 }
 
 type roomInfo struct {
 	name  string
-	doors []string
+	exits map[string]string // direction -> room name
 	items []string
 }
 
-func parseRoomInfo(output string) *roomInfo {
-	info := &roomInfo{}
+// buildRoomGraph explores the ship and builds a complete room graph.
+func buildRoomGraph(prog IntCode) map[string]*roomInfo {
+	graph := make(map[string]*roomInfo)
+	visited := make(map[string]bool)
 
-	// Parse room name
-	nameRe := regexp.MustCompile(`== (.+?) ==`)
-	if matches := nameRe.FindStringSubmatch(output); len(matches) > 1 {
-		info.name = matches[1]
+	var dfs func(path []string)
+	dfs = func(path []string) {
+		output := executeCommands(prog, path)
+		parsedRoom := parseRoom(output)
+
+		// Add room to graph if not already there
+		if _, exists := graph[parsedRoom.name]; !exists {
+			graph[parsedRoom.name] = parsedRoom
+		}
+
+		// Get the room from the graph (in case it already existed)
+		room := graph[parsedRoom.name]
+
+		// Skip further exploration if we've already explored this room's exits
+		if visited[room.name] {
+			return
+		}
+
+		// Don't explore past security checkpoint
+		if strings.Contains(room.name, "Security") {
+			visited[room.name] = true
+			return
+		}
+
+		visited[room.name] = true
+
+		// Explore all exits
+		for dir := range room.exits {
+			nextPath := append(append([]string{}, path...), dir)
+			nextOutput := executeCommands(prog, nextPath)
+			nextRoom := parseRoom(nextOutput)
+
+			// Record where this direction leads
+			room.exits[dir] = nextRoom.name
+
+			// Only continue DFS if we haven't visited this room yet
+			if !visited[nextRoom.name] {
+				dfs(nextPath)
+			}
+		}
 	}
 
-	// Parse doors and items
+	dfs([]string{})
+	return graph
+}
+
+// parseRoom extracts room data from game output.
+func parseRoom(output string) *roomInfo {
+	room := &roomInfo{exits: make(map[string]string)}
+
+	// Extract room name (find the LAST occurrence since output may contain multiple rooms)
+	var roomName string
+	nameRe := regexp.MustCompile(`== (.+?) ==`)
+	allMatches := nameRe.FindAllStringSubmatch(output, -1)
+	if len(allMatches) > 0 {
+		roomName = allMatches[len(allMatches)-1][1]
+	}
+	room.exits["_name"] = roomName // Hack to store name
+
+	// Parse lines
 	lines := strings.Split(output, "\n")
-	collectingDoors := false
-	collectingItems := false
+	inDoors, inItems := false, false
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		if strings.Contains(trimmed, "Doors here lead:") {
-			collectingDoors = true
-			collectingItems = false
+			inDoors, inItems = true, false
 			continue
 		}
 		if strings.Contains(trimmed, "Items here:") {
-			collectingItems = true
-			collectingDoors = false
+			inItems, inDoors = true, false
 			continue
 		}
-		if trimmed == "" || trimmed == "Command?" {
-			collectingDoors = false
-			collectingItems = false
+		if trimmed == "" || strings.Contains(trimmed, "Command?") {
+			inDoors, inItems = false, false
 		}
 
-		if collectingDoors && strings.HasPrefix(trimmed, "- ") {
-			info.doors = append(info.doors, strings.TrimPrefix(trimmed, "- "))
+		if inDoors && strings.HasPrefix(trimmed, "- ") {
+			dir := strings.TrimPrefix(trimmed, "- ")
+			room.exits[dir] = "" // Will be filled by DFS
 		}
-		if collectingItems && strings.HasPrefix(trimmed, "- ") {
-			info.items = append(info.items, strings.TrimPrefix(trimmed, "- "))
+		if inItems && strings.HasPrefix(trimmed, "- ") {
+			item := strings.TrimPrefix(trimmed, "- ")
+			room.items = append(room.items, item)
+		}
+	}
+
+	room.name = roomName
+	delete(room.exits, "_name")
+	return room
+}
+
+// buildCollectionPath creates path to collect all items and reach security.
+func buildCollectionPath(graph map[string]*roomInfo, items []string, security string) []string {
+	var path []string
+
+	// Find each item's room
+	itemRooms := make(map[string]string)
+	for roomName, room := range graph {
+		for _, item := range room.items {
+			itemRooms[item] = roomName
 		}
 	}
 
-	return info
+	// Track current location
+	currentRoom := "Hull Breach"
+
+	// Collect all items
+	for _, item := range items {
+		roomName := itemRooms[item]
+		roomPath := findRoomPath(graph, currentRoom, roomName)
+		path = append(path, roomPath...)
+		path = append(path, "take "+item)
+		currentRoom = roomName
+	}
+
+	// Go to security
+	secPath := findRoomPath(graph, currentRoom, security)
+	path = append(path, secPath...)
+
+	return path
 }
 
-func (g *gameExplorer) runGame(commands []string) string {
-	input := make(chan int, 10000)
-	output := make(chan int, 10000)
+// findRoomPath finds shortest path between two rooms using BFS.
+func findRoomPath(graph map[string]*roomInfo, start, target string) []string {
+	if start == target {
+		return []string{}
+	}
 
-	go Day5(g.prog.Copy(), input, output)
+	type state struct {
+		room string
+		path []string
+	}
 
-	var result strings.Builder
-	cmdIdx := 0
+	queue := []state{{room: start, path: []string{}}}
+	visited := make(map[string]bool)
 
-	for {
-		select {
-		case val, ok := <-output:
-			if !ok {
-				return result.String()
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if visited[current.room] {
+			continue
+		}
+		visited[current.room] = true
+
+		if current.room == target {
+			return current.path
+		}
+
+		room := graph[current.room]
+		if room == nil {
+			continue
+		}
+
+		for dir, nextRoom := range room.exits {
+			if nextRoom == "" {
+				continue
 			}
-			result.WriteByte(byte(val))
-
-			if strings.HasSuffix(result.String(), "Command?\n") {
-				if cmdIdx < len(commands) {
-					cmd := commands[cmdIdx]
-					cmdIdx++
-					for _, ch := range cmd {
-						input <- int(ch)
-					}
-					input <- 10
-				} else {
-					close(input)
-					return result.String()
-				}
-			}
+			newPath := append(append([]string{}, current.path...), dir)
+			queue = append(queue, state{room: nextRoom, path: newPath})
 		}
 	}
+
+	return []string{}
 }
 
-func bruteForce(prog IntCode, items []string, path []string, dir string) uint {
+// tryItemCombos tries all combinations of items.
+func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint {
 	for mask := range 1 << len(items) {
-		commands := make([]string, len(path))
-		copy(commands, path)
+		cmds := make([]string, len(path))
+		copy(cmds, path)
 
 		// Drop all
 		for _, item := range items {
-			commands = append(commands, "drop "+item)
+			cmds = append(cmds, "drop "+item)
 		}
 
 		// Take selected
 		for i, item := range items {
 			if mask&(1<<i) != 0 {
-				commands = append(commands, "take "+item)
+				cmds = append(cmds, "take "+item)
 			}
 		}
 
 		// Try security
-		commands = append(commands, dir)
+		cmds = append(cmds, dir)
 
-		output := runCommands(prog, commands)
-		if pw := findPassword(output); pw != 0 {
+		output := executeCommands(prog, cmds)
+		if pw := getPassword(output); pw != 0 {
 			return pw
 		}
 	}
 	return 0
 }
 
-func runCommands(prog IntCode, commands []string) string {
+func executeCommands(prog IntCode, commands []string) string {
 	input := make(chan int, 10000)
 	output := make(chan int, 10000)
 
@@ -241,7 +292,7 @@ func runCommands(prog IntCode, commands []string) string {
 	}
 }
 
-func findPassword(output string) uint {
+func getPassword(output string) uint {
 	re := regexp.MustCompile(`typing (\d+) on the keypad`)
 	if matches := re.FindStringSubmatch(output); len(matches) > 1 {
 		var pw uint
