@@ -1,4 +1,4 @@
-package adventofcode2023
+package adventofcode2019
 
 import "testing"
 
@@ -13,7 +13,7 @@ func testWithParser[P any, R comparable](
 	want R,
 ) {
 	t.Helper()
-	lines := linesFromFilename(t, filenameFunc(day))
+	lines := testLinesFromFilename(t, filenameFunc(day))
 	puzzle, err := parser(lines)
 	if err != nil {
 		t.Fatal(err)
@@ -54,7 +54,7 @@ func testLines[R comparable](
 	want R,
 ) {
 	t.Helper()
-	lines := linesFromFilename(t, filenameFunc(day))
+	lines := testLinesFromFilename(t, filenameFunc(day))
 	got := solver(lines, part1)
 	if want != got {
 		t.Fatalf("want %v but got %v", want, got)
@@ -70,7 +70,7 @@ func benchWithParser[P any, R any](
 	solver func(P, bool) R,
 ) {
 	b.Helper()
-	lines := linesFromFilename(b, filename(day))
+	lines := testLinesFromFilename(b, filename(day))
 	for b.Loop() {
 		puzzle, _ := parser(lines)
 		_ = solver(puzzle, part1)
@@ -85,7 +85,7 @@ func benchLines[R any](
 	solver func([]string, bool) R,
 ) {
 	b.Helper()
-	lines := linesFromFilename(b, filename(day))
+	lines := testLinesFromFilename(b, filename(day))
 	for b.Loop() {
 		_ = solver(lines, part1)
 	}
