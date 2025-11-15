@@ -70,14 +70,25 @@ type queueItem struct {
 }
 
 func solvePart1(maze Maze) uint {
-	// Build key-to-bit mapping
-	keyBits := make(map[byte]uint32)
-	keyCount := 0
+	// Build key-to-bit mapping (deterministic order)
+	keyList := make([]byte, 0, len(maze.keys))
 	for key := range maze.keys {
-		keyBits[key] = 1 << keyCount
-		keyCount++
+		keyList = append(keyList, key)
 	}
-	allKeys := (uint32(1) << keyCount) - 1
+	// Sort to ensure deterministic bit assignment
+	for i := range len(keyList) - 1 {
+		for j := i + 1; j < len(keyList); j++ {
+			if keyList[i] > keyList[j] {
+				keyList[i], keyList[j] = keyList[j], keyList[i]
+			}
+		}
+	}
+
+	keyBits := make(map[byte]uint32)
+	for i, key := range keyList {
+		keyBits[key] = 1 << i
+	}
+	allKeys := (uint32(1) << len(keyList)) - 1
 
 	// BFS with state = (position, collected keys)
 	start := image.Point{X: maze.startX, Y: maze.startY}
@@ -90,11 +101,6 @@ func solvePart1(maze Maze) uint {
 	for len(queue) > 0 {
 		item := queue[0]
 		queue = queue[1:]
-
-		// Check if we've collected all keys
-		if item.keys == allKeys {
-			return item.steps
-		}
 
 		// Try all 4 directions
 		for _, dir := range dirs {
@@ -124,6 +130,11 @@ func solvePart1(maze Maze) uint {
 			newKeys := item.keys
 			if cell >= 'a' && cell <= 'z' {
 				newKeys |= keyBits[cell]
+			}
+
+			// Check if we've collected all keys
+			if newKeys == allKeys {
+				return item.steps + 1
 			}
 
 			newState := state{newPos, newKeys}
