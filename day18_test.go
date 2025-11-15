@@ -6,26 +6,18 @@ import (
 )
 
 func TestDay18Part1Examples(t *testing.T) {
-	tests := []struct {
-		example uint8
-		want    uint
-	}{
-		{1, 8},
-		{2, 86},
-		{3, 132},
-		{4, 136},
-		{5, 81},
-	}
+	wants := []uint{8, 86, 132, 136, 81}
 
-	for _, tt := range tests {
-		t.Run(exampleNFilename(18, tt.example), func(t *testing.T) {
-			maze, err := os.ReadFile(exampleNFilename(18, tt.example))
+	for i, want := range wants {
+		example := uint8(i + 1)
+		t.Run(exampleNFilename(18, example), func(t *testing.T) {
+			maze, err := os.ReadFile(exampleNFilename(18, example))
 			if err != nil {
 				t.Fatal(err)
 			}
 			got := Day18(maze, true)
-			if got != tt.want {
-				t.Fatalf("example %d: want %v but got %v", tt.example, tt.want, got)
+			if got != want {
+				t.Fatalf("example %d: want %v but got %v", example, want, got)
 			}
 		})
 	}
