@@ -50,3 +50,36 @@ in Go.
        = 10 A   + 23 B   + 37 C
        = 45 ORE + 64 ORE + 56 ORE
        = 165 ORE
+
+
+== Day 22
+
+=== Part 2 Integer Overflow Bug
+
+*Problem*: Initial implementation produced incorrect answer (69676926565412, too high).
+
+*Root Cause*: Integer overflow in modular multiplication when handling large deck size (119315717514047).
+
+*Where*: The `modMul` function was using direct multiplication `(a % m) * (b % m) % m`, which overflows when both operands are close to the modulus value. Since int64 max ≈ 9.2×10^18 and the deck size is ≈ 1.2×10^14, multiplying two values near the deck size exceeds int64 capacity.
+
+*Why It Failed*: During matrix exponentiation in `powerTransform`, coefficients `a` and `b` grow to values near the deck size. When `modMul(a, currA, mod)` is called with both values ≈ 10^14, the intermediate result ≈ 10^28 overflows, producing incorrect results due to two's complement wraparound.
+
+*Fix*: Implemented binary multiplication (peasant multiplication) for large values:
+- Fast path: Direct multiplication for values < 1 billion (guaranteed no overflow)
+- Slow path: Binary multiplication using repeated addition and doubling for large values
+- Similar to how modular exponentiation avoids overflow using repeated squaring
+
+*Impact*:
+- Incorrect answer: 69676926565412
+- Correct answer: 58348342289943
+- All 4 example tests passed (deck size 10, small enough to avoid overflow)
+- Issue only manifested with Part 2's large deck size
+
+*Tests Added*:
+- `TestDay22InverseLogic`: Validates inverse transformation for all 4 examples
+- `TestDay22MultipleShuffles`: Verifies power transform with 1, 2, 3, 5, 10 shuffles
+
+*Key Lesson*: When implementing modular arithmetic algorithms for competitive programming:
+1. Always consider overflow even when using modulo operations
+2. Test with actual problem constraints, not just examples
+3. Binary multiplication is essential for large moduli (> √(int64_max))
