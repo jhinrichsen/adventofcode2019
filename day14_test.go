@@ -32,6 +32,18 @@ func TestDay14Part1Examples(t *testing.T) {
 	}
 }
 
+func TestDay14Part1(t *testing.T) {
+	lines, err := linesFromFilename(input(14))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := uint(337862)
+	got := Day14(lines, true)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
 var day14Part2Examples = []struct {
 	filename string
 	want     uint
