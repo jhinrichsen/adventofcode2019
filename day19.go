@@ -61,21 +61,42 @@ func testPointFromMap(beamMap [][]bool, x, y int) bool {
 }
 
 // findSquareFromMap finds square in a precomputed map (for testing)
+// Uses the same algorithm as findSquare to ensure consistency
 func findSquareFromMap(beamMap [][]bool, square int) uint {
-	for y := square - 1; y < len(beamMap); y++ {
-		for x := range len(beamMap[y]) {
-			if !beamMap[y][x] {
-				continue
-			}
+	// Start searching from a reasonable y position
+	// y represents the BOTTOM row of the square
+	y := square
 
-			// Check if top-right corner is in beam
-			topRightX := x + square - 1
-			topRightY := y - square + 1
-
-			if topRightY >= 0 && testPointFromMap(beamMap, topRightX, topRightY) {
-				return uint(x*10000 + topRightY)
+	for y < len(beamMap) {
+		// Find the leftmost beam point in this row (bottom-left of square)
+		x := 0
+		found := false
+		for x < len(beamMap[y]) {
+			if testPointFromMap(beamMap, x, y) {
+				found = true
+				break
 			}
+			x++
 		}
+
+		if !found {
+			y++
+			continue
+		}
+
+		// Check if top-right corner of square is in beam
+		// Bottom-left is at (x, y)
+		// Top-right should be at (x + square - 1, y - square + 1)
+		topRightX := x + square - 1
+		topRightY := y - square + 1
+
+		if topRightY >= 0 && testPointFromMap(beamMap, topRightX, topRightY) {
+			// Square fits! Return top-left corner value
+			// Top-left is at (x, topRightY)
+			return uint(x*10000 + topRightY)
+		}
+
+		y++
 	}
 	return 0
 }
