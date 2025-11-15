@@ -5,9 +5,9 @@ import (
 )
 
 func TestDay25Part1(t *testing.T) {
-	testWithParser(t, 25, filename, true, NewDay25, Day25, 229384)
+	testLines(t, 25, filename, true, Day25, 229384)
 }
 
 func BenchmarkDay25Part1(b *testing.B) {
-	benchWithParser(b, 25, true, NewDay25, Day25)
+	benchLines(b, 25, true, Day25)
 }
