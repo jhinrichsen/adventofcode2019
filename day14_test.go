@@ -7,20 +7,19 @@ import (
 
 func TestDay14Part1Examples(t *testing.T) {
 	tests := []struct {
-		name         string
 		filenameFunc func(uint8) string
 		want         uint
 	}{
-		{"example1", example1Filename, 31},
-		{"example2", example2Filename, 165},
-		{"example3", example3Filename, 13312},
-		{"example4", example4Filename, 13312},
-		{"example5", example5Filename, 180697},
-		{"example6", example6Filename, 2210736},
+		{example1Filename, 31},
+		{example2Filename, 165},
+		{example3Filename, 13312},
+		{example4Filename, 13312},
+		{example5Filename, 180697},
+		{example6Filename, 2210736},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("example%d", i+1), func(t *testing.T) {
 			testLines(t, 14, tt.filenameFunc, true, Day14, tt.want)
 		})
 	}
@@ -36,18 +35,17 @@ func BenchmarkDay14Part1(b *testing.B) {
 
 func TestDay14Part2Examples(t *testing.T) {
 	tests := []struct {
-		name         string
 		filenameFunc func(uint8) string
 		want         uint
 	}{
-		{"example3", example3Filename, 82892753},
-		{"example4", example4Filename, 82892753},
-		{"example5", example5Filename, 5586022},
-		{"example6", example6Filename, 460664},
+		{example3Filename, 82892753},
+		{example4Filename, 82892753},
+		{example5Filename, 5586022},
+		{example6Filename, 460664},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("example%d", i+1), func(t *testing.T) {
 			testLines(t, 14, tt.filenameFunc, false, Day14, tt.want)
 		})
 	}
