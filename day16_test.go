@@ -1,22 +1,26 @@
 package adventofcode2019
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
 
-func TestDay16Part1Examples(t *testing.T) {
+func TestDay16Part1ExamplePhases(t *testing.T) {
 	tests := []struct {
-		input  string
 		phases int
 		want   string
 	}{
-		{"12345678", 4, "01029498"},
+		{0, "12345678"},
+		{1, "48226158"},
+		{2, "34040438"},
+		{3, "03415518"},
+		{4, "01029498"},
 	}
 
 	for i, tt := range tests {
-		t.Run(string(rune('a'+i)), func(t *testing.T) {
-			digits := parseDigits([]byte(tt.input))
+		t.Run(fmt.Sprintf("phase%d", i), func(t *testing.T) {
+			digits := parseDigits([]byte("12345678"))
 			for range tt.phases {
 				digits = applyFFTPhase(digits)
 			}
@@ -26,7 +30,7 @@ func TestDay16Part1Examples(t *testing.T) {
 				result += string(rune('0' + d))
 			}
 			if result != tt.want {
-				t.Fatalf("want %v but got %v", tt.want, result)
+				t.Fatalf("after %d phases: want %v but got %v", tt.phases, tt.want, result)
 			}
 		})
 	}
