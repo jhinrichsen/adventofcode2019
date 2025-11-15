@@ -1,4 +1,4 @@
-package adventofcode2023
+package adventofcode2019
 
 import (
 	"bufio"
