@@ -7,6 +7,10 @@ import (
 )
 
 // Day20 solves the "Donut Maze" puzzle.
+//
+// Part 2 Note: Initial implementation had off-by-one error in isOuterPortal()
+// which caused incorrect answer of 2520. Fixed by changing boundary checks
+// from `>` to `>=`. Correct answer: 7844.
 func Day20(input []byte, part1 bool) uint {
 	maze := parseMaze20(input)
 	if part1 {
