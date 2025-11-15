@@ -18,15 +18,17 @@ var day14Part1Examples = []struct {
 }
 
 func TestDay14Part1Examples(t *testing.T) {
-	for _, tt := range day14Part1Examples {
-		t.Run(tt.filename, func(t *testing.T) {
+	for i, tt := range day14Part1Examples {
+		id := fmt.Sprintf("Day14Part1 example #%d", i+1)
+		t.Run(id, func(t *testing.T) {
 			lines, err := linesFromFilename(tt.filename)
 			if err != nil {
 				t.Fatal(err)
 			}
+			want := tt.want
 			got := Day14(lines, true)
-			if tt.want != got {
-				t.Fatalf("want %d but got %d", tt.want, got)
+			if want != got {
+				t.Fatalf("want %d but got %d", want, got)
 			}
 		})
 	}
@@ -44,6 +46,16 @@ func TestDay14Part1(t *testing.T) {
 	}
 }
 
+func BenchmarkDay14Part1(b *testing.B) {
+	lines, err := linesFromFilename(input(14))
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		Day14(lines, true)
+	}
+}
+
 var day14Part2Examples = []struct {
 	filename string
 	want     uint
@@ -55,17 +67,41 @@ var day14Part2Examples = []struct {
 }
 
 func TestDay14Part2Examples(t *testing.T) {
-	for _, tt := range day14Part2Examples {
-		t.Run(tt.filename, func(t *testing.T) {
+	for i, tt := range day14Part2Examples {
+		id := fmt.Sprintf("Day14Part2 example #%d", i+1)
+		t.Run(id, func(t *testing.T) {
 			lines, err := linesFromFilename(tt.filename)
 			if err != nil {
 				t.Fatal(err)
 			}
+			want := tt.want
 			got := Day14(lines, false)
-			if tt.want != got {
-				t.Fatalf("want %d but got %d", tt.want, got)
+			if want != got {
+				t.Fatalf("want %d but got %d", want, got)
 			}
 		})
+	}
+}
+
+func TestDay14Part2(t *testing.T) {
+	lines, err := linesFromFilename(input(14))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := uint(3687786)
+	got := Day14(lines, false)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func BenchmarkDay14Part2(b *testing.B) {
+	lines, err := linesFromFilename(input(14))
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		Day14(lines, false)
 	}
 }
 
@@ -103,36 +139,6 @@ func TestParseReactions(t *testing.T) {
 	}
 	if len(cReaction.Inputs) != 2 {
 		t.Errorf("expected 2 inputs, got %d", len(cReaction.Inputs))
-	}
-}
-
-func BenchmarkDay14Part1Example1(b *testing.B) {
-	lines, err := linesFromFilename("testdata/day14_example1.txt")
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day14(lines, true)
-	}
-}
-
-func BenchmarkDay14Part1Example6(b *testing.B) {
-	lines, err := linesFromFilename("testdata/day14_example6.txt")
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day14(lines, true)
-	}
-}
-
-func BenchmarkDay14Part2Example6(b *testing.B) {
-	lines, err := linesFromFilename("testdata/day14_example6.txt")
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day14(lines, false)
 	}
 }
 
