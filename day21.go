@@ -26,8 +26,22 @@ func Day21(input []byte, part1 bool) uint {
 		}, "\n") + "\n"
 	} else {
 		// Part 2: RUN mode - can see 9 tiles ahead (A,B,C,D,E,F,G,H,I)
-		// To be implemented after Part 1 is confirmed
-		springscript = ""
+		// Jump if there's a hole in next 3 tiles AND ground at D AND can continue from D
+		// After landing at D, we need either E (to walk) or H (to jump again)
+		// Logic: (!A OR !B OR !C) AND D AND (E OR H)
+		springscript = strings.Join([]string{
+			"NOT A J",  // J = !A
+			"NOT B T",  // T = !B
+			"OR T J",   // J = !A OR !B
+			"NOT C T",  // T = !C
+			"OR T J",   // J = !A OR !B OR !C
+			"AND D J",  // J = (!A OR !B OR !C) AND D
+			"NOT H T",  // T = !H
+			"NOT T T",  // T = H
+			"OR E T",   // T = H OR E
+			"AND T J",  // J = (!A OR !B OR !C) AND D AND (H OR E)
+			"RUN",
+		}, "\n") + "\n"
 	}
 
 	return executeSpringdroid(program, springscript)

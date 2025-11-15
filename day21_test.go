@@ -8,10 +8,11 @@ import (
 // The puzzle requires figuring out the springscript logic.
 
 func TestDay21Part1(t *testing.T) {
-	buf := fileFromFilename(t, filename, 21)
-	got := Day21(buf, true)
-	t.Logf("Day 21 Part 1 hull damage: %d", got)
-	// TODO: Update with expected value once confirmed
+	testBytes(t, 21, filename, true, Day21, 19352493)
+}
+
+func TestDay21Part2(t *testing.T) {
+	testBytes(t, 21, filename, false, Day21, 1141896219)
 }
 
 func BenchmarkDay21Part1(b *testing.B) {
