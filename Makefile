@@ -84,7 +84,7 @@ govulncheck.sarif:
 
 $(BENCH_FILE): $(wildcard *.go)
 	echo "Running benchmarks and saving to $@..."
-	$(GO) test -run=^$$ -bench=Day..Part.$$ -benchmem | tee $@
+	$(GO) test -run=^$$ -bench='Day(0[1-9]|1[0-9]|2[0-4])Part[12]$$' -benchmem | tee $@
 
 README.html: README.adoc
 	asciidoc $^
