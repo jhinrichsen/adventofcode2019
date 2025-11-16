@@ -85,3 +85,53 @@ Use conventional commits with day number as scope:
 **Scope:**
 - Use `dayXX` (lowercase, zero-padded) for day-specific commits
 - Omit scope for repository-wide changes (e.g., `chore: update CLAUDE.md`)
+
+## Benchmark Optimization Workflow
+
+When optimizing puzzle solutions, follow this workflow to measure and document performance improvements:
+
+### Process
+
+1. **Create baseline benchmark (b0)**
+   ```bash
+   go test -run=^$ -bench=DayXXPart.$ -count=8 -benchmem > b0
+   ```
+   Remove the last two lines (PASS and ok lines) from b0
+
+2. **Optimize the code**
+   Apply performance improvements following the guidelines above
+
+3. **Run benchmark again (b1)**
+   ```bash
+   go test -run=^$ -bench=DayXXPart.$ -count=8 -benchmem > b1
+   ```
+   Remove the last two lines from b1
+
+4. **Compare with benchstat**
+   ```bash
+   benchstat b0 b1
+   ```
+
+5. **Document if worthwhile (>5% improvement)**
+   - Add a "Day XX" section to README.adoc if not present
+   - Include the benchstat output
+   - Add a short, concise explanation of the optimization
+   - NEVER use bold (**) in README.adoc - use proper AsciiDoc formatting
+
+6. **Repeat** until no further significant improvements
+
+### Example README.adoc Entry
+
+```asciidoc
+== Day 01: The Tyranny of the Rocket Equation
+
+Optimized fuel calculation by eliminating redundant allocations.
+
+----
+name       old time/op    new time/op    delta
+Day01-16     1.23µs ± 2%    0.95µs ± 1%  -22.76%
+
+name       old alloc/op   new alloc/op   delta
+Day01-16      512B ± 0%       0B ± 0%  -100.00%
+----
+```
