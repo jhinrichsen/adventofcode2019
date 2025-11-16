@@ -22,21 +22,87 @@ const (
 	Left
 )
 
+// Day03 computes the minimal manhattan distance or minimal combined steps of two crossing wires
+func Day03(wires []string, part1 bool) uint {
+	if part1 {
+		maxX, maxY, err := MaxSize(wires)
+		if err != nil {
+			return 0
+		}
+
+		// Create a board that is large enough to always fit the wiring
+		b := Board((1+maxX)*2, (1+maxY)*2)
+		if err := Walk(b, wires); err != nil {
+			return 0
+		}
+
+		min := MinimalDistance(b)
+		return uint(min)
+	}
+
+	// Part 2
+	boards := make([]marker, len(wires))
+	for i := 0; i < len(boards); i++ {
+		boards[i] = make(marker)
+	}
+
+	// Transform wires into marker maps
+	for i, wire := range wires {
+		board := boards[i]
+		x, y, steps := 0, 0, 0
+		ws := strings.Split(wire, ",")
+		for _, w := range ws {
+			d, n, err := Parse(w)
+			if err != nil {
+				return 0
+			}
+			for j := 0; j < n; j++ {
+				storeOnce(board, x, y, steps)
+				steps++
+				switch d {
+				case Right:
+					x++
+				case Left:
+					x--
+				case Up:
+					y++
+				case Down:
+					y--
+				}
+			}
+		}
+	}
+
+	// Find all intersections, and the sum of steps
+	intersections := make(marker)
+	// use wiring of first board as reference
+	for refpos, refsteps := range boards[0] {
+		// ignore center point (0/0)
+		if refpos.x == 0 && refpos.y == 0 {
+			continue
+		}
+		// check for collision
+		for _, board := range boards[1:] {
+			if steps, ok := board[refpos]; ok {
+				intersections[refpos] = refsteps + steps
+			}
+		}
+	}
+
+	// find lowest intersection
+	min := math.MaxInt32
+	for _, sum := range intersections {
+		if sum < min {
+			min = sum
+		}
+	}
+
+	return uint(min)
+}
+
 // Day3Part1 computes the minimal manhattan distance of two crossing wires
 func Day3Part1(wires []string) (int, error) {
-	maxX, maxY, err := MaxSize(wires)
-	if err != nil {
-		return 0, err
-	}
-
-	// Create a board that is large enough to always fit the wiring
-	b := Board((1+maxX)*2, (1+maxY)*2)
-	if err := Walk(b, wires); err != nil {
-		return 0, err
-	}
-
-	min := MinimalDistance(b)
-	return min, nil
+	return int(Day03(wires, true)), nil
 }
 
 // Board creates a two dimensional arrray. The board created will have double
@@ -201,64 +267,5 @@ func storeOnce(m marker, x, y, steps int) {
 
 // Day3Part2 computes the minimal combined steps for intersections
 func Day3Part2(wires []string) (int, error) {
-	boards := make([]marker, len(wires))
-	for i := 0; i < len(boards); i++ {
-		boards[i] = make(marker)
-	}
-
-	// Transform wires into marker maps
-	for i, wire := range wires {
-		board := boards[i]
-		x, y, steps := 0, 0, 0
-		ws := strings.Split(wire, ",")
-		for _, w := range ws {
-			d, n, err := Parse(w)
-			if err != nil {
-				return -1, err
-			}
-			for j := 0; j < n; j++ {
-				storeOnce(board, x, y, steps)
-				steps++
-				// Next time i write this part i will decode the
-				// RLE (run length encoding) into distinct (x/y)
-				// deltas - turtle graphics ;-)
-				switch d {
-				case Right:
-					x++
-				case Left:
-					x--
-				case Up:
-					y++
-				case Down:
-					y--
-				}
-			}
-		}
-	}
-
-	// Find all intersections, and the sum of steps
-	intersections := make(marker)
-	// use wiring of first board as reference
-	for refpos, refsteps := range boards[0] {
-		// ignore center point (0/0)
-		if refpos.x == 0 && refpos.y == 0 {
-			continue
-		}
-		// check for collision
-		for _, board := range boards[1:] {
-			if steps, ok := board[refpos]; ok {
-				intersections[refpos] = refsteps + steps
-			}
-		}
-	}
-
-	// find lowest intersection
-	min := math.MaxInt32
-	for _, sum := range intersections {
-		if sum < min {
-			min = sum
-		}
-	}
-
-	return min, nil
+	return int(Day03(wires, false)), nil
 }
