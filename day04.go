@@ -62,9 +62,12 @@ func CriteriaPart1() []Criteria {
 // criteria
 func Day4Part1() int {
 	count := 0
+	crits := CriteriaPart1()
+	var digits [6]byte // All numbers in range are 6 digits
 	// this range selection makes Crit1 superfluous
 	for n := Lower; n < Upper; n++ {
-		if MeetsCriteria(n, Digits(n), CriteriaPart1()) {
+		DigitsInto(n, digits[:])
+		if MeetsCriteria(n, digits[:], crits) {
 			count++
 		}
 	}
@@ -122,9 +125,12 @@ func CritExactlyTwoAdjacent(n int, digits []byte) bool {
 // criteria
 func Day4Part2() int {
 	count := 0
+	crits := CriteriaPart2()
+	var digits [6]byte // All numbers in range are 6 digits
 	// this range selection makes Crit1 superfluous
 	for n := Lower; n < Upper; n++ {
-		if MeetsCriteria(n, Digits(n), CriteriaPart2()) {
+		DigitsInto(n, digits[:])
+		if MeetsCriteria(n, digits[:], crits) {
 			count++
 		}
 	}

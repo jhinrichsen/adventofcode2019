@@ -54,7 +54,7 @@ func TestDay4Part1(t *testing.T) {
 }
 
 func BenchmarkDay04Part1(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		Day4Part1()
 	}
 }
@@ -88,7 +88,7 @@ func TestDay4Part2(t *testing.T) {
 }
 
 func BenchmarkDay04Part2(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		Day4Part2()
 	}
 }
