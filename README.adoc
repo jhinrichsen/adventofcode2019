@@ -66,6 +66,29 @@ Number of tries for a correct answer:
 
 |===
 
+== Day 10: Monitoring Station
+
+Optimized asteroid visibility detection by replacing expensive floating-point operations with integer-based GCD normalization.
+
+.Key changes
+- Replaced `complex128` coordinates with integer `Asteroid{X, Y int}` struct
+- Part 1: GCD-based direction normalization instead of `cmplx.Polar()` and `math.Atan2()`
+- Part 2: Squared distance for sorting (avoiding `math.Sqrt()`), simplified vaporization algorithm
+- Eliminated `cmplx.Abs()` calls in hot path
+
+.Performance impact
+----
+              │     b2      │                 b3                 │
+              │   sec/op    │   sec/op     vs base               │
+Day10Part1-16   7.856m ± 4%   5.703m ± 5%  -27.40% (p=0.000 n=8)
+Day10Part2-16   8.138m ± 2%   5.833m ± 3%  -28.33% (p=0.000 n=8)
+
+              │     b2      │                 b3                  │
+              │  allocs/op  │ allocs/op   vs base                 │
+Day10Part1-16    948.0 ± 0%   948.0 ± 0%        ~ (p=1.000 n=8)
+Day10Part2-16   1606.0 ± 0%   971.0 ± 0%  -39.54% (p=0.000 n=8)
+----
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
