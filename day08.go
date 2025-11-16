@@ -66,3 +66,17 @@ func Day8Part2(digits []byte) ([]byte, error) {
 	}
 	return rendered, nil
 }
+
+// Day08 solves Space Image Format puzzle
+func Day08(input []byte, part1 bool) uint {
+	if part1 {
+		checksum, err := Day8Part1(input)
+		if err != nil {
+			return 0
+		}
+		return uint(checksum)
+	}
+	// Part2 renders ASCII art, no numeric return value
+	_, _ = Day8Part2(input)
+	return 0
+}
