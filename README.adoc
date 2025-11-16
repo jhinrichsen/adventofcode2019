@@ -114,6 +114,34 @@ geomean          6.549k        2.085k       -68.16%
 
 Part 1 shows 93.8% speedup with 98.7% memory reduction by using map[Point]uint instead of massive 2D array.
 
+== Day 04: Secure Container
+
+Optimized by reusing digit buffer and inlining criteria checks.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │      b0      │                 b1                 │
+              │    sec/op    │   sec/op     vs base               │
+Day04Part1-16   20.536m ± 3%   5.115m ± 2%  -75.09% (p=0.000 n=8)
+Day04Part2-16   18.314m ± 3%   5.289m ± 4%  -71.12% (p=0.000 n=8)
+geomean          19.39m        5.202m       -73.18%
+
+              │      b0      │                    b1                    │
+              │     B/op     │     B/op      vs base                    │
+Day04Part1-16   4.190Mi ± 0%   0.000Mi ± 0%  -100.00% (p=0.000 n=8)
+Day04Part2-16   4.190Mi ± 0%   0.000Mi ± 0%  -100.00% (p=0.000 n=8)
+
+              │     b0      │                  b1                   │
+              │  allocs/op  │ allocs/op  vs base                    │
+Day04Part1-16   549.2k ± 0%   0.0k ± 0%  -100.00% (p=0.000 n=8)
+Day04Part2-16   549.2k ± 0%   0.0k ± 0%  -100.00% (p=0.000 n=8)
+----
+
+75% speedup with 100% memory reduction by reusing single digit buffer instead of allocating 549k times.
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
