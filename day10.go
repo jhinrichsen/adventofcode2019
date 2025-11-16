@@ -6,9 +6,6 @@ import (
 	"sort"
 )
 
-// Asteroid is a type alias for image.Point, representing a 2D position.
-type Asteroid = image.Point
-
 // direction represents a normalized direction vector for line-of-sight.
 type direction struct {
 	dx, dy int
@@ -38,7 +35,7 @@ func normalize(dx, dy int) direction {
 }
 
 // ParseAsteroidMap parses newline separated strings into asteroids.
-func ParseAsteroidMap(asteroids []byte) []Asteroid {
+func ParseAsteroidMap(asteroids []byte) []image.Point {
 	isAsteroid := func(b byte) bool {
 		return b == '#'
 	}
@@ -66,7 +63,7 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 		}
 	}
 
-	as := make([]Asteroid, 0, count)
+	as := make([]image.Point, 0, count)
 	y := 0
 	x := 0
 	for _, b := range asteroids[start:] {
@@ -87,8 +84,8 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 
 // Day10Part1 returns the asteroid that can see most asteroids, and the number of
 // visible asteroids.
-func Day10Part1(as []Asteroid) (Asteroid, int) {
-	var best Asteroid
+func Day10Part1(as []image.Point) (image.Point, int) {
+	var best image.Point
 	maxVisible := 0
 	for i := range as {
 		// map of normalized directions - each unique direction = one visible asteroid
@@ -114,13 +111,13 @@ func Day10Part1(as []Asteroid) (Asteroid, int) {
 
 // asteroidWithAngle stores an asteroid with its angle and distance from base.
 type asteroidWithAngle struct {
-	asteroid Asteroid
+	asteroid image.Point
 	angle    float64
 	dist     int
 }
 
 // Day10Part2 determines the 200th asteroid that gets vaporized.
-func Day10Part2(as []Asteroid, base Asteroid) int {
+func Day10Part2(as []image.Point, base image.Point) int {
 	// Build list of asteroids with their angles and distances
 	var targets []asteroidWithAngle
 	for _, a := range as {
@@ -148,7 +145,7 @@ func Day10Part2(as []Asteroid, base Asteroid) int {
 	})
 
 	// Vaporize in order, cycling through angles
-	var vaporized []Asteroid
+	var vaporized []image.Point
 	for len(targets) > 0 {
 		lastAngle := -1.0
 		i := 0

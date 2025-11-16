@@ -8,7 +8,7 @@ import (
 
 var day10Examples = []struct {
 	filenameFunc func(uint8) string
-	best         Asteroid
+	best         image.Point
 	bestCount    int
 }{
 	{example1Filename, image.Point{X: 3, Y: 4}, 8},
