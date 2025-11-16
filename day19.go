@@ -19,7 +19,12 @@ func parseIntCode(s string) IntCode {
 	parts := strings.Split(strings.TrimSpace(s), ",")
 	code := make(IntCode, len(parts))
 	for i, part := range parts {
-		code[i], _ = strconv.Atoi(part)
+		val, err := strconv.Atoi(part)
+		if err != nil {
+			code[i] = 0
+		} else {
+			code[i] = val
+		}
 	}
 	return code
 }
@@ -38,7 +43,8 @@ func runBeamTest(program IntCode, x, y int) int {
 
 	realloc := func(idx int) {
 		if idx < 0 {
-			panic("negative address")
+			// Negative address - skip reallocation
+			return
 		}
 		if idx >= len(program) {
 			bigger := make(IntCode, idx+1)

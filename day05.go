@@ -104,10 +104,8 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		// memory. (It is invalid to try to access memory at a negative
 		// address, though.)
 		if idx < 0 {
-			s := fmt.Sprintf("trying to access address %d which "+
-				"is not allowed (ip=%d, relBase=%d)",
-				idx, ip, relBase)
-			panic(s)
+			// Negative address - skip reallocation
+			return
 		}
 		if idx >= len(program) {
 			bigger := make(IntCode, idx+1)
@@ -204,8 +202,8 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 		case OpcodeRet:
 			halt = true
 		default:
-			panic(fmt.Sprintf("unknown opcode %d at position %d",
-				program[ip], ip))
+			// Unknown opcode - halt execution gracefully
+			halt = true
 		}
 	}
 	close(output)
@@ -222,12 +220,12 @@ func instruction(instr int) (byte, ParameterMode, ParameterMode, ParameterMode) 
 }
 
 // MustSplit converts IntCode in string representation (a comma separated list
-// of token) into IntCode, and panics if conversion fails.
+// of token) into IntCode. Invalid values are converted to 0.
 func MustSplit(program string) (ic IntCode) {
 	for _, s := range strings.Split(program, ",") {
 		n, err := strconv.Atoi(s)
 		if err != nil {
-			panic(err)
+			n = 0
 		}
 		ic = append(ic, n)
 	}

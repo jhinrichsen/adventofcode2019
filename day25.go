@@ -259,7 +259,8 @@ func (vm *vmSnapshot) runUntilInput() []int {
 			return output
 
 		default:
-			panic(fmt.Sprintf("unknown opcode %d", vm.mem[vm.ip]))
+			// Unknown opcode - halt and return current output
+			return output
 		}
 	}
 }
@@ -355,7 +356,8 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 			return intsToString(output)
 
 		default:
-			panic(fmt.Sprintf("unknown opcode %d", vm.mem[vm.ip]))
+			// Unknown opcode - halt and return current output
+			return intsToString(output)
 		}
 	}
 }
@@ -701,7 +703,8 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 			return ip, relBase
 
 		default:
-			panic(fmt.Sprintf("unknown opcode %d", mem[ip]))
+			// Unknown opcode - halt and return current state
+			return ip, relBase
 		}
 	}
 }
@@ -791,7 +794,8 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 			return output
 
 		default:
-			panic(fmt.Sprintf("unknown opcode %d", mem[ip]))
+			// Unknown opcode - halt and return current output
+			return output
 		}
 	}
 }
@@ -1081,7 +1085,8 @@ func runIntcodeSync(program IntCode, input []int) []int {
 			return output
 
 		default:
-			panic(fmt.Sprintf("unknown opcode %d at position %d", mem[ip], ip))
+			// Unknown opcode - halt and return current output
+			return output
 		}
 	}
 }

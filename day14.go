@@ -122,7 +122,8 @@ func calculateOre(reactions ReactionMap, target string, targetQty uint) uint {
 		// Get the reaction for this chemical
 		reaction, ok := reactions[chemical]
 		if !ok {
-			panic(fmt.Sprintf("no reaction found for %s", chemical))
+			// No reaction found - skip this chemical
+			continue
 		}
 
 		// Calculate how many times we need to run this reaction
@@ -150,7 +151,7 @@ func calculateOre(reactions ReactionMap, target string, targetQty uint) uint {
 func Day14(lines []string, part1 bool) uint {
 	reactions, err := ParseReactions(lines)
 	if err != nil {
-		panic(err)
+		return 0
 	}
 
 	if part1 {

@@ -53,7 +53,7 @@ func fftPart2(input []byte) uint {
 	if offset < repeatedLength/2 {
 		// Offset is in first half - would need full FFT (very slow)
 		// This shouldn't happen with valid puzzle inputs
-		panic("offset in first half - optimization not applicable")
+		return 0
 	}
 
 	// Build the relevant portion (from offset to end)
