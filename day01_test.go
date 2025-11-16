@@ -15,7 +15,7 @@ var part1Tests = []struct {
 	{100756, 33583},
 }
 
-func TestDay1Part1Examples(t *testing.T) {
+func TestDay01Part1Examples(t *testing.T) {
 	for _, tt := range part1Tests {
 		id := fmt.Sprintf("Fuel(%d)", tt.mass)
 		t.Run(id, func(t *testing.T) {
@@ -29,19 +29,8 @@ func TestDay1Part1Examples(t *testing.T) {
 	}
 }
 
-func TestDay1Part1(t *testing.T) {
-	lines, err := linesFromFilename(input(1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := 3231195
-	got, err := Day1Part1(lines)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+func TestDay01Part1(t *testing.T) {
+	testLines(t, 1, filename, true, Day01, uint(3231195))
 }
 
 var part2Tests = []struct {
@@ -53,7 +42,7 @@ var part2Tests = []struct {
 	{100756, 50346},
 }
 
-func TestDay1Part2Examples(t *testing.T) {
+func TestDay01Part2Examples(t *testing.T) {
 	for _, tt := range part2Tests {
 		id := fmt.Sprintf("Fuel(%d)", tt.mass)
 		t.Run(id, func(t *testing.T) {
@@ -67,31 +56,14 @@ func TestDay1Part2Examples(t *testing.T) {
 	}
 }
 
-func TestDay1Part2(t *testing.T) {
-	lines, err := linesFromFilename(input(1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := 4843929
-	got, err := Day1Part2(lines)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+func TestDay01Part2(t *testing.T) {
+	testLines(t, 1, filename, false, Day01, uint(4843929))
 }
 
 func BenchmarkDay01Part1(b *testing.B) {
-	lines := testLinesFromFilename(b, filename(1))
-	for b.Loop() {
-		_, _ = Day1Part1(lines)
-	}
+	benchLines(b, 1, true, Day01)
 }
 
 func BenchmarkDay01Part2(b *testing.B) {
-	lines := testLinesFromFilename(b, filename(1))
-	for b.Loop() {
-		_, _ = Day1Part2(lines)
-	}
+	benchLines(b, 1, false, Day01)
 }
