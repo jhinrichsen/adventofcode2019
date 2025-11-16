@@ -58,14 +58,19 @@ func TestDay7Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay07Part1(b *testing.B) {
-	buf, err := os.ReadFile(input(7))
-	if err != nil {
-		b.Fatal(err)
+func TestDay07Part1(t *testing.T) {
+	buf := fileFromFilename(t, filename, 7)
+	want := uint(24405)
+	got := Day07(buf, true)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	prog := MustSplit(string(buf))
-	for i := 0; i < b.N; i++ {
-		Day7Part1(prog, "01234")
+}
+
+func BenchmarkDay07Part1(b *testing.B) {
+	buf := fileFromFilename(b, filename, 7)
+	for b.Loop() {
+		_ = Day07(buf, true)
 	}
 }
 
@@ -112,13 +117,18 @@ func TestDay7Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay07Part2(b *testing.B) {
-	buf, err := os.ReadFile(input(7))
-	if err != nil {
-		b.Fatal(err)
+func TestDay07Part2(t *testing.T) {
+	buf := fileFromFilename(t, filename, 7)
+	want := uint(8271623)
+	got := Day07(buf, false)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	prog := MustSplit(string(buf))
-	for i := 0; i < b.N; i++ {
-		_ = Day7Part2(prog, "01234")
+}
+
+func BenchmarkDay07Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 7)
+	for b.Loop() {
+		_ = Day07(buf, false)
 	}
 }

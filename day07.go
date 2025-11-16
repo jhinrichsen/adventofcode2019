@@ -111,3 +111,17 @@ func Day7Part2(prog IntCode, phases string) int {
 	}
 	return max
 }
+
+// NewDay07 parses IntCode program from input
+var NewDay07 = func(input []byte) IntCode {
+	return MustSplit(string(input))
+}
+
+// Day07 computes maximum thruster signal for amplifier circuits
+func Day07(input []byte, part1 bool) uint {
+	prog := NewDay07(input)
+	if part1 {
+		return uint(Day7Part1(prog, "01234"))
+	}
+	return uint(Day7Part2(prog, "56789"))
+}
