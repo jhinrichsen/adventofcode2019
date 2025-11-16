@@ -66,6 +66,74 @@ Number of tries for a correct answer:
 
 |===
 
+== Day 10: Monitoring Station
+
+Optimized asteroid visibility detection by replacing expensive floating-point operations with integer-based GCD normalization.
+
+.Key changes
+- Replaced `complex128` coordinates with integer `Asteroid{X, Y int}` struct
+- Part 1: GCD-based direction normalization instead of `cmplx.Polar()` and `math.Atan2()`
+- Part 2: Squared distance for sorting (avoiding `math.Sqrt()`), simplified vaporization algorithm
+- Eliminated `cmplx.Abs()` calls in hot path
+
+.Performance impact
+----
+              │     b2      │                 b3                 │
+              │   sec/op    │   sec/op     vs base               │
+Day10Part1-16   7.856m ± 4%   5.703m ± 5%  -27.40% (p=0.000 n=8)
+Day10Part2-16   8.138m ± 2%   5.833m ± 3%  -28.33% (p=0.000 n=8)
+
+              │     b2      │                 b3                  │
+              │  allocs/op  │ allocs/op   vs base                 │
+Day10Part1-16    948.0 ± 0%   948.0 ± 0%        ~ (p=1.000 n=8)
+Day10Part2-16   1606.0 ± 0%   971.0 ± 0%  -39.54% (p=0.000 n=8)
+----
+
+== Day 12: The N-Body Problem
+
+Optimized cycle detection by preallocating map capacity to reduce memory reallocations.
+
+.Key changes
+- Preallocated history map with capacity 100,000 instead of default zero capacity
+- Reduced map growth allocations during cycle detection
+- Part 1 already optimal (91µs, 0 allocations)
+
+.Performance impact
+----
+Part2 Memory:     126MB → 94MB   (25% reduction)
+Part2 Allocations: 3136 → 2317   (26% reduction)
+----
+
+== Day 15: Oxygen System
+
+Optimized maze exploration by eliminating queue slice reallocation overhead.
+
+.Key changes
+- Replaced `queue = queue[1:]` pattern with index-based dequeue in three functions
+- Preallocated queues with reasonable capacity (100-1000 elements)
+- Fixed in `exploreAndFindOxygen`, `findPath`, and `fillWithOxygen` functions
+
+.Performance impact
+----
+Part1 Allocations: 105,674 → 64,341 (39% reduction)
+Part2 Time:        114ms → 98ms    (14% faster)
+Part2 Allocations: 131,107 → 81,119 (38% reduction)
+----
+
+== Day 18: Many-Worlds Interpretation
+
+Optimized BFS queue operations by eliminating repeated slice reallocations.
+
+.Key changes
+- Replaced `queue = queue[1:]` pattern with index-based dequeue using `head` pointer
+- Preallocated queue and visited map with reasonable initial capacity
+- Applied fix to both Part 1 (solvePart1) and helper function (bfsFrom)
+
+.Performance impact
+----
+Part1 Time:        7.7s → 4.0s    (48% faster)
+Part1 Allocations: 40,596 → 32,872 (19% reduction)
+----
 == Day 01: The Tyranny of the Rocket Equation
 
 Refactored to use iterative loop instead of goto for recursive fuel calculation.

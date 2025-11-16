@@ -3,7 +3,7 @@ package adventofcode2019
 import (
 	"bytes"
 	"fmt"
-	"math"
+	"image"
 )
 
 const (
@@ -13,32 +13,27 @@ const (
 )
 
 // RegistrationID is a 2D map of black (false) and white (true)
-type RegistrationID map[complex128]bool
-
-// box returns the integer away from 0 that can hold f.
-func box(f float64) int {
-	return int(math.Round(math.Ceil(f)))
-}
+type RegistrationID map[image.Point]bool
 
 // returns min and max as 2D coordinates (x/y)
-func (a RegistrationID) dim() (min, max Point) {
-	minX, minY := math.MaxInt64, math.MaxInt64
-	maxX, maxY := -math.MaxInt64, -math.MaxInt64
+func (a RegistrationID) dim() (min, max image.Point) {
+	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1) // max int
+	maxX, maxY := -int(^uint(0)>>1)-1, -int(^uint(0)>>1)-1 // min int
 	for k := range a {
-		x := box(real(k))
-		if x < minX {
-			minX = x
-		} else if x > maxX {
-			maxX = x
+		if k.X < minX {
+			minX = k.X
 		}
-		y := box(imag(k))
-		if y < minY {
-			minY = y
-		} else if y > maxY {
-			maxY = y
+		if k.X > maxX {
+			maxX = k.X
+		}
+		if k.Y < minY {
+			minY = k.Y
+		}
+		if k.Y > maxY {
+			maxY = k.Y
 		}
 	}
-	return Point{minX - 2, minY - 2}, Point{maxX + 2, maxY + 2}
+	return image.Point{X: minX - 2, Y: minY - 2}, image.Point{X: maxX + 2, Y: maxY + 2}
 }
 
 // pbm creats an image in portable bitmap format from an registrationIdentifier.
@@ -49,14 +44,13 @@ func (a RegistrationID) pbm() []byte {
 	fmt.Fprintln(&buf, "P1")
 	min, max := a.dim()
 	// width height
-	fmt.Fprintf(&buf, "%d %d\n", max.x-min.x, max.y-min.y)
-	for y := min.y; y < max.y; y++ {
-		for x := min.x; x < max.x; x++ {
+	fmt.Fprintf(&buf, "%d %d\n", max.X-min.X, max.Y-min.Y)
+	for y := min.Y; y < max.Y; y++ {
+		for x := min.X; x < max.X; x++ {
 			// PBM uses 0 for white and 1 for black (inverse)
 			var pbmCol int
-			if b, ok := a[complex(float64(x), float64(y))]; ok {
+			if b, ok := a[image.Point{X: x, Y: y}]; ok {
 				if b {
-
 					pbmCol = colorWhite
 				} else {
 					pbmCol = colorBlack
@@ -91,11 +85,9 @@ func newRegistrationID(prog IntCode, initialColor int) RegistrationID {
 	go Day5(prog, in, out)
 
 	panels := make(RegistrationID)
-	position := 0 + 0i
-	left := 0 + 1i
-	right := 0 - 1i
-	// The robot starts facing up
-	direction := left
+	position := image.Point{X: 0, Y: 0}
+	// The robot starts facing up (negative Y direction)
+	direction := image.Point{X: 0, Y: -1}
 
 	color := func() int {
 		// Default is black
@@ -108,29 +100,36 @@ func newRegistrationID(prog IntCode, initialColor int) RegistrationID {
 		b := c == colorWhite
 		panels[position] = b
 	}
-	translateTurn := func(i int) complex128 {
+	// turnLeft rotates 90° counterclockwise: (x, y) → (-y, x)
+	turnLeft := func(d image.Point) image.Point {
+		return image.Point{X: -d.Y, Y: d.X}
+	}
+	// turnRight rotates 90° clockwise: (x, y) → (y, -x)
+	turnRight := func(d image.Point) image.Point {
+		return image.Point{X: d.Y, Y: -d.X}
+	}
+	translateTurn := func(i int) image.Point {
 		const (
 			// no types because we want to pass it to the IntCode Computer
-			turnLeft  = 0
-			turnRight = 1
+			turn_Left  = 0
+			turn_Right = 1
 		)
-		if i == turnLeft {
-			return left
-		} else if i == turnRight {
-			return right
-		} else {
-			panic(fmt.Errorf("unsupported turn value %d", i))
+		if i == turn_Left {
+			return turnLeft(direction)
+		} else if i == turn_Right {
+			return turnRight(direction)
 		}
+		// Invalid turn value, keep current direction
+		return direction
 	}
 
 	in <- initialColor
 	for col := range out {
 		setColor(col)
 		// make robot turn
-		turn := translateTurn(<-out)
-		direction *= turn
+		direction = translateTurn(<-out)
 		// one step
-		position += direction
+		position = position.Add(direction)
 
 		in <- color()
 	}

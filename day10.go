@@ -1,17 +1,41 @@
 package adventofcode2019
 
 import (
+	"image"
 	"math"
-	"math/cmplx"
 	"sort"
 )
 
-// An Asteroid is identified by a dimensionless (x/y) position in a 2D space.
-// Using a type _alias_ here to avoid casting
-type Asteroid = complex128
+// direction represents a normalized direction vector for line-of-sight.
+type direction struct {
+	dx, dy int
+}
+
+// normalize returns the normalized direction from one asteroid to another.
+func normalize(dx, dy int) direction {
+	if dx == 0 && dy == 0 {
+		return direction{0, 0}
+	}
+	// Calculate GCD inline to avoid naming conflict with day12
+	a, b := dx, dy
+	if a < 0 {
+		a = -a
+	}
+	if b < 0 {
+		b = -b
+	}
+	for b != 0 {
+		a, b = b, a%b
+	}
+	g := a
+	if g == 0 {
+		return direction{dx, dy}
+	}
+	return direction{dx / g, dy / g}
+}
 
 // ParseAsteroidMap parses newline separated strings into asteroids.
-func ParseAsteroidMap(asteroids []byte) []Asteroid {
+func ParseAsteroidMap(asteroids []byte) []image.Point {
 	isAsteroid := func(b byte) bool {
 		return b == '#'
 	}
@@ -27,10 +51,19 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 
 	// overread any leading whitespace
 	start := 0
-	for isWhitespace(asteroids[start]) {
+	for start < len(asteroids) && isWhitespace(asteroids[start]) {
 		start++
 	}
-	var as []Asteroid
+
+	// Count asteroids first to preallocate
+	count := 0
+	for _, b := range asteroids[start:] {
+		if isAsteroid(b) {
+			count++
+		}
+	}
+
+	as := make([]image.Point, 0, count)
 	y := 0
 	x := 0
 	for _, b := range asteroids[start:] {
@@ -40,8 +73,7 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 			x = 0
 			y++
 		} else if isAsteroid(b) {
-			a := complex(float64(x), float64(y))
-			as = append(as, a)
+			as = append(as, image.Point{X: x, Y: y})
 			x++
 		} else {
 			// whitespace, ignore
@@ -52,32 +84,23 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 
 // Day10Part1 returns the asteroid that can see most asteroids, and the number of
 // visible asteroids.
-func Day10Part1(as []Asteroid) (Asteroid, int) {
-	var best Asteroid
-	var maxVisible int
+func Day10Part1(as []image.Point) (image.Point, int) {
+	var best image.Point
+	maxVisible := 0
 	for i := range as {
-		// map of angles
-		visible := make(map[float64]Asteroid, len(as))
+		// map of normalized directions - each unique direction = one visible asteroid
+		visible := make(map[direction]bool, len(as))
 		for j := range as {
 			// skip ourself
 			if i == j {
 				continue
 			}
-			rel := as[j] - as[i]
-			r, φ := cmplx.Polar(rel)
-			// already an asteroid at same angle?
-			if a, ok := visible[φ]; ok {
-				// is it closer?
-				if r < cmplx.Abs(a) {
-					// yes, make us visible, hide other
-					visible[φ] = a
-				}
-			} else {
-				// no, just save us
-				visible[φ] = rel
-			}
+			dx := as[j].X - as[i].X
+			dy := as[j].Y - as[i].Y
+			dir := normalize(dx, dy)
+			visible[dir] = true
 		}
-		// found a better planet?
+		// found a better location?
 		if len(visible) > maxVisible {
 			best = as[i]
 			maxVisible = len(visible)
@@ -86,121 +109,63 @@ func Day10Part1(as []Asteroid) (Asteroid, int) {
 	return best, maxVisible
 }
 
+// asteroidWithAngle stores an asteroid with its angle and distance from base.
+type asteroidWithAngle struct {
+	asteroid image.Point
+	angle    float64
+	dist     int
+}
+
 // Day10Part2 determines the 200th asteroid that gets vaporized.
-func Day10Part2(as []Asteroid, base Asteroid) int {
-	as = center(vaporize(byPhase(center(as, base))), -base)
-	a := as[199]
-	// multiply its X coordinate by 100 and then add its Y coordinate
-	return int(100.0*real(a) + imag(a))
-}
-
-type phaseGroup struct {
-	phase     float64
-	asteroids []Asteroid
-}
-
-// byPhase arranges normalized asteroids by phase (level 1) and distance (level
-// 2) with regard to base asteroid. The phase group will contain all asteroids
-// except for (0/0), i.e. len(as) -1 == len(phaseGroup).
-func byPhase(as []Asteroid) []phaseGroup {
-	var pgs []phaseGroup
-
-	findIndex := func(φ float64) int {
-		for i := 0; i < len(pgs); i++ {
-			if pgs[i].phase == φ {
-				return i
-			}
-		}
-		return -1
-	}
-	// sweep #1: group by phase
+func Day10Part2(as []image.Point, base image.Point) int {
+	// Build list of asteroids with their angles and distances
+	var targets []asteroidWithAngle
 	for _, a := range as {
-		// ignore (0/0)
-		if a == 0+0i {
+		if a == base {
 			continue
 		}
-		φ := cmplx.Phase(a)
-		idx := findIndex(φ)
-		if idx == -1 {
-			pgs = append(pgs, phaseGroup{φ, []Asteroid{a}})
-		} else {
-			pgs[idx].asteroids = append(pgs[idx].asteroids, a)
+		dx := a.X - base.X
+		dy := a.Y - base.Y
+		// Calculate angle: atan2 with Y axis pointing down
+		// Rotate by 90° so "up" (negative Y) is 0
+		angle := math.Atan2(float64(dx), float64(-dy))
+		if angle < 0 {
+			angle += 2 * math.Pi
 		}
+		dist := dx*dx + dy*dy // squared distance is fine for comparison
+		targets = append(targets, asteroidWithAngle{a, angle, dist})
 	}
 
-	// sweep #2: sort by phase asc
-	sort.Slice(pgs, func(i, j int) bool {
-		return pgs[i].phase < pgs[j].phase
+	// Sort by angle, then by distance
+	sort.Slice(targets, func(i, j int) bool {
+		if targets[i].angle != targets[j].angle {
+			return targets[i].angle < targets[j].angle
+		}
+		return targets[i].dist < targets[j].dist
 	})
 
-	// sweep #3: sort each phase by distance asc
-	for i := range pgs {
-		sort.Slice(pgs[i].asteroids, func(j, k int) bool {
-			as := pgs[i].asteroids
-			return cmplx.Abs(as[j]) < cmplx.Abs(as[k])
-		})
-	}
-	return pgs
-}
-
-// countAsteroids returns number of asteroids
-func countAsteroids(pgs []phaseGroup) int {
-	n := 0
-	for _, pg := range pgs {
-		n += len(pg.asteroids)
-	}
-	return n
-}
-
-func center(as []Asteroid, base Asteroid) []Asteroid {
-	var cas []Asteroid
-	for i := range as {
-		cas = append(cas, as[i]-base)
-	}
-	return cas
-}
-
-// find first asteroid in direction 'up' clockwise and return its
-// index.
-func findFirst(pgs []phaseGroup) int {
-	// 0 is (1,0)/ right/ 3 o'clock => up is -90°
-	upPhase := -math.Pi / 2
-	idx := 0
-	for i, pg := range pgs {
-		if pg.phase >= upPhase {
-			idx = i
-			break
+	// Vaporize in order, cycling through angles
+	var vaporized []image.Point
+	for len(targets) > 0 {
+		lastAngle := -1.0
+		i := 0
+		for i < len(targets) {
+			if targets[i].angle != lastAngle {
+				// Vaporize this one
+				vaporized = append(vaporized, targets[i].asteroid)
+				lastAngle = targets[i].angle
+				// Remove from targets
+				targets = append(targets[:i], targets[i+1:]...)
+			} else {
+				// Same angle as last vaporized, skip for this rotation
+				i++
+			}
 		}
 	}
-	return idx
-}
 
-func vaporize(pgs []phaseGroup) []Asteroid {
-	var order []Asteroid
-	idx := findFirst(pgs)
-
-	n := countAsteroids(pgs)
-	for i := 0; i < n; i++ {
-		a := pgs[idx].asteroids[0]
-		order = append(order, a)
-
-		// housekeeping: remove asteroid from phase group
-		if len(pgs[idx].asteroids) == 1 {
-			// last asteroid for this phase, remove empty phase
-			pgs = append(pgs[:idx], pgs[idx+1:]...)
-			// don't increment index, next idx just popped in place
-		} else {
-			// remove first asteroid, leave the rest
-			pgs[idx].asteroids = pgs[idx].asteroids[1:]
-			// next phase
-			idx++
-		}
-		// do not use %, len(pgs) = 0 in last run
-		if idx == len(pgs) {
-			idx = 0
-		}
-	}
-	return order
+	// Return the 200th vaporized asteroid
+	a := vaporized[199]
+	return a.X*100 + a.Y
 }
 
 // NewDay10 parses asteroid map from input

@@ -1,15 +1,11 @@
 package adventofcode2019
 
 import (
-	"os"
 	"testing"
 )
 
 func TestDay11Pbm(t *testing.T) {
-	buf, err := os.ReadFile(input(11))
-	if err != nil {
-		t.Fatal(err)
-	}
+	buf := file(t, 11)
 	_ = newRegistrationID(MustSplit(string(buf)), colorBlack)
 	// TODO apply OCR
 	// fmt.Println("Day 11, part 1")
@@ -20,10 +16,7 @@ func TestDay11Part1(t *testing.T) {
 	// First try want := 9870
 	// Second try want := 907
 	want := 2343
-	buf, err := os.ReadFile(input(11))
-	if err != nil {
-		t.Fatal(err)
-	}
+	buf := file(t, 11)
 	got := Day11Part1(MustSplit(string(buf)))
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
@@ -45,10 +38,7 @@ func TestMapOfBools(t *testing.T) {
 }
 
 func TestDay11Part2(t *testing.T) {
-	buf, err := os.ReadFile(input(11))
-	if err != nil {
-		t.Fatal(err)
-	}
+	buf := file(t, 11)
 	_ = Day11Part2(MustSplit(string(buf)))
 	// TODO apply OCR
 	// fmt.Println("Day 11, part 2:")
@@ -56,17 +46,17 @@ func TestDay11Part2(t *testing.T) {
 }
 
 func BenchmarkDay11Part1(b *testing.B) {
-	buf := fileFromFilename(b, filename, 11)
+	buf := file(b, 11)
 	master := MustSplit(string(buf))
-	for b.Loop() {
+	for range b.N {
 		_ = Day11Part1(master.Copy())
 	}
 }
 
 func BenchmarkDay11Part2(b *testing.B) {
-	buf := fileFromFilename(b, filename, 11)
+	buf := file(b, 11)
 	master := MustSplit(string(buf))
-	for b.Loop() {
+	for range b.N {
 		_ = Day11Part2(master.Copy())
 	}
 }

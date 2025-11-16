@@ -30,7 +30,7 @@ func TestDay12GanymedeCallisto(t *testing.T) {
 	u.moons[X][callisto].pos = 5
 	u.moons[Y][callisto].pos = v
 	u.moons[Z][callisto].pos = 0
-	for dim := 0; dim < DIMS; dim++ {
+	for dim := range DIMS {
 		u.gravity(dim, ganymede, callisto)
 	}
 	w1 := u.moons[X][ganymede].vel
@@ -68,7 +68,7 @@ func TestDay12Europa(t *testing.T) {
 		{2, 0},
 		{3, 3},
 	}
-	for i := 0; i < DIMS; i++ {
+	for i := range DIMS {
 		got[i].velocity()
 	}
 	if want != got {
@@ -100,14 +100,14 @@ func TestDay12Example1Timeline(t *testing.T) {
 	var sb strings.Builder
 	// one more because we print then step
 	n := day12Example1Steps + 1
-	for i := 0; i < n; i++ {
+	for i := range n {
 		fmt.Fprintf(&sb, "After %d steps:\n", i)
 		sb.WriteString(u.String())
 		// separating line except for the last
 		if i+1 < n {
 			sb.WriteString("\n")
 		}
-		for dim := 0; dim < DIMS; dim++ {
+		for dim := range DIMS {
 			u.step(dim)
 		}
 	}
@@ -149,7 +149,7 @@ func EnergyFromFile(filename string, steps int) (int, error) {
 		return 0, err
 	}
 	for ; steps > 0; steps-- {
-		for dim := 0; dim < DIMS; dim++ {
+		for dim := range DIMS {
 			u.step(dim)
 		}
 	}
@@ -226,7 +226,7 @@ func parseUsingParser(lines []string) (universe, error) {
 			n, err := strconv.Atoi(string(buf[from:idx]))
 			return int(n), err
 		}
-		for i := 0; i < DIMS; i++ {
+		for i := range DIMS {
 			var err error
 			u.moons[i][j].pos, err = nextNum()
 			if err != nil {
@@ -238,31 +238,25 @@ func parseUsingParser(lines []string) (universe, error) {
 }
 
 func BenchmarkParseUsingParser(b *testing.B) {
-	lines, err := linesFromFilename(input(12))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		parseUsingParser(lines)
+	lines := testLinesFromFilename(b, filename(12))
+	for range b.N {
+		_, _ = parseUsingParser(lines)
 	}
 }
 
 func BenchmarkDay12Example2(b *testing.B) {
-	input, err := linesFromFilename(input(12))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
+	input := testLinesFromFilename(b, filename(12))
+	for range b.N {
 		u, err := parseUsingParser(input)
 		if err != nil {
-			b.Fatal(err)
+			continue
 		}
-		for j := 0; j < 1000; j++ {
-			for dim := 0; dim < DIMS; dim++ {
+		for range 1000 {
+			for dim := range DIMS {
 				u.step(dim)
 			}
 		}
-		u.energy()
+		_ = u.energy()
 	}
 }
 
@@ -313,10 +307,13 @@ func TestDay12Sizeof(t *testing.T) {
 
 func BenchmarkDay12Part1(b *testing.B) {
 	lines := testLinesFromFilename(b, filename(12))
-	for b.Loop() {
-		u, _ := parseUsingParser(lines)
-		for i := 0; i < 1000; i++ {
-			for dim := 0; dim < DIMS; dim++ {
+	for range b.N {
+		u, err := parseUsingParser(lines)
+		if err != nil {
+			continue
+		}
+		for range 1000 {
+			for dim := range DIMS {
 				u.step(dim)
 			}
 		}
@@ -326,8 +323,11 @@ func BenchmarkDay12Part1(b *testing.B) {
 
 func BenchmarkDay12Part2(b *testing.B) {
 	lines := testLinesFromFilename(b, filename(12))
-	for b.Loop() {
-		u, _ := parseUsingParser(lines)
+	for range b.N {
+		u, err := parseUsingParser(lines)
+		if err != nil {
+			continue
+		}
 		_ = u.cycle()
 	}
 }
