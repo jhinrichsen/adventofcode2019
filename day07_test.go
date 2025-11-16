@@ -58,7 +58,7 @@ func TestDay7Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay7Part1(b *testing.B) {
+func BenchmarkDay07Part1(b *testing.B) {
 	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		b.Fatal(err)
@@ -112,7 +112,7 @@ func TestDay7Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay7Part2(b *testing.B) {
+func BenchmarkDay07Part2(b *testing.B) {
 	buf, err := os.ReadFile(input(7))
 	if err != nil {
 		b.Fatal(err)

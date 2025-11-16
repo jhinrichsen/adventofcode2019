@@ -81,7 +81,7 @@ func TestDay3Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay3Part1(b *testing.B) {
+func BenchmarkDay03Part1(b *testing.B) {
 	lines, err := linesFromFilename(input(3))
 	if err != nil {
 		b.Fatal(err)
@@ -123,7 +123,7 @@ func TestDay3Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay3Part2(b *testing.B) {
+func BenchmarkDay03Part2(b *testing.B) {
 	lines, err := linesFromFilename(input(3))
 	if err != nil {
 		b.Fatal(err)

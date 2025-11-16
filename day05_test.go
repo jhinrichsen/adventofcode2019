@@ -210,7 +210,7 @@ func TestDay5Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay5Part2(b *testing.B) {
+func BenchmarkDay05Part2(b *testing.B) {
 	lines, err := linesFromFilename(input(5))
 	if err != nil {
 		b.Fatal(err)

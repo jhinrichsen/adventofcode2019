@@ -118,7 +118,7 @@ func TestDay6Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay6Part1(b *testing.B) {
+func BenchmarkDay06Part1(b *testing.B) {
 	d, err := day6FromFile(input(6))
 	if err != nil {
 		b.Fatal(err)
@@ -165,7 +165,7 @@ func TestDay6Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay6Part2(b *testing.B) {
+func BenchmarkDay06Part2(b *testing.B) {
 	d, err := day6FromFile(input(6))
 	if err != nil {
 		b.Fatal(err)
