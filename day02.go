@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	OpcodeAdd = 1
-	OpcodeMul = 2
-	OpcodeRet = 99
+	opcodeAdd = 1
+	opcodeMul = 2
+	opcodeRet = 99
 )
 
 // parseIntcode parses comma-separated integers from []byte
@@ -53,12 +53,12 @@ func parseIntcode(input []byte) ([]int, error) {
 // runIntcode executes the intcode program
 func runIntcode(opcodes []int) {
 	pc := 0
-	for opcodes[pc] != OpcodeRet {
+	for opcodes[pc] != opcodeRet {
 		switch opcodes[pc] {
-		case OpcodeAdd:
+		case opcodeAdd:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] + opcodes[opcodes[pc+2]]
 			pc += 4
-		case OpcodeMul:
+		case opcodeMul:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] * opcodes[opcodes[pc+2]]
 			pc += 4
 		}
@@ -97,8 +97,6 @@ func Day02(input []byte, part1 bool) (uint, error) {
 
 	return 0, fmt.Errorf("no solution found")
 }
-
-// Legacy functions for backward compatibility with tests
 
 // Split converts a comma separated list into an array
 func Split(s string) ([]int, error) {

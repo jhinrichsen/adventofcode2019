@@ -7,6 +7,9 @@ import (
 )
 
 const (
+	OpcodeAdd = 1
+	OpcodeMul = 2
+
 	// Input takes a single integer as input and saves it to the position
 	// given by its only parameter.
 	Input = 3
@@ -34,6 +37,8 @@ const (
 
 	// AdjustRelBase changes the relative base
 	AdjustRelBase = 9
+
+	OpcodeRet = 99
 )
 
 // IntCode is both a low-level interpreted language used in bootstrapping the
