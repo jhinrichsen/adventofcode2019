@@ -1,7 +1,7 @@
 package adventofcode2019
 
 import (
-	"strconv"
+	"fmt"
 )
 
 // fuel computes required fuel for given mass. Both mass and fuel have no units.
@@ -19,14 +19,37 @@ func completeFuel(mass uint) uint {
 }
 
 // Day01 returns sum of fuel for all modules
-func Day01(lines []string, part1 bool) uint {
+func Day01(input []byte, part1 bool) (uint, error) {
 	sum := uint(0)
-	for _, line := range lines {
-		n, err := strconv.Atoi(line)
-		if err != nil {
-			continue // Skip invalid lines (AoC input is always valid)
+	num := 0
+	hasDigits := false
+
+	for _, b := range input {
+		if b >= '0' && b <= '9' {
+			num = num*10 + int(b-'0')
+			hasDigits = true
+		} else if b == '\n' {
+			if hasDigits {
+				mass := uint(num)
+				if part1 {
+					f := fuel(mass)
+					if f > 0 {
+						sum += uint(f)
+					}
+				} else {
+					sum += completeFuel(mass)
+				}
+				num = 0
+				hasDigits = false
+			}
+		} else {
+			return 0, fmt.Errorf("unexpected byte: %q", b)
 		}
-		mass := uint(n)
+	}
+
+	// Handle last number if no trailing newline
+	if hasDigits {
+		mass := uint(num)
 		if part1 {
 			f := fuel(mass)
 			if f > 0 {
@@ -36,7 +59,8 @@ func Day01(lines []string, part1 bool) uint {
 			sum += completeFuel(mass)
 		}
 	}
-	return sum
+
+	return sum, nil
 }
 
 // Fuel computes required fuel for given mass (wrapper for tests)
