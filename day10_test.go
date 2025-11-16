@@ -2,6 +2,7 @@ package adventofcode2019
 
 import (
 	"fmt"
+	"image"
 	"testing"
 )
 
@@ -10,11 +11,11 @@ var day10Examples = []struct {
 	best         Asteroid
 	bestCount    int
 }{
-	{example1Filename, Asteroid{3, 4}, 8},
-	{example2Filename, Asteroid{5, 8}, 33},
-	{example3Filename, Asteroid{1, 2}, 35},
-	{example4Filename, Asteroid{6, 3}, 41},
-	{example5Filename, Asteroid{11, 13}, 210},
+	{example1Filename, image.Point{X: 3, Y: 4}, 8},
+	{example2Filename, image.Point{X: 5, Y: 8}, 33},
+	{example3Filename, image.Point{X: 1, Y: 2}, 35},
+	{example4Filename, image.Point{X: 6, Y: 3}, 41},
+	{example5Filename, image.Point{X: 11, Y: 13}, 210},
 }
 
 func TestDay10Example1(t *testing.T) {
@@ -25,7 +26,7 @@ func TestDay10Example1(t *testing.T) {
 	if len(as) != 10 {
 		t.Fatalf("want 10 but got %d", len(as))
 	}
-	second := Asteroid{4, 0}
+	second := image.Point{X: 4, Y: 0}
 	if as[1] != second {
 		t.Fatalf("expected asteroid %+v at index 1, got %+v",
 			second, as[1])

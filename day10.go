@@ -1,14 +1,13 @@
 package adventofcode2019
 
 import (
+	"image"
 	"math"
 	"sort"
 )
 
-// Asteroid represents a position in 2D space using integer coordinates.
-type Asteroid struct {
-	X, Y int
-}
+// Asteroid is a type alias for image.Point, representing a 2D position.
+type Asteroid = image.Point
 
 // direction represents a normalized direction vector for line-of-sight.
 type direction struct {
@@ -77,7 +76,7 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 			x = 0
 			y++
 		} else if isAsteroid(b) {
-			as = append(as, Asteroid{x, y})
+			as = append(as, image.Point{X: x, Y: y})
 			x++
 		} else {
 			// whitespace, ignore
