@@ -1,4 +1,6 @@
 GO ?= CGO_ENABLED=0 go
+CPU_NAME := $(shell go run cmd/cpuname/main.go)
+BENCH_FILE := benches/$(shell go env GOOS)-$(shell go env GOARCH)-$(CPU_NAME).txt
 
 .PHONY: all
 all: tidy test
@@ -18,6 +20,15 @@ clean:
 .PHONY: bench
 bench:
 	$(GO) test -bench=. -run="" -benchmem
+
+$(BENCH_FILE): $(wildcard *.go)
+	@echo "Running benchmarks and saving to $@..."
+	@mkdir -p benches
+	$(GO) test -run=^$$ -bench=Day..Part.$$ -benchmem | tee $@
+
+.PHONY: total
+total: $(BENCH_FILE)
+	awk -f total.awk < $(BENCH_FILE)
 
 .PHONY: staticcheck
 staticcheck:

@@ -86,63 +86,48 @@ row-by-row bottom-edge scan both correct and efficient.
 
 == Benchmarks
 
-Results from `make bench` on Intel(R) Xeon(R) CPU @ 2.60GHz:
+Results from `make total` on Intel(R) Xeon(R) CPU @ 2.60GHz:
 
 ----
 goos: linux
 goarch: amd64
 pkg: gitlab.com/jhinrichsen/adventofcode2019
 cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
-BenchmarkDay3Part1-16           	       1	1935868386 ns/op	2174759312 B/op	   20454 allocs/op
-BenchmarkDay3Part2-16           	      14	  73007509 ns/op	27972873 B/op	    2101 allocs/op
-BenchmarkDay4Part1-16           	      55	  21560001 ns/op	 4393320 B/op	  549161 allocs/op
-BenchmarkDay4Part2-16           	      64	  19064896 ns/op	 4393321 B/op	  549161 allocs/op
-BenchmarkDay5Part2-16           	  200647	      6510 ns/op	    6448 B/op	       4 allocs/op
-BenchmarkDay6OrbitC-16          	100000000	        11.58 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDay6Part1-16           	     326	   3642572 ns/op	     585 B/op	       6 allocs/op
-BenchmarkDay6CommonOrbit-16     	 1266794	       929.7 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDay6Part2-16           	    2064	    590953 ns/op	      92 B/op	       1 allocs/op
-BenchmarkDay7Part1-16           	     595	   2068586 ns/op	 2590771 B/op	    2562 allocs/op
-BenchmarkDay7Part2-16           	     489	   2226883 ns/op	 2590754 B/op	    2566 allocs/op
-BenchmarkDay8Part1-16           	   51525	     23248 ns/op	     896 B/op	       1 allocs/op
-BenchmarkDay8Part2-16           	  225985	      5446 ns/op	     160 B/op	       1 allocs/op
-BenchmarkDay9Part1-16           	   35847	     32208 ns/op	   53313 B/op	       9 allocs/op
-BenchmarkDay9Part2-16           	     154	   7761406 ns/op	  244878 B/op	      30 allocs/op
-BenchmarkDay10Part1-16          	     134	   8892875 ns/op	 4300300 B/op	     948 allocs/op
-BenchmarkParseUsingParser-16    	 6224564	       188.1 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDay12Example2-16       	   12007	    101885 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDay14Part1-16          	   13480	     88120 ns/op	   37208 B/op	     380 allocs/op
-BenchmarkDay14Part2-16          	     954	   1230220 ns/op	  173301 B/op	     683 allocs/op
-BenchmarkDay15Part1-16          	      12	  95238125 ns/op	51392360 B/op	  105675 allocs/op
-BenchmarkDay15Part2-16          	       9	 115805614 ns/op	57866948 B/op	  131108 allocs/op
-BenchmarkDay16Part1-16          	      28	  43655575 ns/op	  542976 B/op	     101 allocs/op
-BenchmarkDay16Part2-16          	      13	  81384289 ns/op	 4207872 B/op	       2 allocs/op
-BenchmarkDay17Part1-16          	      42	  28866716 ns/op	43743064 B/op	    2233 allocs/op
-BenchmarkDay17Part2-16          	      34	  30433419 ns/op	43946031 B/op	    2094 allocs/op
-BenchmarkDay18Part1-16          	       1	9977554923 ns/op	1199136784 B/op	   40594 allocs/op
-BenchmarkDay18Part2-16          	       2	 932910162 ns/op	40854496 B/op	   21810 allocs/op
-BenchmarkDay19Part1-16          	       8	 131228385 ns/op	155496468 B/op	   48008 allocs/op
-BenchmarkDay19Part2-16          	       1	27643472132 ns/op	37568411664 B/op	11796494 allocs/op
-BenchmarkDay20Part1-16          	     505	   2491869 ns/op	  675760 B/op	    1106 allocs/op
-BenchmarkDay20Part2-16          	       2	 741156768 ns/op	104082272 B/op	 1151790 allocs/op
-BenchmarkDay21Part1-16          	    1092	   1046190 ns/op	  942770 B/op	      55 allocs/op
-BenchmarkDay21Part2-16          	      84	  14045137 ns/op	  943074 B/op	      55 allocs/op
+BenchmarkDay10Part1-16    	     147	   8152138 ns/op	 4300319 B/op	     948 allocs/op
+BenchmarkDay14Part1-16    	   14290	     82359 ns/op	   37223 B/op	     380 allocs/op
+BenchmarkDay14Part2-16    	    1016	   1226413 ns/op	  173357 B/op	     683 allocs/op
+BenchmarkDay15Part1-16    	      13	  82933484 ns/op	51392433 B/op	  105674 allocs/op
+BenchmarkDay15Part2-16    	      12	 102327223 ns/op	57866777 B/op	  131108 allocs/op
+BenchmarkDay16Part1-16    	      25	  43344598 ns/op	  542976 B/op	     101 allocs/op
+BenchmarkDay16Part2-16    	      14	  77158597 ns/op	 4207872 B/op	       2 allocs/op
+BenchmarkDay17Part1-16    	      68	  18194266 ns/op	43743159 B/op	    2233 allocs/op
+BenchmarkDay17Part2-16    	      50	  22993333 ns/op	43946105 B/op	    2094 allocs/op
+BenchmarkDay18Part1-16    	       1	7948274701 ns/op	1199136976 B/op	   40596 allocs/op
+BenchmarkDay18Part2-16    	       2	 915211528 ns/op	40854496 B/op	   21810 allocs/op
+BenchmarkDay19Part1-16    	       9	 112241838 ns/op	155502378 B/op	   48021 allocs/op
+BenchmarkDay19Part2-16    	       1	23739617884 ns/op	37568474848 B/op	11796388 allocs/op
+BenchmarkDay20Part1-16    	     492	   2564065 ns/op	  675760 B/op	    1106 allocs/op
+BenchmarkDay20Part2-16    	       2	 746991336 ns/op	104088420 B/op	 1151789 allocs/op
+BenchmarkDay21Part1-16    	    1154	    962476 ns/op	  942768 B/op	      55 allocs/op
+BenchmarkDay21Part2-16    	      85	  13949738 ns/op	  943072 B/op	      55 allocs/op
 PASS
-ok  	gitlab.com/jhinrichsen/adventofcode2019	82.859s
+ok  	gitlab.com/jhinrichsen/adventofcode2019	51.285s
 ----
 
-*Total time to solve all parts once: ~42 seconds*
+*Benchmark results:*
 
-The benchmark suite runtime (82.859s) includes framework overhead and multiple iterations
-per benchmark for statistical accuracy.
+- *Total solve time (sum of ns/op)*: 33.84 seconds
+- *Benchmark framework runtime*: 51.285s (includes overhead and multiple iterations)
+- *Benchmarks run*: 17 (Day10-21 Part1/Part2 where implemented)
 
 Notable performance characteristics:
 
-- *Day 19 Part 2*: Dominates total runtime at ~27.6s (66% of total) with 37GB allocations due to extensive beam scanning
-- *Day 18 Part 1*: Second slowest at ~9.98s (24% of total) with complex maze pathfinding
-- *Day 3 Part 1*: Third at ~1.94s with 2GB allocations for wire intersection calculation
-- *Day 6*: Most optimized with sub-nanosecond operations and zero allocations for OrbitC
-- *Day 8 Part 2*: Fast image processing at 5.4µs per operation
+- *Day 19 Part 2*: Dominates at 23.74s (70% of total) with 37GB allocations due to extensive beam scanning
+- *Day 18 Part 1*: Second at 7.95s (23% of total) with complex maze pathfinding
+- *Day 18 Part 2*: Third at 0.92s with optimized 4-robot pathfinding
+- *Day 20 Part 2*: 0.75s for recursive maze with portal levels
+- *Day 16 Part 2*: 0.08s for FFT with offset optimization
 
 Performance bottlenecks are primarily in geometric search (Day 19) and path-finding
-algorithms (Days 15, 18, 20) due to large search spaces.
+algorithms (Days 15, 18, 20) due to large search spaces. The single slowest operation
+(Day 19 Part 2) accounts for 70% of total runtime.
