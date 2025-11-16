@@ -7,100 +7,21 @@ import (
 	"testing"
 )
 
-const (
-	day10Example1 = `
-	.#..#
-	.....
-	#####
-	....#
-	...##
-	`
-
-	day10Example2 = `
-	......#.#.
-	#..#.#....
-	..#######.
-	.#.#.###..
-	.#..#.....
-	..#....#.#
-	#..#....#.
-	.##.#..###
-	##...#..#.
-	.#....####
-	`
-
-	day10Example3 = `
-	#.#...#.#.
-	.###....#.
-	.#....#...
-	##.#.#.#.#
-	....#.#.#.
-	.##..###.#
-	..#...##..
-	..##....##
-	......#...
-	.####.###.
-	`
-
-	day10Example4 = `
-	.#..#..###
-	####.###.#
-	....###.#.
-	..###.##.#
-	##.##.#.#.
-	....###..#
-	..#.#..#.#
-	#..#.#.###
-	.##...##.#
-	.....#.#..
-	`
-
-	day10Example5 = `
-	.#..##.###...#######
-	##.############..##.
-	.#.######.########.#
-	.###.#######.####.#.
-	#####.##.#.##.###.##
-	..#####..#.#########
-	####################
-	#.####....###.#.#.##
-	##.#################
-	#####.##.###..####..
-	..######..##.#######
-	####.##.####...##..#
-	.#####..#.######.###
-	##...#.##########...
-	#.##########.#######
-	.####.#.###.###.#.##
-	....##.##.###..#####
-	.#.#.###########.###
-	#.#.#.#####.####.###
-	###.##.####.##.#..##
-	`
-
-	day10Part2Example1 = `
-	.#....#####...#..
-	##...##.#####..##
-	##...#...#.#####.
-	..#.....X...###..
-	..#.#.....#....##
-	`
-)
-
 var day10Examples = []struct {
-	asteroidMap string
-	best        Asteroid
-	bestCount   int
+	filenameFunc func(uint8) string
+	best         Asteroid
+	bestCount    int
 }{
-	{day10Example1, 3 + 4i, 8},
-	{day10Example2, 5 + 8i, 33},
-	{day10Example3, 1 + 2i, 35},
-	{day10Example4, 6 + 3i, 41},
-	{day10Example5, 11 + 13i, 210},
+	{example1Filename, 3 + 4i, 8},
+	{example2Filename, 5 + 8i, 33},
+	{example3Filename, 1 + 2i, 35},
+	{example4Filename, 6 + 3i, 41},
+	{example5Filename, 11 + 13i, 210},
 }
 
 func TestDay10Example1(t *testing.T) {
-	as := ParseAsteroidMap([]byte(day10Example1))
+	buf := fileFromFilename(t, example1Filename, 10)
+	as := ParseAsteroidMap(buf)
 
 	// Check number of asteroids
 	if len(as) != 10 {
@@ -118,7 +39,8 @@ func TestDay10Part1Examples(t *testing.T) {
 	for i, tt := range day10Examples {
 		id := fmt.Sprintf("Day10Part1 example #%d", i+1)
 		t.Run(id, func(t *testing.T) {
-			as := ParseAsteroidMap([]byte(tt.asteroidMap))
+			buf := fileFromFilename(t, tt.filenameFunc, 10)
+			as := ParseAsteroidMap(buf)
 			wantA, want := tt.best, tt.bestCount
 			gotA, got := Day10Part1(as)
 			if tt.best != gotA {
@@ -133,14 +55,8 @@ func TestDay10Part1Examples(t *testing.T) {
 }
 
 func TestDay10Part1(t *testing.T) {
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		t.Fatal(err)
-	}
+	buf := file(t, 10)
 	as := ParseAsteroidMap(buf)
-	if err != nil {
-		t.Fatal(err)
-	}
 	want := 267
 	_, got := Day10Part1(as)
 	if want != got {
@@ -149,22 +65,17 @@ func TestDay10Part1(t *testing.T) {
 }
 
 func BenchmarkDay10Part1(b *testing.B) {
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		b.Fatal(err)
-	}
+	buf := file(b, 10)
 	as := ParseAsteroidMap(buf)
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		Day10Part1(as)
 	}
 }
 
 func TestDay10Vaporize(t *testing.T) {
 	ex := day10Examples[4]
-	as := ParseAsteroidMap([]byte(ex.asteroidMap))
+	buf := fileFromFilename(t, ex.filenameFunc, 10)
+	as := ParseAsteroidMap(buf)
 	got := center(vaporize(byPhase(center(as, ex.best))), -ex.best)
 
 	wants := make(map[int]Asteroid)
@@ -203,7 +114,11 @@ func TestDay10Part2Example1(t *testing.T) {
 		11 + 2i,
 		15 + 1i,
 	}
-	as := ParseAsteroidMap([]byte(day10Part2Example1))
+	buf, err := os.ReadFile("testdata/day10_part2_example1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	as := ParseAsteroidMap(buf)
 	base := 8 + 3i
 	as = center(as, base)
 	pgs := byPhase(as)
@@ -231,7 +146,8 @@ func TestDay10Part2Example1(t *testing.T) {
 func TestDay10Part2Example2(t *testing.T) {
 	want := 802
 	ex := day10Examples[4]
-	as := ParseAsteroidMap([]byte(ex.asteroidMap))
+	buf := fileFromFilename(t, ex.filenameFunc, 10)
+	as := ParseAsteroidMap(buf)
 	got := Day10Part2(as, ex.best)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
@@ -240,10 +156,7 @@ func TestDay10Part2Example2(t *testing.T) {
 
 func TestDay10Part2(t *testing.T) {
 	want := 1309
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		t.Fatal(err)
-	}
+	buf := file(t, 10)
 	as := ParseAsteroidMap(buf)
 	best, _ := Day10Part1(as)
 	got := Day10Part2(as, best)
@@ -253,9 +166,9 @@ func TestDay10Part2(t *testing.T) {
 }
 
 func BenchmarkDay10Part2(b *testing.B) {
-	buf := fileFromFilename(b, filename, 10)
+	buf := file(b, 10)
 	as := ParseAsteroidMap(buf)
-	for b.Loop() {
+	for range b.N {
 		base, _ := Day10Part1(as)
 		_ = Day10Part2(as, base)
 	}
