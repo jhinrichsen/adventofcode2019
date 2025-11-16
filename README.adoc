@@ -89,6 +89,36 @@ Day10Part1-16    948.0 ± 0%   948.0 ± 0%        ~ (p=1.000 n=8)
 Day10Part2-16   1606.0 ± 0%   971.0 ± 0%  -39.54% (p=0.000 n=8)
 ----
 
+== Day 12: The N-Body Problem
+
+Optimized cycle detection by preallocating map capacity to reduce memory reallocations.
+
+.Key changes
+- Preallocated history map with capacity 100,000 instead of default zero capacity
+- Reduced map growth allocations during cycle detection
+- Part 1 already optimal (91µs, 0 allocations)
+
+.Performance impact
+----
+Part2 Memory:     126MB → 94MB   (25% reduction)
+Part2 Allocations: 3136 → 2317   (26% reduction)
+----
+
+== Day 18: Many-Worlds Interpretation
+
+Optimized BFS queue operations by eliminating repeated slice reallocations.
+
+.Key changes
+- Replaced `queue = queue[1:]` pattern with index-based dequeue using `head` pointer
+- Preallocated queue and visited map with reasonable initial capacity
+- Applied fix to both Part 1 (solvePart1) and helper function (bfsFrom)
+
+.Performance impact
+----
+Part1 Time:        7.7s → 4.0s    (48% faster)
+Part1 Allocations: 40,596 → 32,872 (19% reduction)
+----
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
