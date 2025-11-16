@@ -66,6 +66,22 @@ Number of tries for a correct answer:
 
 |===
 
+== Day 3: Crossed Wires
+
+Optimized wire intersection detection by replacing dense 2D array allocation with sparse coordinate maps.
+
+.Key changes
+- Replaced `Board()` function creating massive 2D arrays with `map[Point]bool` sparse storage
+- Eliminated need for calculating board dimensions and centering coordinates
+- Both Part 1 and Part 2 now use consistent sparse map approach
+- Direct coordinate tracking during wire walking
+
+.Performance impact
+----
+Time:   1200ms → 63ms  (95% faster, 19x speedup)
+Memory: 2170MB → 28MB  (98.7% reduction, 77x less memory)
+----
+
 == Day 10: Monitoring Station
 
 Optimized asteroid visibility detection by replacing expensive floating-point operations with integer-based GCD normalization.
