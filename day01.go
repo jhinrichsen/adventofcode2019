@@ -36,19 +36,12 @@ func Day01(lines []string, part1 bool) uint {
 	return sum
 }
 
-// Legacy functions for backwards compatibility
+// Fuel computes required fuel for given mass (wrapper for tests)
 func Fuel(mass int) int {
 	return fuel(uint(mass))
 }
 
+// CompleteFuel computes required fuel for given mass, including fuel for fuel (wrapper for tests)
 func CompleteFuel(mass int) int {
 	return int(completeFuel(uint(mass)))
-}
-
-func Day1Part1(lines []string) (int, error) {
-	return int(Day01(lines, true)), nil
-}
-
-func Day1Part2(lines []string) (int, error) {
-	return int(Day01(lines, false)), nil
 }
