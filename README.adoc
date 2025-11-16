@@ -196,53 +196,7 @@ row-by-row bottom-edge scan both correct and efficient.
 
 Results from `make total` on Intel(R) Xeon(R) CPU @ 2.60GHz:
 
+[source]
 ----
-goos: linux
-goarch: amd64
-pkg: gitlab.com/jhinrichsen/adventofcode2019
-cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
-BenchmarkDay10Part1-16    	     147	   8152138 ns/op	 4300319 B/op	     948 allocs/op
-BenchmarkDay14Part1-16    	   14290	     82359 ns/op	   37223 B/op	     380 allocs/op
-BenchmarkDay14Part2-16    	    1016	   1226413 ns/op	  173357 B/op	     683 allocs/op
-BenchmarkDay15Part1-16    	      13	  82933484 ns/op	51392433 B/op	  105674 allocs/op
-BenchmarkDay15Part2-16    	      12	 102327223 ns/op	57866777 B/op	  131108 allocs/op
-BenchmarkDay16Part1-16    	      25	  43344598 ns/op	  542976 B/op	     101 allocs/op
-BenchmarkDay16Part2-16    	      14	  77158597 ns/op	 4207872 B/op	       2 allocs/op
-BenchmarkDay17Part1-16    	      68	  18194266 ns/op	43743159 B/op	    2233 allocs/op
-BenchmarkDay17Part2-16    	      50	  22993333 ns/op	43946105 B/op	    2094 allocs/op
-BenchmarkDay18Part1-16    	       1	7948274701 ns/op	1199136976 B/op	   40596 allocs/op
-BenchmarkDay18Part2-16    	       2	 915211528 ns/op	40854496 B/op	   21810 allocs/op
-BenchmarkDay19Part1-16    	       9	 112241838 ns/op	155502378 B/op	   48021 allocs/op
-BenchmarkDay19Part2-16    	       1	23739617884 ns/op	37568474848 B/op	11796388 allocs/op
-BenchmarkDay20Part1-16    	     492	   2564065 ns/op	  675760 B/op	    1106 allocs/op
-BenchmarkDay20Part2-16    	       2	 746991336 ns/op	104088420 B/op	 1151789 allocs/op
-BenchmarkDay21Part1-16    	    1154	    962476 ns/op	  942768 B/op	      55 allocs/op
-BenchmarkDay21Part2-16    	      85	  13949738 ns/op	  943072 B/op	      55 allocs/op
-PASS
-ok  	gitlab.com/jhinrichsen/adventofcode2019	227.080s
+include::benches/linux-amd64-IntelR_XeonR.txt[]
 ----
-
-Total: *47.83 seconds* (sum of all ns/op values)
-
-*Benchmark results:*
-
-- *Total solve time (sum of ns/op)*: 47.83 seconds
-- *Benchmark framework runtime*: 227.080s (includes overhead and multiple iterations)
-- *Benchmarks run*: 48 (all Days 01-24, both parts)
-
-Notable performance characteristics:
-
-- *Day 19 Part 2*: Dominates at 28.31s (59% of total) with 37GB allocations due to extensive beam scanning
-- *Day 23 Part 2*: Second at 8.76s (18% of total) for network simulation
-- *Day 18 Part 1*: Third at 5.98s (12% of total) with complex maze pathfinding
-- *Day 03 Part 1*: Fourth at 1.80s (4% of total) with wire intersection calculation
-- *Day 18 Part 2*: 0.96s with optimized 4-robot pathfinding
-- *Day 20 Part 2*: 0.81s for recursive maze with portal levels
-- *Day 24 Part 2*: 0.24s for recursive cellular automaton
-- *Day 12 Part 2*: 0.15s for N-body orbital cycle detection
-
-Performance bottlenecks:
-- Geometric search (Day 19): 59% of total runtime
-- Network simulation (Day 23): 18% of total runtime
-- Path-finding algorithms (Days 15, 18, 20): Large search spaces with multi-GB allocations
-- Intcode VM overhead: Present in 12 puzzles (Days 02, 05, 07, 09, 11, 13, 15, 17, 19, 21, 23)
