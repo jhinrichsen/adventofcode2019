@@ -143,26 +143,30 @@ BenchmarkDay20Part2-16    	       2	 746991336 ns/op	104088420 B/op	 1151789 all
 BenchmarkDay21Part1-16    	    1154	    962476 ns/op	  942768 B/op	      55 allocs/op
 BenchmarkDay21Part2-16    	      85	  13949738 ns/op	  943072 B/op	      55 allocs/op
 PASS
-ok  	gitlab.com/jhinrichsen/adventofcode2019	51.285s
+ok  	gitlab.com/jhinrichsen/adventofcode2019	227.080s
 ----
+
+Total: *47.83 seconds* (sum of all ns/op values)
 
 *Benchmark results:*
 
-- *Total solve time (sum of ns/op)*: 42.30 seconds
-- *Benchmark framework runtime*: 201.718s (includes overhead and multiple iterations)
-- *Benchmarks run*: 36 (Days 01-24 where both parts implemented)
+- *Total solve time (sum of ns/op)*: 47.83 seconds
+- *Benchmark framework runtime*: 227.080s (includes overhead and multiple iterations)
+- *Benchmarks run*: 48 (all Days 01-24, both parts)
 
 Notable performance characteristics:
 
-- *Day 19 Part 2*: Dominates at 24.18s (57% of total) with 37GB allocations due to extensive beam scanning
-- *Day 23 Part 2*: Second at 9.59s (23% of total) for network simulation
-- *Day 18 Part 1*: Third at 5.88s (14% of total) with complex maze pathfinding
-- *Day 24 Part 2*: 0.22s for recursive cellular automaton
-- *Day 12 Part 2*: 0.13s for N-body orbital cycle detection
-- *Day 15 Part 1/2*: ~0.10s each for oxygen system pathfinding
+- *Day 19 Part 2*: Dominates at 28.31s (59% of total) with 37GB allocations due to extensive beam scanning
+- *Day 23 Part 2*: Second at 8.76s (18% of total) for network simulation
+- *Day 18 Part 1*: Third at 5.98s (12% of total) with complex maze pathfinding
+- *Day 03 Part 1*: Fourth at 1.80s (4% of total) with wire intersection calculation
+- *Day 18 Part 2*: 0.96s with optimized 4-robot pathfinding
+- *Day 20 Part 2*: 0.81s for recursive maze with portal levels
+- *Day 24 Part 2*: 0.24s for recursive cellular automaton
+- *Day 12 Part 2*: 0.15s for N-body orbital cycle detection
 
 Performance bottlenecks:
-- Geometric search (Day 19): 57% of total runtime
-- Network simulation (Day 23): 23% of total runtime
-- Path-finding algorithms (Days 15, 18, 20): Large search spaces
-- Intcode VM overhead: Present in most puzzles (Days 02, 05, 07, 09, 11, 13, 15, 17, 19, 21, 23)
+- Geometric search (Day 19): 59% of total runtime
+- Network simulation (Day 23): 18% of total runtime
+- Path-finding algorithms (Days 15, 18, 20): Large search spaces with multi-GB allocations
+- Intcode VM overhead: Present in 12 puzzles (Days 02, 05, 07, 09, 11, 13, 15, 17, 19, 21, 23)
