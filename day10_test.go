@@ -251,3 +251,12 @@ func TestDay10Part2(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay10Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 10)
+	as := ParseAsteroidMap(buf)
+	for b.Loop() {
+		base, _ := Day10Part1(as)
+		_ = Day10Part2(as, base)
+	}
+}

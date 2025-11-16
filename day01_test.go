@@ -81,3 +81,17 @@ func TestDay1Part2(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay01Part1(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(1))
+	for b.Loop() {
+		_, _ = Day1Part1(lines)
+	}
+}
+
+func BenchmarkDay01Part2(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(1))
+	for b.Loop() {
+		_, _ = Day1Part2(lines)
+	}
+}

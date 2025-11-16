@@ -310,3 +310,24 @@ func TestDay12Sizeof(t *testing.T) {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay12Part1(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(12))
+	for b.Loop() {
+		u, _ := parseUsingParser(lines)
+		for i := 0; i < 1000; i++ {
+			for dim := 0; dim < DIMS; dim++ {
+				u.step(dim)
+			}
+		}
+		_ = u.energy()
+	}
+}
+
+func BenchmarkDay12Part2(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(12))
+	for b.Loop() {
+		u, _ := parseUsingParser(lines)
+		_ = u.cycle()
+	}
+}

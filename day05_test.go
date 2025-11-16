@@ -224,3 +224,16 @@ func BenchmarkDay5Part2(b *testing.B) {
 		<-out
 	}
 }
+
+func BenchmarkDay05Part1(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(5))
+	master := MustSplit(lines[0])
+	for b.Loop() {
+		in, out := channels()
+		go Day5(master.Copy(), in, out)
+		in <- AirContitionerUnit
+		// Drain all output
+		for range out {
+		}
+	}
+}

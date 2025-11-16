@@ -54,3 +54,19 @@ func TestDay11Part2(t *testing.T) {
 	// fmt.Println("Day 11, part 2:")
 	// fmt.Println(string(got))
 }
+
+func BenchmarkDay11Part1(b *testing.B) {
+	buf := fileFromFilename(b, filename, 11)
+	master := MustSplit(string(buf))
+	for b.Loop() {
+		_ = Day11Part1(master.Copy())
+	}
+}
+
+func BenchmarkDay11Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 11)
+	master := MustSplit(string(buf))
+	for b.Loop() {
+		_ = Day11Part2(master.Copy())
+	}
+}
