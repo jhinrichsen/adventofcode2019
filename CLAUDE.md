@@ -47,9 +47,11 @@
 ### Error Handling (MANDATORY)
 - **NEVER** silently ignore errors with blank identifier `_`
 - **ALWAYS** handle or propagate errors explicitly
+- **NEVER** panic on broken input - AoC input is always valid
 - Bad: `n, _ := strconv.Atoi(line)`
-- Good: `n, err := strconv.Atoi(line); if err != nil { panic(err) }`
-- For puzzle functions that can't error, panic on unexpected input errors
+- Bad: `n, err := strconv.Atoi(line); if err != nil { panic(err) }`
+- Good for functions returning errors: `n, err := strconv.Atoi(line); if err != nil { return err }`
+- Good for functions that can't error: Handle errors gracefully (skip, use zero, etc.)
 
 ### Test Structure
 - Table-driven tests with external files

@@ -24,7 +24,7 @@ func Day01(lines []string, part1 bool) uint {
 	for _, line := range lines {
 		n, err := strconv.Atoi(line)
 		if err != nil {
-			panic(err)
+			continue // Skip invalid lines (AoC input is always valid)
 		}
 		mass := uint(n)
 		if part1 {
