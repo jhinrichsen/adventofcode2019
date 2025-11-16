@@ -14,8 +14,8 @@ func Day25(lines []string, part1 bool) uint {
 
 	prog := MustSplit(strings.TrimSpace(lines[0]))
 
-	// Build room graph using DFS
-	graph := buildRoomGraph(prog)
+	// Build room graph using checkpoint-based exploration
+	graph := buildRoomGraphFast(prog)
 
 	// Find all safe items and security checkpoint
 	var items []string
@@ -45,11 +45,349 @@ func Day25(lines []string, part1 bool) uint {
 		}
 	}
 
+	fmt.Printf("DEBUG: Found %d items, securityRoom=%s, securityDir=%s\n", len(items), securityRoom, securityDir)
+
+	if len(items) == 0 || securityRoom == "" {
+		fmt.Printf("DEBUG: Missing items or security, cannot continue\n")
+		return 0
+	}
+
 	// Build path to collect all items and reach security
 	path := buildCollectionPath(graph, items, securityRoom)
+	fmt.Printf("DEBUG: Collection path has %d commands\n", len(path))
 
 	// Try all item combinations
 	return tryItemCombos(prog, items, path, securityDir)
+}
+
+// vmSnapshot represents a saved VM state
+type vmSnapshot struct {
+	mem     []int
+	ip      int
+	relBase int
+}
+
+func (s *vmSnapshot) copy() *vmSnapshot {
+	newMem := make([]int, len(s.mem))
+	copy(newMem, s.mem)
+	return &vmSnapshot{
+		mem:     newMem,
+		ip:      s.ip,
+		relBase: s.relBase,
+	}
+}
+
+// buildRoomGraphFast explores using checkpoint-based VM copies
+func buildRoomGraphFast(prog IntCode) map[string]*roomInfo {
+	graph := make(map[string]*roomInfo)
+	visited := make(map[string]bool)
+
+	// Warmup: Run VM to first "Command?" prompt and get initial output
+	warmSnapshot, initialOutput := warmupVM(prog)
+
+	// oppositeDirection returns the reverse direction
+	oppositeDirection := func(dir string) string {
+		switch dir {
+		case "north":
+			return "south"
+		case "south":
+			return "north"
+		case "east":
+			return "west"
+		case "west":
+			return "east"
+		}
+		return ""
+	}
+
+	// DFS with checkpoints
+	var explore func(checkpoint *vmSnapshot, roomName string)
+	explore = func(checkpoint *vmSnapshot, roomName string) {
+		if visited[roomName] {
+			return
+		}
+
+		// Don't explore past security checkpoint
+		if strings.Contains(roomName, "Security") {
+			visited[roomName] = true
+			return
+		}
+
+		visited[roomName] = true
+
+		// Room should already be in graph from parent call
+		room := graph[roomName]
+
+		// Explore each exit
+		for dir := range room.exits {
+			// Copy checkpoint and send command
+			vmCopy := checkpoint.copy()
+			output := vmCopy.sendCommand(dir)
+			nextRoom := parseRoom(output)
+
+			// Check if VM died (no "Command?" means death)
+			if !strings.Contains(output, "Command?") {
+				continue // Skip dangerous path
+			}
+
+			// Add to graph if new
+			if _, exists := graph[nextRoom.name]; !exists {
+				graph[nextRoom.name] = nextRoom
+			}
+
+			// Record forward connection
+			room.exits[dir] = nextRoom.name
+
+			// Record reverse connection for pathfinding
+			reverseDir := oppositeDirection(dir)
+			nextGraphRoom := graph[nextRoom.name]
+			if nextGraphRoom.exits[reverseDir] == "" {
+				nextGraphRoom.exits[reverseDir] = room.name
+			}
+
+			// Recursively explore
+			explore(vmCopy, nextRoom.name)
+		}
+	}
+
+	// Parse initial room from warmup output
+	startRoom := parseRoom(initialOutput)
+	if startRoom.name == "" {
+		fmt.Printf("DEBUG: Failed to parse start room from output: %s\n", initialOutput[:min(200, len(initialOutput))])
+		return graph
+	}
+	graph[startRoom.name] = startRoom
+
+	// Start exploration
+	initCopy := warmSnapshot.copy()
+	explore(initCopy, startRoom.name)
+
+	fmt.Printf("DEBUG: Graph has %d rooms\n", len(graph))
+	return graph
+}
+
+// warmupVM runs program to first "Command?" prompt and returns snapshot + initial output
+func warmupVM(prog IntCode) (*vmSnapshot, string) {
+	// Allocate memory: program size + working space
+	// TODO: Profile actual max address usage
+	memSize := len(prog) * 2
+	if memSize < 10000 {
+		memSize = 10000
+	}
+	mem := make([]int, memSize)
+	copy(mem, prog)
+
+	vm := &vmSnapshot{
+		mem:     mem,
+		ip:      0,
+		relBase: 0,
+	}
+
+	// Run until we hit first input, capturing output
+	output := vm.runUntilInput()
+
+	return vm, intsToString(output)
+}
+
+// runUntilInput runs VM until it needs input, returns output
+func (vm *vmSnapshot) runUntilInput() []int {
+	var output []int
+
+	for {
+		opcode, mode1, mode2, mode3 := instruction(vm.mem[vm.ip])
+
+		switch opcode {
+		case OpcodeAdd:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			vm.mem[addr] = p1 + p2
+			vm.ip += 4
+
+		case OpcodeMul:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			vm.mem[addr] = p1 * p2
+			vm.ip += 4
+
+		case Input:
+			return output // Wait for input
+
+		case Output:
+			val := vm.loadParam(vm.ip+1, mode1)
+			output = append(output, val)
+			vm.ip += 2
+
+		case JumpIfTrue:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			if p1 != 0 {
+				vm.ip = vm.loadParam(vm.ip+2, mode2)
+			} else {
+				vm.ip += 3
+			}
+
+		case JumpIfFalse:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			if p1 == 0 {
+				vm.ip = vm.loadParam(vm.ip+2, mode2)
+			} else {
+				vm.ip += 3
+			}
+
+		case LessThan:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			if p1 < p2 {
+				vm.mem[addr] = 1
+			} else {
+				vm.mem[addr] = 0
+			}
+			vm.ip += 4
+
+		case Equals:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			if p1 == p2 {
+				vm.mem[addr] = 1
+			} else {
+				vm.mem[addr] = 0
+			}
+			vm.ip += 4
+
+		case AdjustRelBase:
+			vm.relBase += vm.loadParam(vm.ip+1, mode1)
+			vm.ip += 2
+
+		case OpcodeRet:
+			return output
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %d", vm.mem[vm.ip]))
+		}
+	}
+}
+
+// sendCommand sends a command and returns output
+func (vm *vmSnapshot) sendCommand(cmd string) string {
+	// Convert command to input
+	input := []int{}
+	for _, ch := range cmd {
+		input = append(input, int(ch))
+	}
+	input = append(input, 10) // newline
+
+	inputIdx := 0
+	output := []int{}
+
+	for {
+		opcode, mode1, mode2, mode3 := instruction(vm.mem[vm.ip])
+
+		switch opcode {
+		case OpcodeAdd:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			vm.mem[addr] = p1 + p2
+			vm.ip += 4
+
+		case OpcodeMul:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			vm.mem[addr] = p1 * p2
+			vm.ip += 4
+
+		case Input:
+			if inputIdx >= len(input) {
+				// Input exhausted - return output so far
+				return intsToString(output)
+			}
+			addr := vm.storeAddr(vm.ip+1, mode1)
+			vm.mem[addr] = input[inputIdx]
+			inputIdx++
+			vm.ip += 2
+
+		case Output:
+			val := vm.loadParam(vm.ip+1, mode1)
+			output = append(output, val)
+			vm.ip += 2
+
+		case JumpIfTrue:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			if p1 != 0 {
+				vm.ip = vm.loadParam(vm.ip+2, mode2)
+			} else {
+				vm.ip += 3
+			}
+
+		case JumpIfFalse:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			if p1 == 0 {
+				vm.ip = vm.loadParam(vm.ip+2, mode2)
+			} else {
+				vm.ip += 3
+			}
+
+		case LessThan:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			if p1 < p2 {
+				vm.mem[addr] = 1
+			} else {
+				vm.mem[addr] = 0
+			}
+			vm.ip += 4
+
+		case Equals:
+			p1 := vm.loadParam(vm.ip+1, mode1)
+			p2 := vm.loadParam(vm.ip+2, mode2)
+			addr := vm.storeAddr(vm.ip+3, mode3)
+			if p1 == p2 {
+				vm.mem[addr] = 1
+			} else {
+				vm.mem[addr] = 0
+			}
+			vm.ip += 4
+
+		case AdjustRelBase:
+			vm.relBase += vm.loadParam(vm.ip+1, mode1)
+			vm.ip += 2
+
+		case OpcodeRet:
+			return intsToString(output)
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %d", vm.mem[vm.ip]))
+		}
+	}
+}
+
+func (vm *vmSnapshot) loadParam(addr int, mode ParameterMode) int {
+	val := vm.mem[addr]
+	switch mode {
+	case ImmediateMode:
+		return val
+	case PositionMode:
+		return vm.mem[val]
+	case RelativeMode:
+		return vm.mem[vm.relBase+val]
+	}
+	return 0
+}
+
+func (vm *vmSnapshot) storeAddr(addr int, mode ParameterMode) int {
+	val := vm.mem[addr]
+	switch mode {
+	case PositionMode:
+		return val
+	case RelativeMode:
+		return vm.relBase + val
+	}
+	return addr
 }
 
 type roomInfo struct {
@@ -273,10 +611,20 @@ func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint
 		output := runFromCheckpoint(mem, ip, relBase, combInput)
 		outputStr := intsToString(output)
 
+		if mask == 0 {
+			// Debug first attempt
+			fmt.Printf("DEBUG tryItemCombos mask=0: output len=%d, has password=%v\n", len(outputStr), getPassword(outputStr) != 0)
+			if len(outputStr) < 500 {
+				fmt.Printf("DEBUG output: %s\n", outputStr)
+			}
+		}
+
 		if pw := getPassword(outputStr); pw != 0 {
+			fmt.Printf("DEBUG: Found password %d at mask %d\n", pw, mask)
 			return pw
 		}
 	}
+	fmt.Printf("DEBUG: Tried all %d combinations, no password found\n", 1<<len(items))
 	return 0
 }
 
