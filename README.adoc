@@ -104,6 +104,22 @@ Part2 Memory:     126MB → 94MB   (25% reduction)
 Part2 Allocations: 3136 → 2317   (26% reduction)
 ----
 
+== Day 15: Oxygen System
+
+Optimized maze exploration by eliminating queue slice reallocation overhead.
+
+.Key changes
+- Replaced `queue = queue[1:]` pattern with index-based dequeue in three functions
+- Preallocated queues with reasonable capacity (100-1000 elements)
+- Fixed in `exploreAndFindOxygen`, `findPath`, and `fillWithOxygen` functions
+
+.Performance impact
+----
+Part1 Allocations: 105,674 → 64,341 (39% reduction)
+Part2 Time:        114ms → 98ms    (14% faster)
+Part2 Allocations: 131,107 → 81,119 (38% reduction)
+----
+
 == Day 18: Many-Worlds Interpretation
 
 Optimized BFS queue operations by eliminating repeated slice reallocations.
