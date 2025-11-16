@@ -148,18 +148,21 @@ ok  	gitlab.com/jhinrichsen/adventofcode2019	51.285s
 
 *Benchmark results:*
 
-- *Total solve time (sum of ns/op)*: 33.84 seconds
-- *Benchmark framework runtime*: 51.285s (includes overhead and multiple iterations)
-- *Benchmarks run*: 17 (Day10-21 Part1/Part2 where implemented)
+- *Total solve time (sum of ns/op)*: 42.30 seconds
+- *Benchmark framework runtime*: 201.718s (includes overhead and multiple iterations)
+- *Benchmarks run*: 36 (Days 01-24 where both parts implemented)
 
 Notable performance characteristics:
 
-- *Day 19 Part 2*: Dominates at 23.74s (70% of total) with 37GB allocations due to extensive beam scanning
-- *Day 18 Part 1*: Second at 7.95s (23% of total) with complex maze pathfinding
-- *Day 18 Part 2*: Third at 0.92s with optimized 4-robot pathfinding
-- *Day 20 Part 2*: 0.75s for recursive maze with portal levels
-- *Day 16 Part 2*: 0.08s for FFT with offset optimization
+- *Day 19 Part 2*: Dominates at 24.18s (57% of total) with 37GB allocations due to extensive beam scanning
+- *Day 23 Part 2*: Second at 9.59s (23% of total) for network simulation
+- *Day 18 Part 1*: Third at 5.88s (14% of total) with complex maze pathfinding
+- *Day 24 Part 2*: 0.22s for recursive cellular automaton
+- *Day 12 Part 2*: 0.13s for N-body orbital cycle detection
+- *Day 15 Part 1/2*: ~0.10s each for oxygen system pathfinding
 
-Performance bottlenecks are primarily in geometric search (Day 19) and path-finding
-algorithms (Days 15, 18, 20) due to large search spaces. The single slowest operation
-(Day 19 Part 2) accounts for 70% of total runtime.
+Performance bottlenecks:
+- Geometric search (Day 19): 57% of total runtime
+- Network simulation (Day 23): 23% of total runtime
+- Path-finding algorithms (Days 15, 18, 20): Large search spaces
+- Intcode VM overhead: Present in most puzzles (Days 02, 05, 07, 09, 11, 13, 15, 17, 19, 21, 23)

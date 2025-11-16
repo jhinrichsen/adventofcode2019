@@ -1,3 +1,7 @@
+failed to detect CPU: exit status 1
+exit status 1
+Running benchmarks and saving to benches/linux-amd64-.txt...
+CGO_ENABLED=0 go test -run=^$ -bench='Day(0[1-9]|1[0-9]|2[0-4])Part[12]$' -benchmem | tee benches/linux-amd64-.txt
 goos: linux
 goarch: amd64
 pkg: gitlab.com/jhinrichsen/adventofcode2019
@@ -39,3 +43,5 @@ BenchmarkDay24Part1-16    	   10000	    326582 ns/op	    4456 B/op	       9 allo
 BenchmarkDay24Part2-16    	       5	 224710370 ns/op	 1197936 B/op	    2172 allocs/op
 PASS
 ok  	gitlab.com/jhinrichsen/adventofcode2019	201.718s
+awk -f total.awk < benches/linux-amd64-.txt
+42296709427.70 ns, 42296709.428 µs, 42296.709 ms, 42.296709 s
