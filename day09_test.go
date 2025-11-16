@@ -72,18 +72,19 @@ func TestDay9Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay09Part1(b *testing.B) {
-	buf, err := os.ReadFile(input(9))
-	if err != nil {
-		b.Fatal(err)
+func TestDay09Part1(t *testing.T) {
+	buf := fileFromFilename(t, filename, 9)
+	want := uint(2436480432)
+	got := Day09(buf, true)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	prog := MustSplit(string(buf))
-	for i := 0; i < b.N; i++ {
-		in, out := channels()
-		in <- 1
-		var proc IntCodeProcessor = Day5
-		go proc(prog, in, out)
-		<-out
+}
+
+func BenchmarkDay09Part1(b *testing.B) {
+	buf := fileFromFilename(b, filename, 9)
+	for b.Loop() {
+		_ = Day09(buf, true)
 	}
 }
 
@@ -104,17 +105,18 @@ func TestDay9Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay09Part2(b *testing.B) {
-	buf, err := os.ReadFile(input(9))
-	if err != nil {
-		b.Fatal(err)
+func TestDay09Part2(t *testing.T) {
+	buf := fileFromFilename(t, filename, 9)
+	want := uint(45710)
+	got := Day09(buf, false)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	prog := MustSplit(string(buf))
-	for i := 0; i < b.N; i++ {
-		in, out := channels()
-		in <- 2
-		var proc IntCodeProcessor = Day5
-		go proc(prog, in, out)
-		<-out
+}
+
+func BenchmarkDay09Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 9)
+	for b.Loop() {
+		_ = Day09(buf, false)
 	}
 }
