@@ -131,12 +131,18 @@ PASS
 ok  	gitlab.com/jhinrichsen/adventofcode2019	82.859s
 ----
 
+*Total time to solve all parts once: ~42 seconds*
+
+The benchmark suite runtime (82.859s) includes framework overhead and multiple iterations
+per benchmark for statistical accuracy.
+
 Notable performance characteristics:
 
-- *Day 3 Part 1*: Most expensive puzzle at ~1.9s per operation with 2GB allocations
-- *Day 19 Part 2*: Longest execution at ~27.6s with 37GB allocations due to extensive beam scanning
+- *Day 19 Part 2*: Dominates total runtime at ~27.6s (66% of total) with 37GB allocations due to extensive beam scanning
+- *Day 18 Part 1*: Second slowest at ~9.98s (24% of total) with complex maze pathfinding
+- *Day 3 Part 1*: Third at ~1.94s with 2GB allocations for wire intersection calculation
 - *Day 6*: Most optimized with sub-nanosecond operations and zero allocations for OrbitC
 - *Day 8 Part 2*: Fast image processing at 5.4µs per operation
 
-Performance bottlenecks are primarily in path-finding algorithms (Days 15, 18, 20)
-and geometric search problems (Days 3, 19) due to large search spaces.
+Performance bottlenecks are primarily in geometric search (Day 19) and path-finding
+algorithms (Days 15, 18, 20) due to large search spaces.
