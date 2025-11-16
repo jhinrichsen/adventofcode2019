@@ -26,17 +26,112 @@ func parseIntCode(s string) IntCode {
 
 // testPoint checks if a point (x, y) is affected by the tractor beam
 func testPoint(program IntCode, x, y int) bool {
-	in := make(chan int, 2)
-	out := make(chan int, 1)
+	return runBeamTest(program.Copy(), x, y) == 1
+}
 
-	in <- x
-	in <- y
-	close(in)
+// runBeamTest runs the IntCode program directly without channels for better performance
+func runBeamTest(program IntCode, x, y int) int {
+	ip := 0
+	relBase := 0
+	inputIdx := 0
+	inputs := [2]int{x, y}
 
-	go Day5(program.Copy(), in, out)
+	realloc := func(idx int) {
+		if idx < 0 {
+			panic("negative address")
+		}
+		if idx >= len(program) {
+			bigger := make(IntCode, idx+1)
+			copy(bigger, program)
+			program = bigger
+		}
+	}
 
-	result := <-out
-	return result == 1
+	load := func(idx int, mode ParameterMode) int {
+		lda := func(idx int) int {
+			realloc(idx)
+			return program[idx]
+		}
+		switch mode {
+		case ImmediateMode:
+			return lda(idx)
+		case PositionMode:
+			return lda(lda(idx))
+		case RelativeMode:
+			return lda(relBase + lda(idx))
+		}
+		return -1
+	}
+
+	store := func(idx int, val int, mode ParameterMode) {
+		switch mode {
+		case ImmediateMode:
+			realloc(idx)
+			program[idx] = val
+		case PositionMode:
+			adr := program[idx]
+			realloc(adr)
+			program[adr] = val
+		case RelativeMode:
+			adr := relBase + program[idx]
+			realloc(adr)
+			program[adr] = val
+		}
+	}
+
+	for {
+		opcode, mode1, mode2, mode3 := instruction(program[ip])
+		switch opcode {
+		case OpcodeAdd:
+			val := load(ip+1, mode1) + load(ip+2, mode2)
+			store(ip+3, val, mode3)
+			ip += 4
+		case OpcodeMul:
+			val := load(ip+1, mode1) * load(ip+2, mode2)
+			store(ip+3, val, mode3)
+			ip += 4
+		case Input:
+			val := inputs[inputIdx]
+			inputIdx++
+			store(ip+1, val, mode1)
+			ip += 2
+		case Output:
+			val := load(ip+1, mode1)
+			return val
+		case JumpIfTrue:
+			p := load(ip+1, mode1)
+			if True(p) {
+				ip = load(ip+2, mode2)
+				continue
+			}
+			ip += 3
+		case JumpIfFalse:
+			p := load(ip+1, mode1)
+			if False(p) {
+				ip = load(ip+2, mode2)
+				continue
+			}
+			ip += 3
+		case LessThan:
+			p1 := load(ip+1, mode1)
+			p2 := load(ip+2, mode2)
+			val := Boolean(p1 < p2)
+			store(ip+3, val, mode3)
+			ip += 4
+		case Equals:
+			p1 := load(ip+1, mode1)
+			p2 := load(ip+2, mode2)
+			val := Boolean(p1 == p2)
+			store(ip+3, val, mode3)
+			ip += 4
+		case AdjustRelBase:
+			p1 := load(ip+1, mode1)
+			relBase += p1
+			ip += 2
+		case OpcodeRet:
+			return 0
+		}
+	}
 }
 
 // countBeamPoints counts how many points in a size×size grid are affected
@@ -106,23 +201,25 @@ func findSquare(program IntCode, square int) uint {
 	// y represents the BOTTOM row of the square
 	y := square - 1
 
+	// Track the leftmost x position to avoid searching from 0 each time
+	leftX := 0
+
 	for {
 		y++
+
 		// Find the leftmost beam point in this row (bottom-left of square)
-		x := 0
+		// Start from the previous row's leftX since the beam only expands
+		x := leftX
+		found := false
 
 		// Find first beam point in this row
-		found := false
-		for {
+		for x <= y*2 {
 			if testPoint(program, x, y) {
 				found = true
+				leftX = x
 				break
 			}
 			x++
-			if x > y*3 {
-				// Safety limit
-				break
-			}
 		}
 
 		if !found {
