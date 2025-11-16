@@ -2,7 +2,7 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"reflect"
+	"image"
 	"testing"
 )
 
