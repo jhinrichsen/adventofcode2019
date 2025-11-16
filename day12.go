@@ -56,7 +56,7 @@ type universe struct {
 // pos=<x= 2, y= 2, z= 0>, vel=<x=-1, y=-3, z= 1>
 func (a universe) String() string {
 	var sb strings.Builder
-	for i := 0; i < MOONS; i++ {
+	for i := range MOONS {
 		sb.WriteString(a.moon(i))
 		sb.WriteString("\n")
 	}
@@ -113,7 +113,7 @@ func (a universe) cycle() int {
 			history[d] = true
 		}
 	}
-	for dim := 0; dim < DIMS; dim++ {
+	for dim := range DIMS {
 		go fn(dim, c)
 	}
 	c1 := <-c
@@ -150,14 +150,14 @@ func (a *universe) step(dim int) {
 	// A      *   *
 	// B          *
 	// C
-	for i := 0; i < MOONS; i++ {
+	for i := range MOONS {
 		for j := i + 1; j < MOONS; j++ {
 			a.moons[dim][i].gravity(&a.moons[dim][j])
 		}
 	}
 
 	// apply velocity
-	for i := 0; i < MOONS; i++ {
+	for i := range MOONS {
 		a.moons[dim][i].velocity()
 	}
 }
@@ -169,9 +169,9 @@ func (a *universe) step(dim int) {
 // values of its velocity coordinates.
 func (a universe) energy() int {
 	var sum int
-	for j := 0; j < MOONS; j++ {
+	for j := range MOONS {
 		var pot, kin int
-		for i := 0; i < DIMS; i++ {
+		for i := range DIMS {
 			moon := a.moons[i][j]
 			pot += abs(moon.pos)
 			kin += abs(moon.vel)
