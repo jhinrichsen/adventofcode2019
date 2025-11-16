@@ -26,22 +26,16 @@ bench:
 $(BENCH_FILE): $(wildcard *.go)
 	@echo "Running benchmarks and saving to $@..."
 	@mkdir -p benches
-	$(GO) test -run=^$$ -bench=Day..Part.$$ -benchmem | tee $@
+	$(GO) test -run=^$$ -bench='Day(0[1-9]|1[0-9]|2[0-4])Part[12]$$' -benchmem | tee $@
 
 .PHONY: total
 total: $(BENCH_FILE)
 	awk -f total.awk < $(BENCH_FILE)
 
-.PHONY: staticcheck
-staticcheck:
-	which staticcheck || $(GO) install honnef.co/go/tools/cmd/staticcheck@latest
-	staticcheck -version
-
 .PHONY: tidy
-tidy: staticcheck
+tidy:
 	test -z $(gofmt -l .)
 	$(GO) vet
-	staticcheck
 	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest --version
 	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
@@ -57,7 +51,7 @@ test:
 	$(GO) test -run=Day -short -vet=all
 
 .PHONY: sast
-sast: coverage.xml gl-code-quality-report.json govulncheck.sarif junit.xml
+sast: coverage.xml gl-code-quality-report.json golangci-lint.json govulncheck.sarif junit.xml
 
 # write coverage to stdout and to test.log
 coverage.txt test.log &:
@@ -82,22 +76,11 @@ gl-code-quality-report.json: golangci-lint.json
 golangci-lint.json:
 	-$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run --out-format json > $@
 
-staticcheck.json: staticcheck
-	-staticcheck -f json > $@
-
 # Gitlab dependency report
 govulncheck.sarif:
 	which govulncheck || $(GO) install golang.org/x/vuln/cmd/govulncheck@latest
 	govulncheck -version
 	govulncheck -format=sarif ./... > $@
 
-$(BENCH_FILE): $(wildcard *.go)
-	echo "Running benchmarks and saving to $@..."
-	$(GO) test -run=^$$ -bench='Day(0[1-9]|1[0-9]|2[0-4])Part[12]$$' -benchmem | tee $@
-
 README.html: README.adoc
 	asciidoc $^
-
-.PHONY: total
-total: $(BENCH_FILE)
-	awk -f total.awk < $(BENCH_FILE)
