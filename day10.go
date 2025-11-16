@@ -27,10 +27,19 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 
 	// overread any leading whitespace
 	start := 0
-	for isWhitespace(asteroids[start]) {
+	for start < len(asteroids) && isWhitespace(asteroids[start]) {
 		start++
 	}
-	var as []Asteroid
+
+	// Count asteroids first to preallocate
+	count := 0
+	for _, b := range asteroids[start:] {
+		if isAsteroid(b) {
+			count++
+		}
+	}
+
+	as := make([]Asteroid, 0, count)
 	y := 0
 	x := 0
 	for _, b := range asteroids[start:] {
@@ -54,7 +63,7 @@ func ParseAsteroidMap(asteroids []byte) []Asteroid {
 // visible asteroids.
 func Day10Part1(as []Asteroid) (Asteroid, int) {
 	var best Asteroid
-	var maxVisible int
+	maxVisible := 0
 	for i := range as {
 		// map of angles
 		visible := make(map[float64]Asteroid, len(as))
@@ -103,16 +112,9 @@ type phaseGroup struct {
 // 2) with regard to base asteroid. The phase group will contain all asteroids
 // except for (0/0), i.e. len(as) -1 == len(phaseGroup).
 func byPhase(as []Asteroid) []phaseGroup {
+	phaseToIdx := make(map[float64]int, len(as))
 	var pgs []phaseGroup
 
-	findIndex := func(φ float64) int {
-		for i := 0; i < len(pgs); i++ {
-			if pgs[i].phase == φ {
-				return i
-			}
-		}
-		return -1
-	}
 	// sweep #1: group by phase
 	for _, a := range as {
 		// ignore (0/0)
@@ -120,11 +122,11 @@ func byPhase(as []Asteroid) []phaseGroup {
 			continue
 		}
 		φ := cmplx.Phase(a)
-		idx := findIndex(φ)
-		if idx == -1 {
-			pgs = append(pgs, phaseGroup{φ, []Asteroid{a}})
-		} else {
+		if idx, ok := phaseToIdx[φ]; ok {
 			pgs[idx].asteroids = append(pgs[idx].asteroids, a)
+		} else {
+			phaseToIdx[φ] = len(pgs)
+			pgs = append(pgs, phaseGroup{φ, []Asteroid{a}})
 		}
 	}
 
@@ -153,9 +155,9 @@ func countAsteroids(pgs []phaseGroup) int {
 }
 
 func center(as []Asteroid, base Asteroid) []Asteroid {
-	var cas []Asteroid
+	cas := make([]Asteroid, len(as))
 	for i := range as {
-		cas = append(cas, as[i]-base)
+		cas[i] = as[i] - base
 	}
 	return cas
 }
@@ -180,7 +182,7 @@ func vaporize(pgs []phaseGroup) []Asteroid {
 	idx := findFirst(pgs)
 
 	n := countAsteroids(pgs)
-	for i := 0; i < n; i++ {
+	for range n {
 		a := pgs[idx].asteroids[0]
 		order = append(order, a)
 
