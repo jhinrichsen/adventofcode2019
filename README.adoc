@@ -66,49 +66,6 @@ Number of tries for a correct answer:
 
 |===
 
-== Day 3: Crossed Wires
-
-Optimized wire intersection detection by replacing dense 2D array allocation with sparse coordinate maps.
-
-.Key changes
-- Replaced `Board()` function creating massive 2D arrays with `map[Point]bool` sparse storage
-- Eliminated need for calculating board dimensions and centering coordinates
-- Both Part 1 and Part 2 now use consistent sparse map approach
-- Direct coordinate tracking during wire walking
-
-.Performance impact
-----
-Time:   1200ms → 63ms  (95% faster, 19x speedup)
-Memory: 2170MB → 28MB  (98.7% reduction, 77x less memory)
-----
-
-== Day 4: Secure Container
-
-Optimized password validation by eliminating repeated allocations in the hot loop.
-
-.Key changes
-- Hoisted criteria slice allocation outside the loop (was allocating on every iteration)
-- Pre-allocated fixed-size `[6]byte` array for digits, reused with `DigitsInto()`
-- Eliminated 549,161 allocations per part (one for each number in range)
-
-.Performance impact
-----
-              │     b0      │                 b1                  │
-              │   sec/op    │   sec/op     vs base                │
-Day04Part1-16   21.76m ± 3%   10.80m ± 2%  -50.35% (p=0.000 n=8)
-Day04Part2-16   19.63m ± 2%    8.22m ± 3%  -58.13% (p=0.000 n=8)
-
-              │       b0       │                  b1                  │
-              │     B/op       │     B/op       vs base               │
-Day04Part1-16   4.393Mi ± 0%   0.008Ki ± 0%  -99.9998% (p=0.000 n=8)
-Day04Part2-16   4.393Mi ± 0%   0.008Ki ± 0%  -99.9998% (p=0.000 n=8)
-
-              │      b0       │                b1                 │
-              │   allocs/op   │  allocs/op   vs base              │
-Day04Part1-16   549161.0 ± 0%      1.0 ± 0%  -100.00% (p=0.000 n=8)
-Day04Part2-16   549161.0 ± 0%      1.0 ± 0%  -100.00% (p=0.000 n=8)
-----
-
 == Day 10: Monitoring Station
 
 Optimized asteroid visibility detection by replacing expensive floating-point operations with integer-based GCD normalization.

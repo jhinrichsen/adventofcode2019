@@ -3,6 +3,7 @@ package adventofcode2019
 import (
 	"fmt"
 	"math"
+	"math/bits"
 	"strconv"
 	"strings"
 )
@@ -23,63 +24,19 @@ const (
 
 // Day3Part1 computes the minimal manhattan distance of two crossing wires
 func Day3Part1(wires []string) (int, error) {
-	// Use sparse maps instead of dense 2D arrays
-	wireMaps := make([]map[Point]bool, len(wires))
-	for i := range wireMaps {
-		wireMaps[i] = make(map[Point]bool)
+	maxX, maxY, err := MaxSize(wires)
+	if err != nil {
+		return 0, err
 	}
 
-	// Mark all positions for each wire
-	for i, wire := range wires {
-		x, y := 0, 0
-		ws := strings.Split(wire, ",")
-		for _, w := range ws {
-			d, n, err := Parse(w)
-			if err != nil {
-				return 0, err
-			}
-			for range n {
-				switch d {
-				case Up:
-					y++
-				case Down:
-					y--
-				case Right:
-					x++
-				case Left:
-					x--
-				}
-				wireMaps[i][Point{x, y}] = true
-			}
-		}
+	// Create a board that is large enough to always fit the wiring
+	b := Board((1+maxX)*2, (1+maxY)*2)
+	if err := Walk(b, wires); err != nil {
+		return 0, err
 	}
 
-	// Find intersections and minimum Manhattan distance
-	min := math.MaxInt
-	for p := range wireMaps[0] {
-		// Check if this point is also in other wires
-		allWiresHit := true
-		for i := 1; i < len(wireMaps); i++ {
-			if !wireMaps[i][p] {
-				allWiresHit = false
-				break
-			}
-		}
-		if allWiresHit {
-			manhattan := absDay3(p.x) + absDay3(p.y)
-			if manhattan > 0 && manhattan < min {
-				min = manhattan
-			}
-		}
-	}
+	min := MinimalDistance(b)
 	return min, nil
-}
-
-func absDay3(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // Board creates a two dimensional arrray. The board created will have double
@@ -110,6 +67,31 @@ func MaxSize(wirings []string) (int, int, error) {
 	return maxX, maxY, nil
 }
 
+// MinimalDistance returns minimal manhattan distance of all crossings
+func MinimalDistance(b [][]uint) int {
+	min := math.MaxInt64
+	lx, ly := len(b[0]), len(b)
+	centerX, centerY := lx/2, ly/2
+	abs := func(n int) int {
+		if n < 0 {
+			return -n
+		}
+		return n
+	}
+	for y := 0; y < ly; y++ {
+		for x := 0; x < lx; x++ {
+			// More than one bit set?
+			if bits.OnesCount(b[y][x]) > 1 {
+				manhattanDistance := abs(x-centerX) + abs(y-centerY)
+				// ignore center spot itself
+				if manhattanDistance > 0 && manhattanDistance < min {
+					min = manhattanDistance
+				}
+			}
+		}
+	}
+	return min
+}
 
 // Parse splits a path such as U32 into a direction North and a length 32
 func Parse(path string) (Direction, int, error) {
