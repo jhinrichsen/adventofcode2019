@@ -18,7 +18,7 @@ func TestDay02Part1Examples(t *testing.T) {
 	for _, tt := range tests {
 		id := fmt.Sprintf("Example(%s)", tt.in)
 		t.Run(id, func(t *testing.T) {
-			opcodes, err := parseIntcode([]byte(tt.in))
+			opcodes, err := NewDay02([]byte(tt.in))
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -10,8 +10,8 @@ const (
 	opcodeRet = 99
 )
 
-// parseIntcode parses comma-separated integers from []byte
-func parseIntcode(input []byte) ([]int, error) {
+// NewDay02 parses comma-separated integers from []byte
+func NewDay02(input []byte) ([]int, error) {
 	// Pre-allocate with estimated capacity based on input size
 	opcodes := make([]int, 0, len(input)/4)
 	num := 0
@@ -67,7 +67,7 @@ func runIntcode(opcodes []int) {
 
 // Day02 solves the 1202 Program Alarm puzzle
 func Day02(input []byte, part1 bool) (uint, error) {
-	master, err := parseIntcode(input)
+	master, err := NewDay02(input)
 	if err != nil {
 		return 0, err
 	}
