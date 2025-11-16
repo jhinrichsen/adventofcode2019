@@ -25,18 +25,53 @@ const (
 // Day03 computes the minimal manhattan distance or minimal combined steps of two crossing wires
 func Day03(wires []string, part1 bool) uint {
 	if part1 {
-		maxX, maxY, err := MaxSize(wires)
-		if err != nil {
-			return 0
+		// Use map-based approach for Part1
+		grid := make(map[Point]uint)
+
+		for i, wire := range wires {
+			id := uint(1 << i)
+			x, y := 0, 0
+			ws := strings.Split(wire, ",")
+			for _, w := range ws {
+				d, n, err := Parse(w)
+				if err != nil {
+					return 0
+				}
+				for j := 0; j < n; j++ {
+					switch d {
+					case Right:
+						x++
+					case Left:
+						x--
+					case Up:
+						y++
+					case Down:
+						y--
+					}
+					p := Point{x, y}
+					grid[p] |= id
+				}
+			}
 		}
 
-		// Create a board that is large enough to always fit the wiring
-		b := Board((1+maxX)*2, (1+maxY)*2)
-		if err := Walk(b, wires); err != nil {
-			return 0
+		// Find minimal Manhattan distance for intersections
+		min := math.MaxInt32
+		abs := func(n int) int {
+			if n < 0 {
+				return -n
+			}
+			return n
+		}
+		for p, bits := range grid {
+			// More than one wire at this point?
+			if bits&(bits-1) != 0 { // Check if more than one bit set
+				manhattanDistance := abs(p.x) + abs(p.y)
+				if manhattanDistance > 0 && manhattanDistance < min {
+					min = manhattanDistance
+				}
+			}
 		}
 
-		min := MinimalDistance(b)
 		return uint(min)
 	}
 

@@ -84,6 +84,36 @@ geomean         1.390µ        1.252µ        -9.89%
 
 Part 2 shows 22.5% speedup from eliminating goto and using direct uint iteration.
 
+== Day 03: Crossed Wires
+
+Optimized Part 1 by replacing 2D array with map-based approach.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │      b0       │                 b1                  │
+              │    sec/op     │    sec/op     vs base               │
+Day03Part1-16   995.49m ± 22%   61.40m ± 10%  -93.83% (p=0.000 n=8)
+Day03Part2-16    62.99m ±  8%   68.24m ±  8%        ~ (p=0.065 n=8)
+geomean          250.4m         64.73m        -74.15%
+
+              │       b0       │                 b1                  │
+              │      B/op      │     B/op      vs base               │
+Day03Part1-16   2073.99Mi ± 0%   26.67Mi ± 0%  -98.71% (p=0.000 n=8)
+Day03Part2-16     26.68Mi ± 0%   26.68Mi ± 0%        ~ (p=0.368 n=8)
+geomean           235.2Mi        26.68Mi       -88.66%
+
+              │      b0      │                  b1                  │
+              │  allocs/op   │  allocs/op   vs base                 │
+Day03Part1-16   20.423k ± 0%   2.070k ± 0%  -89.86% (p=0.000 n=8)
+Day03Part2-16    2.100k ± 0%   2.100k ± 0%        ~ (p=1.000 n=8)
+geomean          6.549k        2.085k       -68.16%
+----
+
+Part 1 shows 93.8% speedup with 98.7% memory reduction by using map[Point]uint instead of massive 2D array.
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
