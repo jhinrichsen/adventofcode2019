@@ -46,12 +46,13 @@
 
 ### Error Handling (MANDATORY)
 - **NEVER** silently ignore errors with blank identifier `_`
-- **ALWAYS** handle or propagate errors explicitly
-- **NEVER** panic on broken input - AoC input is always valid
+- **NEVER** panic - AoC problems should never panic
+- **ALWAYS** handle errors gracefully (continue, skip, use zero value)
+- AoC input is always valid, so errors won't occur in practice
 - Bad: `n, _ := strconv.Atoi(line)`
 - Bad: `n, err := strconv.Atoi(line); if err != nil { panic(err) }`
-- Good for functions returning errors: `n, err := strconv.Atoi(line); if err != nil { return err }`
-- Good for functions that can't error: Handle errors gracefully (skip, use zero, etc.)
+- Good: `n, err := strconv.Atoi(line); if err != nil { continue }` (skip invalid)
+- Good: `n, err := strconv.Atoi(line); if err != nil { n = 0 }` (use default)
 
 ### Test Structure
 - Table-driven tests with external files
