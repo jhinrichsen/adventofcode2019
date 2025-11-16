@@ -28,3 +28,19 @@ func TestDay13Part2(t *testing.T) {
 		t.Fatalf("want %v but got %v", want, got)
 	}
 }
+
+func BenchmarkDay13Part1(b *testing.B) {
+	buf := fileFromFilename(b, filename, 13)
+	master := MustSplit(string(buf))
+	for b.Loop() {
+		_ = Day13Part1(Day5, master.Copy())
+	}
+}
+
+func BenchmarkDay13Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 13)
+	master := MustSplit(string(buf))
+	for b.Loop() {
+		_ = Day13Part2(Day5, master.Copy())
+	}
+}

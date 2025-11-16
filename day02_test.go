@@ -116,3 +116,36 @@ solved:
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
+
+func BenchmarkDay02Part1(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(2))
+	master, _ := Split(lines[0])
+	for b.Loop() {
+		opcodes := make([]int, len(master))
+		copy(opcodes, master)
+		opcodes[1] = 12
+		opcodes[2] = 2
+		_, _ = Run(opcodes)
+	}
+}
+
+func BenchmarkDay02Part2(b *testing.B) {
+	lines := testLinesFromFilename(b, filename(2))
+	master, _ := Split(lines[0])
+	for b.Loop() {
+		for noun := 0; noun < 100; noun++ {
+			for verb := 0; verb < 100; verb++ {
+				opcodes := make([]int, len(master))
+				copy(opcodes, master)
+				opcodes[1] = noun
+				opcodes[2] = verb
+				opcodes, _ = Run(opcodes)
+				if opcodes[0] == 19690720 {
+					_ = 100*noun + verb
+					goto done
+				}
+			}
+		}
+	done:
+	}
+}

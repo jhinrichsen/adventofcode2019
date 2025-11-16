@@ -53,7 +53,7 @@ func TestDay4Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay4Part1(b *testing.B) {
+func BenchmarkDay04Part1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Day4Part1()
 	}
@@ -87,7 +87,7 @@ func TestDay4Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay4Part2(b *testing.B) {
+func BenchmarkDay04Part2(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Day4Part2()
 	}

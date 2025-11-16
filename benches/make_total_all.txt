@@ -1,0 +1,47 @@
+failed to detect CPU: exit status 1
+exit status 1
+Running benchmarks and saving to benches/linux-amd64-.txt...
+CGO_ENABLED=0 go test -run=^$ -bench='Day(0[1-9]|1[0-9]|2[0-4])Part[12]$' -benchmem | tee benches/linux-amd64-.txt
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+BenchmarkDay01Part1-16    	 1467980	       821.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay01Part2-16    	  466292	      2361 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay02Part1-16    	 1848276	       640.0 ns/op	    1280 B/op	       1 allocs/op
+BenchmarkDay02Part2-16    	     214	   5464048 ns/op	10622754 B/op	    8299 allocs/op
+BenchmarkDay05Part1-16    	  219756	      5453 ns/op	    6448 B/op	       4 allocs/op
+BenchmarkDay10Part1-16    	     147	   8488192 ns/op	 4300271 B/op	     948 allocs/op
+BenchmarkDay10Part2-16    	     144	   8431815 ns/op	 4382874 B/op	    1621 allocs/op
+BenchmarkDay11Part1-16    	     142	   8322822 ns/op	  233130 B/op	      36 allocs/op
+BenchmarkDay11Part2-16    	    1712	    771695 ns/op	  820745 B/op	     152 allocs/op
+BenchmarkDay12Part1-16    	   12265	     97704 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay12Part2-16    	       8	 127366174 ns/op	125881918 B/op	    3135 allocs/op
+BenchmarkDay13Part1-16    	    1159	    995944 ns/op	  174106 B/op	      26 allocs/op
+BenchmarkDay13Part2-16    	      42	  26290042 ns/op	  304962 B/op	      17 allocs/op
+BenchmarkDay14Part1-16    	   13363	     89217 ns/op	   37214 B/op	     380 allocs/op
+BenchmarkDay14Part2-16    	     868	   1285503 ns/op	  173296 B/op	     683 allocs/op
+BenchmarkDay15Part1-16    	      12	  95704589 ns/op	51392262 B/op	  105674 allocs/op
+BenchmarkDay15Part2-16    	       9	 115331110 ns/op	57865967 B/op	  131103 allocs/op
+BenchmarkDay16Part1-16    	      26	  43396335 ns/op	  542976 B/op	     101 allocs/op
+BenchmarkDay16Part2-16    	      14	  78474165 ns/op	 4207878 B/op	       2 allocs/op
+BenchmarkDay17Part1-16    	      50	  20147450 ns/op	43743209 B/op	    2233 allocs/op
+BenchmarkDay17Part2-16    	      54	  23074134 ns/op	43946063 B/op	    2094 allocs/op
+BenchmarkDay18Part1-16    	       1	5878698623 ns/op	1199142128 B/op	   40600 allocs/op
+BenchmarkDay18Part2-16    	       2	 901602780 ns/op	40854496 B/op	   21810 allocs/op
+BenchmarkDay19Part1-16    	      10	 104431982 ns/op	155499300 B/op	   48014 allocs/op
+BenchmarkDay19Part2-16    	       1	24177360340 ns/op	37568454976 B/op	11796295 allocs/op
+BenchmarkDay20Part1-16    	     517	   2384842 ns/op	  675761 B/op	    1106 allocs/op
+BenchmarkDay20Part2-16    	       2	 704157083 ns/op	104088480 B/op	 1151807 allocs/op
+BenchmarkDay21Part1-16    	    1107	    974044 ns/op	  942769 B/op	      55 allocs/op
+BenchmarkDay21Part2-16    	      87	  13897312 ns/op	  943072 B/op	      55 allocs/op
+BenchmarkDay22Part1-16    	  733539	      1650 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay22Part2-16    	   15177	     79033 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay23Part1-16    	     100	 131973272 ns/op	 3699126 B/op	     672 allocs/op
+BenchmarkDay23Part2-16    	       1	9592371300 ns/op	 3768032 B/op	    1203 allocs/op
+BenchmarkDay24Part1-16    	   10000	    326582 ns/op	    4456 B/op	       9 allocs/op
+BenchmarkDay24Part2-16    	       5	 224710370 ns/op	 1197936 B/op	    2172 allocs/op
+PASS
+ok  	gitlab.com/jhinrichsen/adventofcode2019	201.718s
+awk -f total.awk < benches/linux-amd64-.txt
+42296709427.70 ns, 42296709.428 µs, 42296.709 ms, 42.296709 s

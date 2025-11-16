@@ -23,7 +23,7 @@ func TestDay8Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay8Part1(b *testing.B) {
+func BenchmarkDay08Part1(b *testing.B) {
 	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
@@ -77,7 +77,7 @@ func TestDay8Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay8Part2(b *testing.B) {
+func BenchmarkDay08Part2(b *testing.B) {
 	digits, err := os.ReadFile(input(8))
 	if err != nil {
 		b.Fatal(err)
