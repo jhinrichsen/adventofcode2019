@@ -234,6 +234,18 @@ func MustSplit(program string) (ic IntCode) {
 	return
 }
 
+// ToString converts opcodes back to comma-separated string
+func ToString(opcodes []int) string {
+	result := ""
+	for i, opcode := range opcodes {
+		if i > 0 {
+			result += ","
+		}
+		result += fmt.Sprintf("%d", opcode)
+	}
+	return result
+}
+
 func channels() (chan int, chan int) {
 	return make(chan int, 2), make(chan int, 2)
 }
