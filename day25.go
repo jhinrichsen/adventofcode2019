@@ -314,179 +314,215 @@ func executeCommands(prog IntCode, commands []string) string {
 
 // runIntcodeSync runs IntCode synchronously without channels
 func runIntcodeSync(program IntCode, input []int) []int {
-	// Pre-allocate memory to avoid reallocations
-	memSize := len(program)
-	if memSize < 10000 {
-		memSize = 10000
-	}
-	mem := make([]int, memSize)
+	// Pre-allocate memory
+	mem := make([]int, 10000)
 	copy(mem, program)
 
 	ip := 0
 	relBase := 0
 	inputIdx := 0
-	output := make([]int, 0, 100000) // Pre-allocate output buffer
-
-	// Inline memory access for speed
-	get := func(addr int) int {
-		if addr < 0 {
-			panic("negative address")
-		}
-		if addr >= len(mem) {
-			newMem := make([]int, addr+1)
-			copy(newMem, mem)
-			mem = newMem
-		}
-		return mem[addr]
-	}
-
-	set := func(addr, val int) {
-		if addr < 0 {
-			panic("negative address")
-		}
-		if addr >= len(mem) {
-			newMem := make([]int, addr+1)
-			copy(newMem, mem)
-			mem = newMem
-		}
-		mem[addr] = val
-	}
+	output := make([]int, 0, 100000)
 
 	for {
 		opcode, mode1, mode2, mode3 := instruction(mem[ip])
 
-		// Inline parameter loading
-		var p1, p2 int
-		if opcode != OpcodeRet {
-			switch mode1 {
-			case ImmediateMode:
-				p1 = get(ip + 1)
-			case PositionMode:
-				p1 = get(get(ip + 1))
-			case RelativeMode:
-				p1 = get(relBase + get(ip+1))
-			}
-		}
-
 		switch opcode {
 		case OpcodeAdd:
+			var p1, p2, addr int
+			// Load p1
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
+			// Load p2
 			switch mode2 {
 			case ImmediateMode:
-				p2 = get(ip + 2)
+				p2 = mem[ip+2]
 			case PositionMode:
-				p2 = get(get(ip + 2))
+				p2 = mem[mem[ip+2]]
 			case RelativeMode:
-				p2 = get(relBase + get(ip+2))
+				p2 = mem[relBase+mem[ip+2]]
 			}
-			addr := get(ip + 3)
+			// Store addr
+			addr = mem[ip+3]
 			if mode3 == RelativeMode {
 				addr = relBase + addr
 			}
-			set(addr, p1+p2)
+			mem[addr] = p1 + p2
 			ip += 4
 
 		case OpcodeMul:
+			var p1, p2, addr int
+			// Load p1
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
+			// Load p2
 			switch mode2 {
 			case ImmediateMode:
-				p2 = get(ip + 2)
+				p2 = mem[ip+2]
 			case PositionMode:
-				p2 = get(get(ip + 2))
+				p2 = mem[mem[ip+2]]
 			case RelativeMode:
-				p2 = get(relBase + get(ip+2))
+				p2 = mem[relBase+mem[ip+2]]
 			}
-			addr := get(ip + 3)
+			// Store addr
+			addr = mem[ip+3]
 			if mode3 == RelativeMode {
 				addr = relBase + addr
 			}
-			set(addr, p1*p2)
+			mem[addr] = p1 * p2
 			ip += 4
 
 		case Input:
 			if inputIdx >= len(input) {
 				return output
 			}
-			addr := get(ip + 1)
+			addr := mem[ip+1]
 			if mode1 == RelativeMode {
 				addr = relBase + addr
 			}
-			set(addr, input[inputIdx])
+			mem[addr] = input[inputIdx]
 			inputIdx++
 			ip += 2
 
 		case Output:
-			output = append(output, p1)
+			var val int
+			switch mode1 {
+			case ImmediateMode:
+				val = mem[ip+1]
+			case PositionMode:
+				val = mem[mem[ip+1]]
+			case RelativeMode:
+				val = mem[relBase+mem[ip+1]]
+			}
+			output = append(output, val)
 			ip += 2
 
 		case JumpIfTrue:
+			var p1 int
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
 			if p1 != 0 {
 				switch mode2 {
 				case ImmediateMode:
-					ip = get(ip + 2)
+					ip = mem[ip+2]
 				case PositionMode:
-					ip = get(get(ip + 2))
+					ip = mem[mem[ip+2]]
 				case RelativeMode:
-					ip = get(relBase + get(ip+2))
+					ip = mem[relBase+mem[ip+2]]
 				}
 			} else {
 				ip += 3
 			}
 
 		case JumpIfFalse:
+			var p1 int
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
 			if p1 == 0 {
 				switch mode2 {
 				case ImmediateMode:
-					ip = get(ip + 2)
+					ip = mem[ip+2]
 				case PositionMode:
-					ip = get(get(ip + 2))
+					ip = mem[mem[ip+2]]
 				case RelativeMode:
-					ip = get(relBase + get(ip+2))
+					ip = mem[relBase+mem[ip+2]]
 				}
 			} else {
 				ip += 3
 			}
 
 		case LessThan:
+			var p1, p2, addr int
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
 			switch mode2 {
 			case ImmediateMode:
-				p2 = get(ip + 2)
+				p2 = mem[ip+2]
 			case PositionMode:
-				p2 = get(get(ip + 2))
+				p2 = mem[mem[ip+2]]
 			case RelativeMode:
-				p2 = get(relBase + get(ip+2))
+				p2 = mem[relBase+mem[ip+2]]
 			}
-			addr := get(ip + 3)
+			addr = mem[ip+3]
 			if mode3 == RelativeMode {
 				addr = relBase + addr
 			}
 			if p1 < p2 {
-				set(addr, 1)
+				mem[addr] = 1
 			} else {
-				set(addr, 0)
+				mem[addr] = 0
 			}
 			ip += 4
 
 		case Equals:
+			var p1, p2, addr int
+			switch mode1 {
+			case ImmediateMode:
+				p1 = mem[ip+1]
+			case PositionMode:
+				p1 = mem[mem[ip+1]]
+			case RelativeMode:
+				p1 = mem[relBase+mem[ip+1]]
+			}
 			switch mode2 {
 			case ImmediateMode:
-				p2 = get(ip + 2)
+				p2 = mem[ip+2]
 			case PositionMode:
-				p2 = get(get(ip + 2))
+				p2 = mem[mem[ip+2]]
 			case RelativeMode:
-				p2 = get(relBase + get(ip+2))
+				p2 = mem[relBase+mem[ip+2]]
 			}
-			addr := get(ip + 3)
+			addr = mem[ip+3]
 			if mode3 == RelativeMode {
 				addr = relBase + addr
 			}
 			if p1 == p2 {
-				set(addr, 1)
+				mem[addr] = 1
 			} else {
-				set(addr, 0)
+				mem[addr] = 0
 			}
 			ip += 4
 
 		case AdjustRelBase:
-			relBase += p1
+			var val int
+			switch mode1 {
+			case ImmediateMode:
+				val = mem[ip+1]
+			case PositionMode:
+				val = mem[mem[ip+1]]
+			case RelativeMode:
+				val = mem[relBase+mem[ip+1]]
+			}
+			relBase += val
 			ip += 2
 
 		case OpcodeRet:
