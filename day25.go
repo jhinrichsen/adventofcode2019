@@ -149,7 +149,6 @@ func buildRoomGraphFast(prog IntCode) map[string]*roomInfo {
 	// Parse initial room from warmup output
 	startRoom := parseRoom(initialOutput)
 	if startRoom.name == "" {
-		fmt.Printf("DEBUG: Failed to parse start room from output: %s\n", initialOutput[:min(200, len(initialOutput))])
 		return graph
 	}
 	graph[startRoom.name] = startRoom
@@ -158,7 +157,6 @@ func buildRoomGraphFast(prog IntCode) map[string]*roomInfo {
 	initCopy := warmSnapshot.copy()
 	explore(initCopy, startRoom.name)
 
-	fmt.Printf("DEBUG: Graph has %d rooms\n", len(graph))
 	return graph
 }
 
