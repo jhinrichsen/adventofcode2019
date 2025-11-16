@@ -66,6 +66,24 @@ Number of tries for a correct answer:
 
 |===
 
+== Day 01: The Tyranny of the Rocket Equation
+
+Refactored to use iterative loop instead of goto for recursive fuel calculation.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │     b0      │                 b2                 │
+              │   sec/op    │   sec/op     vs base               │
+Day01Part1-16   823.2n ± 2%   862.7n ± 4%   +4.80% (p=0.000 n=8)
+Day01Part2-16   2.345µ ± 1%   1.818µ ± 2%  -22.51% (p=0.000 n=8)
+geomean         1.390µ        1.252µ        -9.89%
+----
+
+Part 2 shows 22.5% speedup from eliminating goto and using direct uint iteration.
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
