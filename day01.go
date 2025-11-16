@@ -47,17 +47,9 @@ func Day01(input []byte, part1 bool) (uint, error) {
 		}
 	}
 
-	// Handle last number if no trailing newline
+	// .editorconfig guarantees insert_final_newline, so error if digits remain
 	if hasDigits {
-		mass := uint(num)
-		if part1 {
-			f := fuel(mass)
-			if f > 0 {
-				sum += uint(f)
-			}
-		} else {
-			sum += completeFuel(mass)
-		}
+		return 0, fmt.Errorf("input does not end with newline")
 	}
 
 	return sum, nil
