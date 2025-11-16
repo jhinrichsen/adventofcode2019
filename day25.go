@@ -234,31 +234,43 @@ func findRoomPath(graph map[string]*roomInfo, start, target string) []string {
 
 // tryItemCombos tries all combinations of items.
 func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint {
-	// Pre-build input for the base path (getting to security with all items)
+	// Build input to reach security checkpoint with all items collected
 	baseInput := buildInput(path)
 
+	// Run VM once to security checkpoint
+	mem := make([]int, 10000)
+	copy(mem, prog)
+	ip, relBase := runToCheckpoint(mem, baseInput)
+
+	// Save checkpoint state (snapshot)
+	checkpointMem := make([]int, len(mem))
+	copy(checkpointMem, mem)
+
+	// Try each item combination using snapshots
 	for mask := range 1 << len(items) {
-		// Start with base path input
-		var input []int
-		input = append(input, baseInput...)
+		// Restore checkpoint
+		copy(mem, checkpointMem)
+
+		// Build input for this combination
+		var combInput []int
 
 		// Drop all items
 		for _, item := range items {
-			input = appendCommand(input, "drop "+item)
+			combInput = appendCommand(combInput, "drop "+item)
 		}
 
 		// Take selected items
 		for i, item := range items {
 			if mask&(1<<i) != 0 {
-				input = appendCommand(input, "take "+item)
+				combInput = appendCommand(combInput, "take "+item)
 			}
 		}
 
 		// Try security
-		input = appendCommand(input, dir)
+		combInput = appendCommand(combInput, dir)
 
-		// Run Intcode with this input
-		output := runIntcodeSync(prog.Copy(), input)
+		// Run from checkpoint with this combination
+		output := runFromCheckpoint(mem, ip, relBase, combInput)
 		outputStr := intsToString(output)
 
 		if pw := getPassword(outputStr); pw != 0 {
@@ -266,6 +278,211 @@ func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint
 		}
 	}
 	return 0
+}
+
+// runToCheckpoint runs VM until input is exhausted, returns final ip and relBase
+func runToCheckpoint(mem []int, input []int) (int, int) {
+	ip := 0
+	relBase := 0
+	inputIdx := 0
+	output := []int{}
+
+	for {
+		opcode, mode1, mode2, mode3 := instruction(mem[ip])
+
+		switch opcode {
+		case OpcodeAdd:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			mem[addr] = p1 + p2
+			ip += 4
+
+		case OpcodeMul:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			mem[addr] = p1 * p2
+			ip += 4
+
+		case Input:
+			if inputIdx >= len(input) {
+				// Input exhausted - we're at checkpoint
+				return ip, relBase
+			}
+			addr := storeAddr(mem, ip+1, mode1, relBase)
+			mem[addr] = input[inputIdx]
+			inputIdx++
+			ip += 2
+
+		case Output:
+			val := loadParam(mem, ip+1, mode1, relBase)
+			output = append(output, val)
+			ip += 2
+
+		case JumpIfTrue:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			if p1 != 0 {
+				ip = loadParam(mem, ip+2, mode2, relBase)
+			} else {
+				ip += 3
+			}
+
+		case JumpIfFalse:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			if p1 == 0 {
+				ip = loadParam(mem, ip+2, mode2, relBase)
+			} else {
+				ip += 3
+			}
+
+		case LessThan:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			if p1 < p2 {
+				mem[addr] = 1
+			} else {
+				mem[addr] = 0
+			}
+			ip += 4
+
+		case Equals:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			if p1 == p2 {
+				mem[addr] = 1
+			} else {
+				mem[addr] = 0
+			}
+			ip += 4
+
+		case AdjustRelBase:
+			relBase += loadParam(mem, ip+1, mode1, relBase)
+			ip += 2
+
+		case OpcodeRet:
+			return ip, relBase
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %d", mem[ip]))
+		}
+	}
+}
+
+// runFromCheckpoint continues VM from checkpoint with new input
+func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int {
+	ip := startIP
+	relBase := startRelBase
+	inputIdx := 0
+	output := []int{}
+
+	for {
+		opcode, mode1, mode2, mode3 := instruction(mem[ip])
+
+		switch opcode {
+		case OpcodeAdd:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			mem[addr] = p1 + p2
+			ip += 4
+
+		case OpcodeMul:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			mem[addr] = p1 * p2
+			ip += 4
+
+		case Input:
+			if inputIdx >= len(input) {
+				return output
+			}
+			addr := storeAddr(mem, ip+1, mode1, relBase)
+			mem[addr] = input[inputIdx]
+			inputIdx++
+			ip += 2
+
+		case Output:
+			val := loadParam(mem, ip+1, mode1, relBase)
+			output = append(output, val)
+			ip += 2
+
+		case JumpIfTrue:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			if p1 != 0 {
+				ip = loadParam(mem, ip+2, mode2, relBase)
+			} else {
+				ip += 3
+			}
+
+		case JumpIfFalse:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			if p1 == 0 {
+				ip = loadParam(mem, ip+2, mode2, relBase)
+			} else {
+				ip += 3
+			}
+
+		case LessThan:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			if p1 < p2 {
+				mem[addr] = 1
+			} else {
+				mem[addr] = 0
+			}
+			ip += 4
+
+		case Equals:
+			p1 := loadParam(mem, ip+1, mode1, relBase)
+			p2 := loadParam(mem, ip+2, mode2, relBase)
+			addr := storeAddr(mem, ip+3, mode3, relBase)
+			if p1 == p2 {
+				mem[addr] = 1
+			} else {
+				mem[addr] = 0
+			}
+			ip += 4
+
+		case AdjustRelBase:
+			relBase += loadParam(mem, ip+1, mode1, relBase)
+			ip += 2
+
+		case OpcodeRet:
+			return output
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %d", mem[ip]))
+		}
+	}
+}
+
+func loadParam(mem []int, addr int, mode ParameterMode, relBase int) int {
+	val := mem[addr]
+	switch mode {
+	case ImmediateMode:
+		return val
+	case PositionMode:
+		return mem[val]
+	case RelativeMode:
+		return mem[relBase+val]
+	}
+	return 0
+}
+
+func storeAddr(mem []int, addr int, mode ParameterMode, relBase int) int {
+	val := mem[addr]
+	switch mode {
+	case PositionMode:
+		return val
+	case RelativeMode:
+		return relBase + val
+	}
+	return addr
 }
 
 func buildInput(commands []string) []int {
