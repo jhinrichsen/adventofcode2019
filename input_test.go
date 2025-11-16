@@ -1,4 +1,4 @@
-package adventofcode2023
+package adventofcode2019
 
 import (
 	"bufio"
@@ -40,28 +40,34 @@ func exampleFilename(day uint8) string {
 	return fmt.Sprintf("testdata/day%02d_example.txt", int(day))
 }
 
+// exampleNFilename returns the filename for example N of a given day.
+// Use this for generic access: exampleNFilename(18, 3) -> "testdata/day18_example3.txt"
+func exampleNFilename(day uint8, example uint8) string {
+	return fmt.Sprintf("testdata/day%02d_example%d.txt", int(day), int(example))
+}
+
 func example1Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example1.txt", int(day))
+	return exampleNFilename(day, 1)
 }
 
 func example2Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example2.txt", int(day))
+	return exampleNFilename(day, 2)
 }
 
 func example3Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example3.txt", int(day))
+	return exampleNFilename(day, 3)
 }
 
 func example4Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example4.txt", int(day))
+	return exampleNFilename(day, 4)
 }
 
 func example5Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example5.txt", int(day))
+	return exampleNFilename(day, 5)
 }
 
 func example6Filename(day uint8) string {
-	return fmt.Sprintf("testdata/day%02d_example6.txt", int(day))
+	return exampleNFilename(day, 6)
 }
 
 func filename(day uint8) string {
