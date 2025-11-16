@@ -93,15 +93,17 @@ func solvePart1(maze Maze) uint {
 
 	// BFS with state = (position, collected keys)
 	start := image.Point{X: maze.startX, Y: maze.startY}
-	queue := []queueItem{{state{start, 0}, 0}}
-	visited := make(map[state]bool)
+	queue := make([]queueItem, 0, 10000)
+	queue = append(queue, queueItem{state{start, 0}, 0})
+	visited := make(map[state]bool, 10000)
 	visited[state{start, 0}] = true
 
 	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
 
-	for len(queue) > 0 {
-		item := queue[0]
-		queue = queue[1:]
+	head := 0
+	for head < len(queue) {
+		item := queue[head]
+		head++
 
 		// Try all 4 directions
 		for _, dir := range dirs {
@@ -196,13 +198,15 @@ func bfsFrom(maze Maze, start image.Point, keyBits map[byte]uint32) map[byte]pat
 		requiredKeys uint32
 	}
 
-	queue := []bfsState{{start, 0, 0}}
+	queue := make([]bfsState, 0, 1000)
+	queue = append(queue, bfsState{start, 0, 0})
 	visited[start] = true
 	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
 
-	for len(queue) > 0 {
-		curr := queue[0]
-		queue = queue[1:]
+	head := 0
+	for head < len(queue) {
+		curr := queue[head]
+		head++
 
 		for _, dir := range dirs {
 			newPos := image.Point{X: curr.pos.X + dir.X, Y: curr.pos.Y + dir.Y}
