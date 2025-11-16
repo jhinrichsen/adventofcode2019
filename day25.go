@@ -20,7 +20,6 @@ func Day25(lines []string, part1 bool) uint {
 	// Find all safe items and security checkpoint
 	var items []string
 	var securityRoom string
-	var securityDir string
 
 	dangerous := map[string]bool{
 		"giant electromagnet": true,
@@ -30,12 +29,13 @@ func Day25(lines []string, part1 bool) uint {
 		"infinite loop":       true,
 	}
 
+	var securityDirs []string
 	for roomName, room := range graph {
 		if strings.Contains(roomName, "Security") {
 			securityRoom = roomName
+			// Collect ALL security exits to try (fixes non-deterministic map iteration)
 			for dir := range room.exits {
-				securityDir = dir
-				break
+				securityDirs = append(securityDirs, dir)
 			}
 		}
 		for _, item := range room.items {
@@ -45,19 +45,15 @@ func Day25(lines []string, part1 bool) uint {
 		}
 	}
 
-	fmt.Printf("DEBUG: Found %d items, securityRoom=%s, securityDir=%s\n", len(items), securityRoom, securityDir)
-
 	if len(items) == 0 || securityRoom == "" {
-		fmt.Printf("DEBUG: Missing items or security, cannot continue\n")
 		return 0
 	}
 
 	// Build path to collect all items and reach security
 	path := buildCollectionPath(graph, items, securityRoom)
-	fmt.Printf("DEBUG: Collection path has %d commands\n", len(path))
 
-	// Try all item combinations
-	return tryItemCombos(prog, items, path, securityDir)
+	// Try all item combinations with all possible security directions
+	return tryItemCombos(prog, items, path, securityDirs)
 }
 
 // vmSnapshot represents a saved VM state
@@ -570,8 +566,8 @@ func findRoomPath(graph map[string]*roomInfo, start, target string) []string {
 	return []string{}
 }
 
-// tryItemCombos tries all combinations of items.
-func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint {
+// tryItemCombos tries all combinations of items with all security directions.
+func tryItemCombos(prog IntCode, items []string, path []string, dirs []string) uint {
 	// Build input to reach security checkpoint with all items collected
 	baseInput := buildInput(path)
 
@@ -584,47 +580,40 @@ func tryItemCombos(prog IntCode, items []string, path []string, dir string) uint
 	checkpointMem := make([]int, len(mem))
 	copy(checkpointMem, mem)
 
-	// Try each item combination using snapshots
-	for mask := range 1 << len(items) {
-		// Restore checkpoint
-		copy(mem, checkpointMem)
+	// Try each security direction
+	for _, dir := range dirs {
+		// Try each item combination using snapshots
+		for mask := range 1 << len(items) {
+			// Restore checkpoint
+			copy(mem, checkpointMem)
 
-		// Build input for this combination
-		var combInput []int
+			// Build input for this combination
+			var combInput []int
 
-		// Drop all items
-		for _, item := range items {
-			combInput = appendCommand(combInput, "drop "+item)
-		}
-
-		// Take selected items
-		for i, item := range items {
-			if mask&(1<<i) != 0 {
-				combInput = appendCommand(combInput, "take "+item)
+			// Drop all items
+			for _, item := range items {
+				combInput = appendCommand(combInput, "drop "+item)
 			}
-		}
 
-		// Try security
-		combInput = appendCommand(combInput, dir)
-
-		// Run from checkpoint with this combination
-		output := runFromCheckpoint(mem, ip, relBase, combInput)
-		outputStr := intsToString(output)
-
-		if mask == 0 {
-			// Debug first attempt
-			fmt.Printf("DEBUG tryItemCombos mask=0: output len=%d, has password=%v\n", len(outputStr), getPassword(outputStr) != 0)
-			if len(outputStr) < 500 {
-				fmt.Printf("DEBUG output: %s\n", outputStr)
+			// Take selected items
+			for i, item := range items {
+				if mask&(1<<i) != 0 {
+					combInput = appendCommand(combInput, "take "+item)
+				}
 			}
-		}
 
-		if pw := getPassword(outputStr); pw != 0 {
-			fmt.Printf("DEBUG: Found password %d at mask %d\n", pw, mask)
-			return pw
+			// Try security direction
+			combInput = appendCommand(combInput, dir)
+
+			// Run from checkpoint with this combination
+			output := runFromCheckpoint(mem, ip, relBase, combInput)
+			outputStr := intsToString(output)
+
+			if pw := getPassword(outputStr); pw != 0 {
+				return pw
+			}
 		}
 	}
-	fmt.Printf("DEBUG: Tried all %d combinations, no password found\n", 1<<len(items))
 	return 0
 }
 
