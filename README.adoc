@@ -1,11 +1,13 @@
-image:https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019?status.svg["godoc",
-link="https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019"]
-image:https://goreportcard.com/badge/gitlab.com/jhinrichsen/adventofcode2019["Go report
-card", link="https://goreportcard.com/report/gitlab.com/jhinrichsen/adventofcode2019"]
-image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/coverage.svg?style=flat["coverage",
-link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs"]
+= Advent of code 2019
+:doctype: book
+:toc:
 
-= Advent of Code 2019
+image:https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019?status.svg["godoc", link="https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019"]
+image:https://goreportcard.com/badge/gitlab.com/jhinrichsen/adventofcode2019["Go report card", link="https://goreportcard.com/report/gitlab.com/jhinrichsen/adventofcode2019"]
+image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/pipeline.svg[link="https://gitlab.com/jhinrichsen/adventofcode2019/-/commits/master",title="pipeline status"]
+image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/coverage.svg[link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs",title="coverage report"]
+
+This is an implementation of https://adventofcode.com/2019[Advent of Code 2019] in Go.
 
 == Build from source
 
@@ -13,40 +15,128 @@ link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs"]
 $ go get gitlab.com/jhinrichsen/adventofcode2019
 ----
 
-This is an implementation of https://adventofcode.com/2019[Advent of Code 2019]
-in Go.
+== Environment
 
+=== 2019
 
-== Day 14
+- Go 1.24
+- vim, vim-go, gopls, fed by an HHKB
+- VisualStudio Code for debugging
+- Linux (various distributions)
+- Prompts: Claude Code
 
-10 ORE => 10 A
-1 ORE => 1 B
-7 A, 1 B => 1 C
-7 A, 1 C => 1 D
-7 A, 1 D => 1 E
-7 A, 1 E => 1 FUEL
+== Intel Performance
 
-1 FUEL = 7 A + 1 E
-       = 7 A + 7 A + 1 D
-       = 7 A + 7 A + 7 A + 1 C
-       = 7 A + 7 A + 7 A + 7 A + 1 B
-       = 7 A + 7A + 7 A + 7 A + 1 ORE
-       = 28 A + 1 ORE
-       = 30 A - 2 A + 1 ORE
-       = 30 ORE - 2 A + 1 ORE
-       = 30 ORE - 2 A
+All benchmarks were executed on Intel(R) Xeon(R) CPU @ 2.60GHz architecture.
+Performance characteristics may vary on different CPU architectures, particularly
+on hybrid architectures with P-cores and E-cores.
 
+== Overview
 
-9 ORE => 2 A                	level 0
-8 ORE => 3 B			level 0
-7 ORE => 5 C			level 0
-3 A, 4 B => 1 AB		level 1
-5 B, 7 C => 1 BC		level 1
-4 C, 1 A => 1 CA		level 1
-2 AB, 3 BC, 4 CA => 1 FUEL	level 2
+Number of tries for a correct answer:
 
-1 FUEL = 2 AB      + 3 BC        + 4 CA
-       = 6 A + 8 B + 15 B + 21 C + 16 C + 4 A
-       = 10 A   + 23 B   + 37 C
-       = 45 ORE + 64 ORE + 56 ORE
-       = 165 ORE
+|===
+| Day | Part 1 | Part 2 | Title
+
+| 1   |   1    |   1    | The Tyranny of the Rocket Equation
+| 2   |   1    |   1    | 1202 Program Alarm
+| 3   |   1    |   1    | Crossed Wires
+| 4   |   1    |   1    | Secure Container
+| 5   |   2    |   2    | Sunny with a Chance of Asteroids
+| 6   |   1    |   1    | Universal Orbit Map
+| 7   |   1    |   1    | Amplification Circuit
+| 8   |   1    |   1    | Space Image Format
+| 9   |   1    |   1    | Sensor Boost
+| 10  |   1    |   1    | Monitoring Station
+| 11  |   1    |   1    | Space Police
+| 12  |   1    |   -    | The N-Body Problem
+| 13  |   1    |   1    | Care Package
+| 14  |   3    |   1    | Space Stoichiometry
+| 15  |   1    |   1    | Oxygen System
+| 16  |   1    |   1    | Flawed Frequency Transmission
+| 17  |   1    |   1    | Set and Forget
+| 18  |   2    |   1    | Many-Worlds Interpretation
+| 19  |   1    |   4    | Tractor Beam
+| 20  |   1    |   2    | Donut Maze
+| 21  |   1    |   1    | Springdroid Adventure
+| 22  |   -    |   -    | Slam Shuffle
+| 23  |   -    |   -    | Category Six
+| 24  |   -    |   -    | Planet of Discord
+| 25  |   -    |   -    | Cryostasis
+
+|===
+
+== Day 19: Tractor Beam
+
+Part 2 required multiple algorithmic iterations to find the correct approach:
+
+**Failed approaches:**
+- Attempt 1: Checking bottom-right corner instead of top-right
+- Attempt 2: Checking both top-right and bottom-left from top-left corner
+- Attempt 3: Optimization that incorrectly skipped beam points
+
+**Successful approach:**
+- Scan rows as the BOTTOM edge of the 100x100 square
+- For each row y, find the leftmost beam point (bottom-left corner)
+- Check if the top-right corner at (x+99, y-99) is also in the beam
+- Return the top-left corner coordinates (x, y-99)
+
+This approach works because the tractor beam expands monotonically, making a
+row-by-row bottom-edge scan both correct and efficient.
+
+== Benchmarks
+
+Results from `make bench` on Intel(R) Xeon(R) CPU @ 2.60GHz:
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+BenchmarkDay3Part1-16           	       1	1935868386 ns/op	2174759312 B/op	   20454 allocs/op
+BenchmarkDay3Part2-16           	      14	  73007509 ns/op	27972873 B/op	    2101 allocs/op
+BenchmarkDay4Part1-16           	      55	  21560001 ns/op	 4393320 B/op	  549161 allocs/op
+BenchmarkDay4Part2-16           	      64	  19064896 ns/op	 4393321 B/op	  549161 allocs/op
+BenchmarkDay5Part2-16           	  200647	      6510 ns/op	    6448 B/op	       4 allocs/op
+BenchmarkDay6OrbitC-16          	100000000	        11.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay6Part1-16           	     326	   3642572 ns/op	     585 B/op	       6 allocs/op
+BenchmarkDay6CommonOrbit-16     	 1266794	       929.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay6Part2-16           	    2064	    590953 ns/op	      92 B/op	       1 allocs/op
+BenchmarkDay7Part1-16           	     595	   2068586 ns/op	 2590771 B/op	    2562 allocs/op
+BenchmarkDay7Part2-16           	     489	   2226883 ns/op	 2590754 B/op	    2566 allocs/op
+BenchmarkDay8Part1-16           	   51525	     23248 ns/op	     896 B/op	       1 allocs/op
+BenchmarkDay8Part2-16           	  225985	      5446 ns/op	     160 B/op	       1 allocs/op
+BenchmarkDay9Part1-16           	   35847	     32208 ns/op	   53313 B/op	       9 allocs/op
+BenchmarkDay9Part2-16           	     154	   7761406 ns/op	  244878 B/op	      30 allocs/op
+BenchmarkDay10Part1-16          	     134	   8892875 ns/op	 4300300 B/op	     948 allocs/op
+BenchmarkParseUsingParser-16    	 6224564	       188.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay12Example2-16       	   12007	    101885 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDay14Part1-16          	   13480	     88120 ns/op	   37208 B/op	     380 allocs/op
+BenchmarkDay14Part2-16          	     954	   1230220 ns/op	  173301 B/op	     683 allocs/op
+BenchmarkDay15Part1-16          	      12	  95238125 ns/op	51392360 B/op	  105675 allocs/op
+BenchmarkDay15Part2-16          	       9	 115805614 ns/op	57866948 B/op	  131108 allocs/op
+BenchmarkDay16Part1-16          	      28	  43655575 ns/op	  542976 B/op	     101 allocs/op
+BenchmarkDay16Part2-16          	      13	  81384289 ns/op	 4207872 B/op	       2 allocs/op
+BenchmarkDay17Part1-16          	      42	  28866716 ns/op	43743064 B/op	    2233 allocs/op
+BenchmarkDay17Part2-16          	      34	  30433419 ns/op	43946031 B/op	    2094 allocs/op
+BenchmarkDay18Part1-16          	       1	9977554923 ns/op	1199136784 B/op	   40594 allocs/op
+BenchmarkDay18Part2-16          	       2	 932910162 ns/op	40854496 B/op	   21810 allocs/op
+BenchmarkDay19Part1-16          	       8	 131228385 ns/op	155496468 B/op	   48008 allocs/op
+BenchmarkDay19Part2-16          	       1	27643472132 ns/op	37568411664 B/op	11796494 allocs/op
+BenchmarkDay20Part1-16          	     505	   2491869 ns/op	  675760 B/op	    1106 allocs/op
+BenchmarkDay20Part2-16          	       2	 741156768 ns/op	104082272 B/op	 1151790 allocs/op
+BenchmarkDay21Part1-16          	    1092	   1046190 ns/op	  942770 B/op	      55 allocs/op
+BenchmarkDay21Part2-16          	      84	  14045137 ns/op	  943074 B/op	      55 allocs/op
+PASS
+ok  	gitlab.com/jhinrichsen/adventofcode2019	82.859s
+----
+
+Notable performance characteristics:
+
+- *Day 3 Part 1*: Most expensive puzzle at ~1.9s per operation with 2GB allocations
+- *Day 19 Part 2*: Longest execution at ~27.6s with 37GB allocations due to extensive beam scanning
+- *Day 6*: Most optimized with sub-nanosecond operations and zero allocations for OrbitC
+- *Day 8 Part 2*: Fast image processing at 5.4µs per operation
+
+Performance bottlenecks are primarily in path-finding algorithms (Days 15, 18, 20)
+and geometric search problems (Days 3, 19) due to large search spaces.
