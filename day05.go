@@ -249,3 +249,30 @@ func ToString(opcodes []int) string {
 func channels() (chan int, chan int) {
 	return make(chan int, 2), make(chan int, 2)
 }
+
+// NewDay05 parses IntCode program from input
+func NewDay05(input []byte) IntCode {
+	return MustSplit(string(input))
+}
+
+// Day05 runs the diagnostic program and returns the diagnostic code
+func Day05(input []byte, part1 bool) uint {
+	program := NewDay05(input)
+	in, out := channels()
+
+	go Day5(program, in, out)
+
+	if part1 {
+		in <- 1 // Air conditioner unit
+		// Drain all outputs, last one is diagnostic code
+		var diagnostic int
+		for v := range out {
+			diagnostic = v
+		}
+		return uint(diagnostic)
+	}
+
+	in <- 5 // Thermal radiator controller
+	diagnostic := <-out
+	return uint(diagnostic)
+}
