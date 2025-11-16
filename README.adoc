@@ -66,16 +66,92 @@ Number of tries for a correct answer:
 
 |===
 
+== Day 01: The Tyranny of the Rocket Equation
+
+Refactored to use iterative loop instead of goto for recursive fuel calculation.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │     b0      │                 b2                 │
+              │   sec/op    │   sec/op     vs base               │
+Day01Part1-16   823.2n ± 2%   862.7n ± 4%   +4.80% (p=0.000 n=8)
+Day01Part2-16   2.345µ ± 1%   1.818µ ± 2%  -22.51% (p=0.000 n=8)
+geomean         1.390µ        1.252µ        -9.89%
+----
+
+Part 2 shows 22.5% speedup from eliminating goto and using direct uint iteration.
+
+== Day 03: Crossed Wires
+
+Optimized Part 1 by replacing 2D array with map-based approach.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │      b0       │                 b1                  │
+              │    sec/op     │    sec/op     vs base               │
+Day03Part1-16   995.49m ± 22%   61.40m ± 10%  -93.83% (p=0.000 n=8)
+Day03Part2-16    62.99m ±  8%   68.24m ±  8%        ~ (p=0.065 n=8)
+geomean          250.4m         64.73m        -74.15%
+
+              │       b0       │                 b1                  │
+              │      B/op      │     B/op      vs base               │
+Day03Part1-16   2073.99Mi ± 0%   26.67Mi ± 0%  -98.71% (p=0.000 n=8)
+Day03Part2-16     26.68Mi ± 0%   26.68Mi ± 0%        ~ (p=0.368 n=8)
+geomean           235.2Mi        26.68Mi       -88.66%
+
+              │      b0      │                  b1                  │
+              │  allocs/op   │  allocs/op   vs base                 │
+Day03Part1-16   20.423k ± 0%   2.070k ± 0%  -89.86% (p=0.000 n=8)
+Day03Part2-16    2.100k ± 0%   2.100k ± 0%        ~ (p=1.000 n=8)
+geomean          6.549k        2.085k       -68.16%
+----
+
+Part 1 shows 93.8% speedup with 98.7% memory reduction by using map[Point]uint instead of massive 2D array.
+
+== Day 04: Secure Container
+
+Optimized by reusing digit buffer and inlining criteria checks.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+              │      b0      │                 b1                 │
+              │    sec/op    │   sec/op     vs base               │
+Day04Part1-16   20.536m ± 3%   5.115m ± 2%  -75.09% (p=0.000 n=8)
+Day04Part2-16   18.314m ± 3%   5.289m ± 4%  -71.12% (p=0.000 n=8)
+geomean          19.39m        5.202m       -73.18%
+
+              │      b0      │                    b1                    │
+              │     B/op     │     B/op      vs base                    │
+Day04Part1-16   4.190Mi ± 0%   0.000Mi ± 0%  -100.00% (p=0.000 n=8)
+Day04Part2-16   4.190Mi ± 0%   0.000Mi ± 0%  -100.00% (p=0.000 n=8)
+
+              │     b0      │                  b1                   │
+              │  allocs/op  │ allocs/op  vs base                    │
+Day04Part1-16   549.2k ± 0%   0.0k ± 0%  -100.00% (p=0.000 n=8)
+Day04Part2-16   549.2k ± 0%   0.0k ± 0%  -100.00% (p=0.000 n=8)
+----
+
+75% speedup with 100% memory reduction by reusing single digit buffer instead of allocating 549k times.
+
 == Day 19: Tractor Beam
 
 Part 2 required multiple algorithmic iterations to find the correct approach:
 
-**Failed approaches:**
+*Failed approaches:*
 - Attempt 1: Checking bottom-right corner instead of top-right
 - Attempt 2: Checking both top-right and bottom-left from top-left corner
 - Attempt 3: Optimization that incorrectly skipped beam points
 
-**Successful approach:**
+*Successful approach:*
 - Scan rows as the BOTTOM edge of the 100x100 square
 - For each row y, find the leftmost beam point (bottom-left corner)
 - Check if the top-right corner at (x+99, y-99) is also in the beam
@@ -83,6 +159,51 @@ Part 2 required multiple algorithmic iterations to find the correct approach:
 
 This approach works because the tractor beam expands monotonically, making a
 row-by-row bottom-edge scan both correct and efficient.
+
+=== Performance Optimizations
+
+Optimized by eliminating channel overhead and implementing direct IntCode execution.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
+                │       b0        │                  b1                   │
+                │     sec/op      │    sec/op      vs base                │
+Day19Part1-16     127.1m ±  0%     76.5m ± 10%   -39.81% (p=0.000 n=1+8)
+Day19Part2-16     25478.9m ±  0%    103.5m ±  6%   -99.59% (p=0.000 n=1+8)
+geomean           1.801            88.88m         -95.07%
+
+                │        b0        │                  b1                   │
+                │       B/op       │      B/op       vs base               │
+Day19Part1-16     155.5Mi ±  0%    147.6Mi ± 0%    -5.08% (p=0.000 n=1+8)
+Day19Part2-16     35.0Gi ±  0%      0.2Gi ± 0%   -99.44% (p=0.000 n=1+8)
+geomean           2.333Gi          492.5Mi        -78.91%
+
+                │      b0       │                  b1                   │
+                │   allocs/op   │  allocs/op   vs base                  │
+Day19Part1-16     48.008k ±  0%   40.509k ± 0%   -15.62% (p=0.000 n=1+8)
+Day19Part2-16     11796.278k ± 0%   55.234k ± 0%   -99.53% (p=0.000 n=1+8)
+geomean           756.4k           47.94k         -93.66%
+----
+
+Key optimizations:
+
+1. *Direct IntCode execution*: Replaced channel-based Day5 processor with inline `runBeamTest` function
+   - Eliminated goroutine and channel synchronization overhead
+   - Reduced allocations by avoiding channel buffers
+
+2. *Incremental leftX tracking*: Track leftmost beam x-coordinate from previous row
+   - Beam expands monotonically, so no need to search from x=0 each iteration
+   - Significantly reduces redundant beam tests in Part 2
+
+3. *Memory efficiency*: Inline execution uses stack allocation instead of heap
+   - Part 2 reduced from 35GB to 200MB (99.4% reduction)
+   - Part 2 allocations reduced from 11.8M to 55K (99.5% reduction)
+
+Results: Part 2 speedup of 245x (from 25.5s to 0.104s), making Day 19 no longer the dominant bottleneck.
+
 
 == Day 22: Slam Shuffle
 
@@ -120,53 +241,7 @@ row-by-row bottom-edge scan both correct and efficient.
 
 Results from `make total` on Intel(R) Xeon(R) CPU @ 2.60GHz:
 
+[source]
 ----
-goos: linux
-goarch: amd64
-pkg: gitlab.com/jhinrichsen/adventofcode2019
-cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
-BenchmarkDay10Part1-16    	     147	   8152138 ns/op	 4300319 B/op	     948 allocs/op
-BenchmarkDay14Part1-16    	   14290	     82359 ns/op	   37223 B/op	     380 allocs/op
-BenchmarkDay14Part2-16    	    1016	   1226413 ns/op	  173357 B/op	     683 allocs/op
-BenchmarkDay15Part1-16    	      13	  82933484 ns/op	51392433 B/op	  105674 allocs/op
-BenchmarkDay15Part2-16    	      12	 102327223 ns/op	57866777 B/op	  131108 allocs/op
-BenchmarkDay16Part1-16    	      25	  43344598 ns/op	  542976 B/op	     101 allocs/op
-BenchmarkDay16Part2-16    	      14	  77158597 ns/op	 4207872 B/op	       2 allocs/op
-BenchmarkDay17Part1-16    	      68	  18194266 ns/op	43743159 B/op	    2233 allocs/op
-BenchmarkDay17Part2-16    	      50	  22993333 ns/op	43946105 B/op	    2094 allocs/op
-BenchmarkDay18Part1-16    	       1	7948274701 ns/op	1199136976 B/op	   40596 allocs/op
-BenchmarkDay18Part2-16    	       2	 915211528 ns/op	40854496 B/op	   21810 allocs/op
-BenchmarkDay19Part1-16    	       9	 112241838 ns/op	155502378 B/op	   48021 allocs/op
-BenchmarkDay19Part2-16    	       1	23739617884 ns/op	37568474848 B/op	11796388 allocs/op
-BenchmarkDay20Part1-16    	     492	   2564065 ns/op	  675760 B/op	    1106 allocs/op
-BenchmarkDay20Part2-16    	       2	 746991336 ns/op	104088420 B/op	 1151789 allocs/op
-BenchmarkDay21Part1-16    	    1154	    962476 ns/op	  942768 B/op	      55 allocs/op
-BenchmarkDay21Part2-16    	      85	  13949738 ns/op	  943072 B/op	      55 allocs/op
-PASS
-ok  	gitlab.com/jhinrichsen/adventofcode2019	227.080s
+include::benches/linux-amd64-IntelR_XeonR.txt[]
 ----
-
-Total: *47.83 seconds* (sum of all ns/op values)
-
-*Benchmark results:*
-
-- *Total solve time (sum of ns/op)*: 47.83 seconds
-- *Benchmark framework runtime*: 227.080s (includes overhead and multiple iterations)
-- *Benchmarks run*: 48 (all Days 01-24, both parts)
-
-Notable performance characteristics:
-
-- *Day 19 Part 2*: Dominates at 28.31s (59% of total) with 37GB allocations due to extensive beam scanning
-- *Day 23 Part 2*: Second at 8.76s (18% of total) for network simulation
-- *Day 18 Part 1*: Third at 5.98s (12% of total) with complex maze pathfinding
-- *Day 03 Part 1*: Fourth at 1.80s (4% of total) with wire intersection calculation
-- *Day 18 Part 2*: 0.96s with optimized 4-robot pathfinding
-- *Day 20 Part 2*: 0.81s for recursive maze with portal levels
-- *Day 24 Part 2*: 0.24s for recursive cellular automaton
-- *Day 12 Part 2*: 0.15s for N-body orbital cycle detection
-
-Performance bottlenecks:
-- Geometric search (Day 19): 59% of total runtime
-- Network simulation (Day 23): 18% of total runtime
-- Path-finding algorithms (Days 15, 18, 20): Large search spaces with multi-GB allocations
-- Intcode VM overhead: Present in 12 puzzles (Days 02, 05, 07, 09, 11, 13, 15, 17, 19, 21, 23)

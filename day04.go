@@ -58,17 +58,75 @@ func CriteriaPart1() []Criteria {
 	return []Criteria{CritSixDigits, CritWithinRange, CritTwoOrMoreAdjacent, CritIncreasing}
 }
 
-// Day4Part1 returns number of passwords between Lower and Upper that meet all
-// criteria
-func Day4Part1() int {
-	count := 0
-	// this range selection makes Crit1 superfluous
+// Day04 returns number of passwords between Lower and Upper that meet all criteria
+func Day04(part1 bool) uint {
+	count := uint(0)
+	digits := make([]byte, 6) // Reuse buffer instead of allocating 549k times
+
 	for n := Lower; n < Upper; n++ {
-		if MeetsCriteria(n, Digits(n), CriteriaPart1()) {
-			count++
+		DigitsInto(n, digits)
+
+		// Check increasing first (fastest rejection)
+		increasing := true
+		for i := 1; i < 6; i++ {
+			if digits[i-1] > digits[i] {
+				increasing = false
+				break
+			}
+		}
+		if !increasing {
+			continue
+		}
+
+		if part1 {
+			// Check for any two adjacent digits
+			hasAdjacent := false
+			for i := 1; i < 6; i++ {
+				if digits[i-1] == digits[i] {
+					hasAdjacent = true
+					break
+				}
+			}
+			if hasAdjacent {
+				count++
+			}
+		} else {
+			// Check for exactly two adjacent digits
+			if critExactlyTwoAdjacent(digits) {
+				count++
+			}
 		}
 	}
 	return count
+}
+
+// critExactlyTwoAdjacent checks if there's a group of exactly two adjacent matching digits
+func critExactlyTwoAdjacent(digits []byte) bool {
+	// Start of digits: aa != a
+	if (digits[0] == digits[1]) && (digits[1] != digits[2]) {
+		return true
+	}
+
+	// Middle: != aa !=
+	for i := 2; i < 5; i++ {
+		if (digits[i-2] != digits[i-1]) &&
+			(digits[i-1] == digits[i]) &&
+			(digits[i] != digits[i+1]) {
+			return true
+		}
+	}
+
+	// End of digits: != aa
+	if (digits[3] != digits[4]) && (digits[4] == digits[5]) {
+		return true
+	}
+	return false
+}
+
+// Day4Part1 returns number of passwords between Lower and Upper that meet all
+// criteria
+func Day4Part1() int {
+	return int(Day04(true))
 }
 
 // CritExactlyTwoAdjacent two adjacent matching digits are not part of a larger
@@ -121,14 +179,7 @@ func CritExactlyTwoAdjacent(n int, digits []byte) bool {
 // Day4Part2 returns number of passwords between Lower and Upper that meet all
 // criteria
 func Day4Part2() int {
-	count := 0
-	// this range selection makes Crit1 superfluous
-	for n := Lower; n < Upper; n++ {
-		if MeetsCriteria(n, Digits(n), CriteriaPart2()) {
-			count++
-		}
-	}
-	return count
+	return int(Day04(false))
 }
 
 // CriteriaPart2 returns all required criteria for part 1

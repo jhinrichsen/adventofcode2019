@@ -2,7 +2,6 @@ package adventofcode2019
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 )
@@ -133,32 +132,18 @@ func TestDay10Part1Examples(t *testing.T) {
 }
 
 func TestDay10Part1(t *testing.T) {
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-	as := ParseAsteroidMap(buf)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := 267
-	_, got := Day10Part1(as)
+	buf := fileFromFilename(t, filename, 10)
+	want := uint(267)
+	got := Day10(buf, true)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func BenchmarkDay10Part1(b *testing.B) {
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		b.Fatal(err)
-	}
-	as := ParseAsteroidMap(buf)
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day10Part1(as)
+	buf := fileFromFilename(b, filename, 10)
+	for b.Loop() {
+		_ = Day10(buf, true)
 	}
 }
 
@@ -239,14 +224,9 @@ func TestDay10Part2Example2(t *testing.T) {
 }
 
 func TestDay10Part2(t *testing.T) {
-	want := 1309
-	buf, err := os.ReadFile(input(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-	as := ParseAsteroidMap(buf)
-	best, _ := Day10Part1(as)
-	got := Day10Part2(as, best)
+	buf := fileFromFilename(t, filename, 10)
+	want := uint(1309)
+	got := Day10(buf, false)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
@@ -254,9 +234,7 @@ func TestDay10Part2(t *testing.T) {
 
 func BenchmarkDay10Part2(b *testing.B) {
 	buf := fileFromFilename(b, filename, 10)
-	as := ParseAsteroidMap(buf)
 	for b.Loop() {
-		base, _ := Day10Part1(as)
-		_ = Day10Part2(as, base)
+		_ = Day10(buf, false)
 	}
 }

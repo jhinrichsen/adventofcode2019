@@ -1,0 +1,16 @@
+# Build artifacts
+coverage.txt
+coverage.xml
+gl-code-quality-report.json
+govulncheck.sarif
+junit.xml
+README.html
+golangci-lint.json
+staticcheck.json
+test.log
+
+# CPU benchmark files
+benches/
+
+# Go profiling files
+*.profile

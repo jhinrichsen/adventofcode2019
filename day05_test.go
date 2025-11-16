@@ -211,29 +211,33 @@ func TestDay5Part2(t *testing.T) {
 }
 
 func BenchmarkDay05Part2(b *testing.B) {
-	lines, err := linesFromFilename(input(5))
-	if err != nil {
-		b.Fatal(err)
+	buf := fileFromFilename(b, filename, 5)
+	for b.Loop() {
+		_ = Day05(buf, false)
 	}
-	master := MustSplit(lines[0])
-	for i := 0; i < b.N; i++ {
-		in, out := channels()
-		// Run each step in its own copy
-		go Day5(master.Copy(), in, out)
-		in <- ThermalRadiatorController
-		<-out
+}
+
+func TestDay05Part1(t *testing.T) {
+	buf := fileFromFilename(t, filename, 5)
+	want := uint(16225258)
+	got := Day05(buf, true)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
+	}
+}
+
+func TestDay05Part2(t *testing.T) {
+	buf := fileFromFilename(t, filename, 5)
+	want := uint(2808771)
+	got := Day05(buf, false)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func BenchmarkDay05Part1(b *testing.B) {
-	lines := testLinesFromFilename(b, filename(5))
-	master := MustSplit(lines[0])
+	buf := fileFromFilename(b, filename, 5)
 	for b.Loop() {
-		in, out := channels()
-		go Day5(master.Copy(), in, out)
-		in <- AirContitionerUnit
-		// Drain all output
-		for range out {
-		}
+		_ = Day05(buf, true)
 	}
 }

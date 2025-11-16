@@ -23,16 +23,19 @@ func TestDay8Part1(t *testing.T) {
 	}
 }
 
-func BenchmarkDay08Part1(b *testing.B) {
-	digits, err := os.ReadFile(input(8))
-	if err != nil {
-		b.Fatal(err)
+func TestDay08Part1(t *testing.T) {
+	buf := fileFromFilename(t, filename, 8)
+	want := uint(1463)
+	got := Day08(buf, true)
+	if want != got {
+		t.Fatalf("want %d but got %d", want, got)
 	}
-	for i := 0; i < b.N; i++ {
-		_, err := Day8Part1(digits)
-		if err != nil {
-			b.Fatal(err)
-		}
+}
+
+func BenchmarkDay08Part1(b *testing.B) {
+	buf := fileFromFilename(b, filename, 8)
+	for b.Loop() {
+		_ = Day08(buf, true)
 	}
 }
 
@@ -77,15 +80,18 @@ func TestDay8Part2(t *testing.T) {
 	}
 }
 
-func BenchmarkDay08Part2(b *testing.B) {
-	digits, err := os.ReadFile(input(8))
-	if err != nil {
-		b.Fatal(err)
+func TestDay08Part2(t *testing.T) {
+	buf := fileFromFilename(t, filename, 8)
+	// Part2 renders ASCII art, Day08 returns 0
+	got := Day08(buf, false)
+	if got != 0 {
+		t.Fatalf("want 0 but got %d", got)
 	}
-	for i := 0; i < b.N; i++ {
-		_, err := Day8Part2(digits)
-		if err != nil {
-			b.Fatal(err)
-		}
+}
+
+func BenchmarkDay08Part2(b *testing.B) {
+	buf := fileFromFilename(b, filename, 8)
+	for b.Loop() {
+		_ = Day08(buf, false)
 	}
 }

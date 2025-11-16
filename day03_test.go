@@ -66,28 +66,14 @@ func TestSize(t *testing.T) {
 	}
 }
 
-func TestDay3Part1(t *testing.T) {
-	lines, err := linesFromFilename(input(3))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := 248
-	got, err := Day3Part1(lines)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+func TestDay03Part1(t *testing.T) {
+	testLines(t, 3, filename, true, Day03, uint(248))
 }
 
 func BenchmarkDay03Part1(b *testing.B) {
-	lines, err := linesFromFilename(input(3))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day3Part1(lines)
+	lines := testLinesFromFilename(b, filename(3))
+	for b.Loop() {
+		_ = Day03(lines, true)
 	}
 }
 
@@ -108,27 +94,13 @@ func TestDay3Part2Example(t *testing.T) {
 	}
 }
 
-func TestDay3Part2(t *testing.T) {
-	lines, err := linesFromFilename(input(3))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := 28580
-	got, err := Day3Part2(lines)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+func TestDay03Part2(t *testing.T) {
+	testLines(t, 3, filename, false, Day03, uint(28580))
 }
 
 func BenchmarkDay03Part2(b *testing.B) {
-	lines, err := linesFromFilename(input(3))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		Day3Part2(lines)
+	lines := testLinesFromFilename(b, filename(3))
+	for b.Loop() {
+		_ = Day03(lines, false)
 	}
 }

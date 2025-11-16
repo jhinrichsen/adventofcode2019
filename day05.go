@@ -7,6 +7,9 @@ import (
 )
 
 const (
+	OpcodeAdd = 1
+	OpcodeMul = 2
+
 	// Input takes a single integer as input and saves it to the position
 	// given by its only parameter.
 	Input = 3
@@ -34,6 +37,8 @@ const (
 
 	// AdjustRelBase changes the relative base
 	AdjustRelBase = 9
+
+	OpcodeRet = 99
 )
 
 // IntCode is both a low-level interpreted language used in bootstrapping the
@@ -229,6 +234,45 @@ func MustSplit(program string) (ic IntCode) {
 	return
 }
 
+// ToString converts opcodes back to comma-separated string
+func ToString(opcodes []int) string {
+	result := ""
+	for i, opcode := range opcodes {
+		if i > 0 {
+			result += ","
+		}
+		result += fmt.Sprintf("%d", opcode)
+	}
+	return result
+}
+
 func channels() (chan int, chan int) {
 	return make(chan int, 2), make(chan int, 2)
+}
+
+// NewDay05 parses IntCode program from input
+func NewDay05(input []byte) IntCode {
+	return MustSplit(string(input))
+}
+
+// Day05 runs the diagnostic program and returns the diagnostic code
+func Day05(input []byte, part1 bool) uint {
+	program := NewDay05(input)
+	in, out := channels()
+
+	go Day5(program, in, out)
+
+	if part1 {
+		in <- 1 // Air conditioner unit
+		// Drain all outputs, last one is diagnostic code
+		var diagnostic int
+		for v := range out {
+			diagnostic = v
+		}
+		return uint(diagnostic)
+	}
+
+	in <- 5 // Thermal radiator controller
+	diagnostic := <-out
+	return uint(diagnostic)
 }

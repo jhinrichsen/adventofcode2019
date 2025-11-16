@@ -202,3 +202,18 @@ func vaporize(pgs []phaseGroup) []Asteroid {
 	}
 	return order
 }
+
+// NewDay10 parses asteroid map from input
+var NewDay10 = ParseAsteroidMap
+
+// Day10 solves Monitoring Station puzzle
+func Day10(input []byte, part1 bool) uint {
+	asteroids := NewDay10(input)
+	base, maxVisible := Day10Part1(asteroids)
+
+	if part1 {
+		return uint(maxVisible)
+	}
+
+	return uint(Day10Part2(asteroids, base))
+}
