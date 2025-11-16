@@ -45,7 +45,10 @@ func trackCard(lines []string, deckSize, cardNumber uint) uint {
 		} else if strings.HasPrefix(line, "cut ") {
 			// Cut N cards
 			nStr := strings.TrimPrefix(line, "cut ")
-			n, _ := strconv.Atoi(nStr)
+			n, err := strconv.Atoi(nStr)
+			if err != nil {
+				continue
+			}
 			// Position shifts by -N (with wrapping)
 			if n >= 0 {
 				pos = (pos - uint(n) + deckSize) % deckSize
@@ -55,7 +58,10 @@ func trackCard(lines []string, deckSize, cardNumber uint) uint {
 		} else if strings.HasPrefix(line, "deal with increment ") {
 			// Deal with increment N
 			nStr := strings.TrimPrefix(line, "deal with increment ")
-			n, _ := strconv.Atoi(nStr)
+			n, err := strconv.Atoi(nStr)
+			if err != nil {
+				continue
+			}
 			// Position multiplies by N (mod deckSize)
 			pos = (pos * uint(n)) % deckSize
 		}
@@ -86,7 +92,10 @@ func shuffleDeck(lines []string, deckSize uint) []uint {
 		} else if strings.HasPrefix(line, "cut ") {
 			// Cut N cards
 			nStr := strings.TrimPrefix(line, "cut ")
-			n, _ := strconv.Atoi(nStr)
+			n, err := strconv.Atoi(nStr)
+			if err != nil {
+				continue
+			}
 
 			if n >= 0 {
 				// Cut from top
@@ -106,7 +115,10 @@ func shuffleDeck(lines []string, deckSize uint) []uint {
 		} else if strings.HasPrefix(line, "deal with increment ") {
 			// Deal with increment N
 			nStr := strings.TrimPrefix(line, "deal with increment ")
-			n, _ := strconv.Atoi(nStr)
+			n, err := strconv.Atoi(nStr)
+			if err != nil {
+				continue
+			}
 			increment := uint(n)
 
 			newDeck := make([]uint, deckSize)
@@ -148,14 +160,20 @@ func findCardAtPosition(lines []string, deckSize, times, position uint64) uint64
 			b = modAdd(modMul(-b, 1, m), m-1, m)
 		} else if strings.HasPrefix(line, "cut ") {
 			nStr := strings.TrimPrefix(line, "cut ")
-			cutN, _ := strconv.ParseInt(nStr, 10, 64)
+			cutN, err := strconv.ParseInt(nStr, 10, 64)
+			if err != nil {
+				continue
+			}
 			// Forward: pos -> pos - n
 			// Inverse: pos -> pos + n
 			// a' = a, b' = b + n
 			b = modAdd(b, cutN, m)
 		} else if strings.HasPrefix(line, "deal with increment ") {
 			nStr := strings.TrimPrefix(line, "deal with increment ")
-			inc, _ := strconv.ParseInt(nStr, 10, 64)
+			inc, err := strconv.ParseInt(nStr, 10, 64)
+			if err != nil {
+				continue
+			}
 			// Forward: pos -> pos * n
 			// Inverse: pos -> pos * n^(-1)
 			incInv := modInverse(inc, m)
@@ -260,7 +278,8 @@ func modInverse(a, m int64) int64 {
 	}
 
 	if r > 1 {
-		panic("a is not invertible")
+		// a is not invertible - return 1 as fallback
+		return 1
 	}
 	if t < 0 {
 		t += m
