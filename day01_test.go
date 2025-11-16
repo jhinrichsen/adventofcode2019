@@ -5,18 +5,17 @@ import (
 	"testing"
 )
 
-var part1Tests = []struct {
-	mass int
-	fuel int
-}{
-	{12, 2},
-	{14, 2},
-	{1969, 654},
-	{100756, 33583},
-}
-
 func TestDay01Part1Examples(t *testing.T) {
-	for _, tt := range part1Tests {
+	tests := []struct {
+		mass int
+		fuel int
+	}{
+		{12, 2},
+		{14, 2},
+		{1969, 654},
+		{100756, 33583},
+	}
+	for _, tt := range tests {
 		id := fmt.Sprintf("Fuel(%d)", tt.mass)
 		t.Run(id, func(t *testing.T) {
 			want := tt.fuel
@@ -33,17 +32,16 @@ func TestDay01Part1(t *testing.T) {
 	testLines(t, 1, filename, true, Day01, uint(3231195))
 }
 
-var part2Tests = []struct {
-	mass int
-	fuel int
-}{
-	{14, 2},
-	{1969, 966},
-	{100756, 50346},
-}
-
 func TestDay01Part2Examples(t *testing.T) {
-	for _, tt := range part2Tests {
+	tests := []struct {
+		mass int
+		fuel int
+	}{
+		{14, 2},
+		{1969, 966},
+		{100756, 50346},
+	}
+	for _, tt := range tests {
 		id := fmt.Sprintf("Fuel(%d)", tt.mass)
 		t.Run(id, func(t *testing.T) {
 			want := tt.fuel
