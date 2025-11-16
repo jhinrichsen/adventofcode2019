@@ -99,8 +99,9 @@ func (a universe) dimension(dim int) [4]point {
 func (a universe) cycle() int {
 	c := make(chan int, 3)
 	fn := func(dim int, c chan int) {
+		// Preallocate with reasonable capacity to reduce allocations
+		history := make(map[[4]point]bool, 100000)
 		n := 0
-		history := make(map[[4]point]bool)
 		for {
 			a.step(dim)
 			n++
