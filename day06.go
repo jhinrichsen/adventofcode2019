@@ -81,3 +81,20 @@ func (a Day6) Transfers(object1, object2 string) int {
 	nc := a.OrbitCount(c)
 	return (a.OrbitCount(object1) - 1 - nc) + (a.OrbitCount(object2) - 1 - nc)
 }
+
+// NewDay06 creates a new Orbit from a list of 'a)b' lines.
+var NewDay06 = NewDay6
+
+// Day06 solves Universal Orbit Map puzzle
+func Day06(input []string, part1 bool) uint {
+	puzzle, err := NewDay06(input)
+	if err != nil {
+		return 0
+	}
+
+	if part1 {
+		return uint(puzzle.OrbitCountChecksum())
+	}
+
+	return uint(puzzle.Transfers("YOU", "SAN"))
+}

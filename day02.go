@@ -1,79 +1,99 @@
 package adventofcode2019
 
 import (
-	"strconv"
-	"strings"
+	"fmt"
 )
 
 const (
-	// OpcodeAdd adds parameter
-	OpcodeAdd = 1
-	// OpcodeMul multiplies parameter
-	OpcodeMul = 2
-	// OpcodeRet halts the program
-	OpcodeRet = 99
+	opcodeAdd = 1
+	opcodeMul = 2
+	opcodeRet = 99
 )
 
-// Len calculates them maximum index into an array, i.e. the len of an array
-// that can hold opcodes.
-func Len(opcodes []int) int {
-	// just return max no matter if index or opcode (99)
-	var max int
-	for _, n := range opcodes {
-		if n > max {
-			max = n
-		}
-	}
-	return max
-}
+// NewDay02 parses comma-separated integers from []byte
+func NewDay02(input []byte) ([]int, error) {
+	// Pre-allocate with estimated capacity based on input size
+	opcodes := make([]int, 0, len(input)/4)
+	num := 0
+	hasDigits := false
+	negative := false
 
-// Split converts a comma separated list into an array
-func Split(s string) ([]int, error) {
-	var opcodes []int
-	for _, opcode := range strings.Split(s, ",") {
-		n, err := strconv.Atoi(opcode)
-		if err != nil {
-			return opcodes, err
+	for i, b := range input {
+		if b >= '0' && b <= '9' {
+			num = num*10 + int(b-'0')
+			hasDigits = true
+		} else if b == '-' {
+			negative = true
+		} else if b == ',' || b == '\n' {
+			if hasDigits {
+				if negative {
+					num = -num
+				}
+				opcodes = append(opcodes, num)
+				num = 0
+				hasDigits = false
+				negative = false
+			}
+		} else {
+			return nil, fmt.Errorf("unexpected byte at position %d: %q", i, b)
 		}
-		opcodes = append(opcodes, n)
 	}
+
+	// Handle last number
+	if hasDigits {
+		if negative {
+			num = -num
+		}
+		opcodes = append(opcodes, num)
+	}
+
 	return opcodes, nil
 }
 
-// ToString returns a comma separated list of opcodes
-func ToString(opcodes []int) string {
-	var ss []string
-	for _, opcode := range opcodes {
-		ss = append(ss, strconv.Itoa(opcode))
-	}
-	return strings.Join(ss, ",")
-}
-
-// Run executes opcodes
-func Run(opcodes []int) ([]int, error) {
+// runIntcode executes the intcode program
+func runIntcode(opcodes []int) {
 	pc := 0
-	for opcodes[pc] != OpcodeRet {
+	for opcodes[pc] != opcodeRet {
 		switch opcodes[pc] {
-		case OpcodeAdd:
+		case opcodeAdd:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] + opcodes[opcodes[pc+2]]
 			pc += 4
-		case OpcodeMul:
+		case opcodeMul:
 			opcodes[opcodes[pc+3]] = opcodes[opcodes[pc+1]] * opcodes[opcodes[pc+2]]
 			pc += 4
 		}
 	}
-	return opcodes, nil
 }
 
-// Runs executes a comma separated list of opcodes
-func Runs(s string) (string, error) {
-	opcodes, err := Split(s)
+// Day02 solves the 1202 Program Alarm puzzle
+func Day02(input []byte, part1 bool) (uint, error) {
+	master, err := NewDay02(input)
 	if err != nil {
-		return "", nil
+		return 0, err
 	}
-	opcodes, err = Run(opcodes)
-	if err != nil {
-		return "", err
+
+	if part1 {
+		opcodes := make([]int, len(master))
+		copy(opcodes, master)
+		opcodes[1] = 12
+		opcodes[2] = 2
+		runIntcode(opcodes)
+		return uint(opcodes[0]), nil
 	}
-	return ToString(opcodes), nil
+
+	// Part 2: Find noun and verb that produce output 19690720
+	opcodes := make([]int, len(master))
+	for noun := 0; noun < 100; noun++ {
+		for verb := 0; verb < 100; verb++ {
+			copy(opcodes, master)
+			opcodes[1] = noun
+			opcodes[2] = verb
+			runIntcode(opcodes)
+			if opcodes[0] == 19690720 {
+				return uint(100*noun + verb), nil
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("no solution found")
 }

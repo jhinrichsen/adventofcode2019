@@ -118,13 +118,14 @@ func TestDay6Part1(t *testing.T) {
 	}
 }
 
+func TestDay06Part1(t *testing.T) {
+	testLines(t, 6, filename, true, Day06, uint(142497))
+}
+
 func BenchmarkDay06Part1(b *testing.B) {
-	d, err := day6FromFile(input(6))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		d.OrbitCountChecksum()
+	lines := testLinesFromFilename(b, filename(6))
+	for b.Loop() {
+		_ = Day06(lines, true)
 	}
 }
 
@@ -165,12 +166,13 @@ func TestDay6Part2(t *testing.T) {
 	}
 }
 
+func TestDay06Part2(t *testing.T) {
+	testLines(t, 6, filename, false, Day06, uint(301))
+}
+
 func BenchmarkDay06Part2(b *testing.B) {
-	d, err := day6FromFile(input(6))
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		d.Transfers("YOU", "SAN")
+	lines := testLinesFromFilename(b, filename(6))
+	for b.Loop() {
+		_ = Day06(lines, false)
 	}
 }

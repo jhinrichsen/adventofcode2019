@@ -59,28 +59,24 @@ coverage.txt test.log &:
 
 # Gitlab test report
 junit.xml: test.log
-	which go-junit-report || $(GO) install github.com/jstemmer/go-junit-report/v2@latest
-	go-junit-report -version
-	go-junit-report < $< > $@
+	$(GO) run github.com/jstemmer/go-junit-report/v2@latest -version
+	$(GO) run github.com/jstemmer/go-junit-report/v2@latest < $< > $@
 
 # Gitlab coverage report
 coverage.xml: coverage.txt
-	which gocover-cobertura || $(GO) install github.com/boumenot/gocover-cobertura@latest
-	gocover-cobertura < $< > $@
+	$(GO) run github.com/boumenot/gocover-cobertura@latest < $< > $@
 
 # Gitlab code quality report
 gl-code-quality-report.json: golangci-lint.json
-	which golint-convert || $(GO) install github.com/banyansecurity/golint-convert@latest
-	golint-convert < $< > $@
+	$(GO) run github.com/banyansecurity/golint-convert@latest < $< > $@
 
 golangci-lint.json:
 	-$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run --out-format json > $@
 
 # Gitlab dependency report
 govulncheck.sarif:
-	which govulncheck || $(GO) install golang.org/x/vuln/cmd/govulncheck@latest
-	govulncheck -version
-	govulncheck -format=sarif ./... > $@
+	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest -version
+	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest -format=sarif ./... > $@
 
 README.html: README.adoc
 	asciidoc $^

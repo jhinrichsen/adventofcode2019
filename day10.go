@@ -167,3 +167,18 @@ func Day10Part2(as []image.Point, base image.Point) int {
 	a := vaporized[199]
 	return a.X*100 + a.Y
 }
+
+// NewDay10 parses asteroid map from input
+var NewDay10 = ParseAsteroidMap
+
+// Day10 solves Monitoring Station puzzle
+func Day10(input []byte, part1 bool) uint {
+	asteroids := NewDay10(input)
+	base, maxVisible := Day10Part1(asteroids)
+
+	if part1 {
+		return uint(maxVisible)
+	}
+
+	return uint(Day10Part2(asteroids, base))
+}
