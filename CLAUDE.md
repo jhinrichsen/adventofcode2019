@@ -44,6 +44,13 @@
 - Use `clear(map)` and `clear(slice)` for efficient clearing
 - Use `min()` and `max()` built-in functions
 
+### Error Handling (MANDATORY)
+- **NEVER** silently ignore errors with blank identifier `_`
+- **ALWAYS** handle or propagate errors explicitly
+- Bad: `n, _ := strconv.Atoi(line)`
+- Good: `n, err := strconv.Atoi(line); if err != nil { panic(err) }`
+- For puzzle functions that can't error, panic on unexpected input errors
+
 ### Test Structure
 - Table-driven tests with external files
 - `testdata/dayXX_example1.txt` not inline strings

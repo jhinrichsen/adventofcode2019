@@ -22,7 +22,10 @@ func completeFuel(mass uint) uint {
 func Day01(lines []string, part1 bool) uint {
 	sum := uint(0)
 	for _, line := range lines {
-		n, _ := strconv.Atoi(line)
+		n, err := strconv.Atoi(line)
+		if err != nil {
+			panic(err)
+		}
 		mass := uint(n)
 		if part1 {
 			f := fuel(mass)
