@@ -56,7 +56,8 @@ func exploreAndFindOxygen(code IntCode) uint {
 	grid[start] = Moved
 
 	// Queue for BFS
-	queue := []state{{pos: start, steps: 0}}
+	queue := make([]state, 0, 1000)
+	queue = append(queue, state{pos: start, steps: 0})
 	currentPos := start
 
 	// Direction mappings
@@ -90,9 +91,10 @@ func exploreAndFindOxygen(code IntCode) uint {
 		return true
 	}
 
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
+	head := 0
+	for head < len(queue) {
+		current := queue[head]
+		head++
 
 		// Move droid to current position if needed
 		if currentPos != current.pos {
@@ -162,7 +164,8 @@ func findPath(from, to image.Point, grid map[image.Point]int) []int {
 	}
 
 	visited := make(map[image.Point]bool)
-	queue := []pathState{{pos: from, path: nil}}
+	queue := make([]pathState, 0, 100)
+	queue = append(queue, pathState{pos: from, path: nil})
 	visited[from] = true
 
 	directions := []struct {
@@ -175,9 +178,10 @@ func findPath(from, to image.Point, grid map[image.Point]int) []int {
 		{East, 1, 0},
 	}
 
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
+	head := 0
+	for head < len(queue) {
+		current := queue[head]
+		head++
 
 		for _, dir := range directions {
 			nextPos := image.Point{
@@ -232,7 +236,8 @@ func fillWithOxygen(code IntCode) uint {
 		pos image.Point
 	}
 
-	queue := []state{{pos: start}}
+	queue := make([]state, 0, 1000)
+	queue = append(queue, state{pos: start})
 	currentPos := start
 	var oxygenPos image.Point
 
@@ -248,9 +253,10 @@ func fillWithOxygen(code IntCode) uint {
 	}
 
 	// Explore entire maze
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
+	head := 0
+	for head < len(queue) {
+		current := queue[head]
+		head++
 
 		// Move droid to current position if needed
 		if currentPos != current.pos {
