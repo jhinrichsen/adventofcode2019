@@ -25,8 +25,6 @@ func (a *point) gravity(b *point) {
 	} else if a.pos > b.pos {
 		a.vel--
 		b.vel++
-	} else {
-		// no change
 	}
 }
 
@@ -78,8 +76,6 @@ func (a *universe) gravity(d int, m1, m2 int) {
 	} else if a.moons[d][m1].pos > a.moons[d][m2].pos {
 		a.moons[d][m1].vel--
 		a.moons[d][m2].vel++
-	} else {
-		// no change
 	}
 }
 

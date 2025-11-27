@@ -75,8 +75,6 @@ func ParseAsteroidMap(asteroids []byte) []image.Point {
 		} else if isAsteroid(b) {
 			as = append(as, image.Point{X: x, Y: y})
 			x++
-		} else {
-			// whitespace, ignore
 		}
 	}
 	return as

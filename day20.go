@@ -20,14 +20,14 @@ func Day20(input []byte, part1 bool) uint {
 }
 
 type Maze20 struct {
-	grid       [][]byte
-	dimX       int
-	dimY       int
-	portals    map[string][]image.Point // portal name -> list of positions
-	start      image.Point
-	end        image.Point
-	innerEdge  image.Point // Track inner boundary for determining inner/outer portals
-	outerEdge  image.Point
+	grid      [][]byte
+	dimX      int
+	dimY      int
+	portals   map[string][]image.Point // portal name -> list of positions
+	start     image.Point
+	end       image.Point
+	innerEdge image.Point // Track inner boundary for determining inner/outer portals
+	outerEdge image.Point
 }
 
 func parseMaze20(input []byte) Maze20 {

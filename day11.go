@@ -17,7 +17,7 @@ type RegistrationID map[image.Point]bool
 
 // returns min and max as 2D coordinates (x/y)
 func (a RegistrationID) dim() (min, max image.Point) {
-	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1) // max int
+	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1)       // max int
 	maxX, maxY := -int(^uint(0)>>1)-1, -int(^uint(0)>>1)-1 // min int
 	for k := range a {
 		if k.X < minX {

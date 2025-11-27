@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"testing"
 )
 
@@ -132,15 +131,3 @@ func input(day int) string {
 }
 
 // linesAsNumber converts strings into integer.
-func linesAsNumbers(lines []string) ([]int, error) {
-	var is []int
-	for i := range lines {
-		n, err := strconv.Atoi(lines[i])
-		if err != nil {
-			msg := "error in line %d: cannot convert %q to number"
-			return is, fmt.Errorf(msg, i, lines[i])
-		}
-		is = append(is, n)
-	}
-	return is, nil
-}

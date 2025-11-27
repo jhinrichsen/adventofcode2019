@@ -15,9 +15,9 @@ const (
 
 // Status codes from the droid
 const (
-	HitWall      = 0
-	Moved        = 1
-	FoundOxygen  = 2
+	HitWall     = 0
+	Moved       = 1
+	FoundOxygen = 2
 )
 
 // Day15 finds the minimum steps to the oxygen system (part1)
@@ -62,8 +62,8 @@ func exploreAndFindOxygen(code IntCode) uint {
 
 	// Direction mappings
 	directions := []struct {
-		cmd int
-		dx, dy int
+		cmd     int
+		dx, dy  int
 		reverse int
 	}{
 		{North, 0, -1, South},
@@ -169,7 +169,7 @@ func findPath(from, to image.Point, grid map[image.Point]int) []int {
 	visited[from] = true
 
 	directions := []struct {
-		cmd int
+		cmd    int
 		dx, dy int
 	}{
 		{North, 0, -1},
@@ -242,8 +242,8 @@ func fillWithOxygen(code IntCode) uint {
 	var oxygenPos image.Point
 
 	directions := []struct {
-		cmd int
-		dx, dy int
+		cmd     int
+		dx, dy  int
 		reverse int
 	}{
 		{North, 0, -1, South},

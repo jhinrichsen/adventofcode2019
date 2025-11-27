@@ -16,12 +16,12 @@ func Day21(input []byte, part1 bool) uint {
 		// Jump if there's a hole in next 3 tiles AND ground at D to land on
 		// Logic: (!A OR !B OR !C) AND D
 		springscript = strings.Join([]string{
-			"NOT A J",  // J = !A
-			"NOT B T",  // T = !B
-			"OR T J",   // J = !A OR !B
-			"NOT C T",  // T = !C
-			"OR T J",   // J = !A OR !B OR !C
-			"AND D J",  // J = (!A OR !B OR !C) AND D
+			"NOT A J", // J = !A
+			"NOT B T", // T = !B
+			"OR T J",  // J = !A OR !B
+			"NOT C T", // T = !C
+			"OR T J",  // J = !A OR !B OR !C
+			"AND D J", // J = (!A OR !B OR !C) AND D
 			"WALK",
 		}, "\n") + "\n"
 	} else {
@@ -30,16 +30,16 @@ func Day21(input []byte, part1 bool) uint {
 		// After landing at D, we need either E (to walk) or H (to jump again)
 		// Logic: (!A OR !B OR !C) AND D AND (E OR H)
 		springscript = strings.Join([]string{
-			"NOT A J",  // J = !A
-			"NOT B T",  // T = !B
-			"OR T J",   // J = !A OR !B
-			"NOT C T",  // T = !C
-			"OR T J",   // J = !A OR !B OR !C
-			"AND D J",  // J = (!A OR !B OR !C) AND D
-			"NOT H T",  // T = !H
-			"NOT T T",  // T = H
-			"OR E T",   // T = H OR E
-			"AND T J",  // J = (!A OR !B OR !C) AND D AND (H OR E)
+			"NOT A J", // J = !A
+			"NOT B T", // T = !B
+			"OR T J",  // J = !A OR !B
+			"NOT C T", // T = !C
+			"OR T J",  // J = !A OR !B OR !C
+			"AND D J", // J = (!A OR !B OR !C) AND D
+			"NOT H T", // T = !H
+			"NOT T T", // T = H
+			"OR E T",  // T = H OR E
+			"AND T J", // J = (!A OR !B OR !C) AND D AND (H OR E)
 			"RUN",
 		}, "\n") + "\n"
 	}
