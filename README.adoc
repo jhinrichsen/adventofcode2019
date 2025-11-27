@@ -314,3 +314,35 @@ Results from `make total` on Intel(R) Xeon(R) CPU @ 2.60GHz:
 ----
 include::benches/linux-amd64-IntelR_XeonR.txt[]
 ----
+== SAST (Static Application Security Testing)
+
+This project uses custom SAST tooling in GitLab CI, optimized for the free tier.
+
+=== GitLab Free Tier Limitations
+
+GitLab's built-in SAST features (Security Dashboard, vulnerability management, merge request security widgets) require the Ultimate tier. On the free tier, SAST scans can run but results are only available as downloadable JSON artifacts.
+
+=== Current Setup
+
+Our CI pipeline uses:
+
+- Code Quality Reports: golangci-lint → JSON → banyansecurity/golint-convert → CodeClimate JSON format
+  * Displays findings in merge request Code Quality widget (available in free tier since GitLab 13.2)
+  * Shows code quality degradations/improvements directly in MRs
+
+- Test Reports: go-junit-report/v2 → JUnit XML format
+  * Integrates test results into GitLab's test report UI
+
+- Coverage Reports: gocover-cobertura → Cobertura XML format  
+  * Shows coverage metrics and trends in merge requests
+
+- Vulnerability Scanning: govulncheck (periodic, scheduled pipeline)
+  * Scans for known vulnerabilities in Go dependencies
+  * Runs on a schedule to catch newly disclosed vulnerabilities
+  * Results available as JSON artifacts (no UI on free tier)
+
+=== Note on Deprecation
+
+GitLab deprecated its built-in CodeClimate scanning template in version 17.3 (planned removal in 19.0). This only affects GitLab's bundled scanning engine. Custom pipelines that generate CodeClimate-format JSON (like ours) continue to work and are the recommended approach for free tier users.
+
+The Code Quality widget will continue to display results from custom CodeClimate JSON reports.
