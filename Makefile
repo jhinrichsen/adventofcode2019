@@ -1,6 +1,9 @@
 GO ?= CGO_ENABLED=0 go
-CPU_NAME := $(shell $(GO) run ./cmd/cpuname)
-BENCH_FILE := benches/$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)-$(CPU_NAME).txt
+
+.cpuname:
+	@$(GO) run ./cmd/cpuname > .cpuname
+
+BENCH_FILE := benches/$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)-$(shell cat .cpuname 2>/dev/null || echo unknown).txt
 
 .PHONY: help
 help: ## Show this help
@@ -13,6 +16,7 @@ all: tidy test ## Run tidy and test
 clean: ## Remove generated files
 	$(GO) clean
 	-rm -f \
+		.cpuname \
 		coverage.txt \
 		coverage.xml \
 		gl-code-quality-report.json \
@@ -35,7 +39,7 @@ tidy: ## Format check and lint
 test: ## Run all tests
 	$(GO) test -short
 
-$(BENCH_FILE): $(wildcard *.go)
+$(BENCH_FILE): .cpuname $(wildcard *.go)
 	@mkdir -p benches
 	@echo "Running benchmarks and saving to $@..."
 ifeq ($(shell $(GO) env GOOS),linux)
