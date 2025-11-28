@@ -273,7 +273,6 @@ func TestDay12Part2Example1(t *testing.T) {
 }
 
 func TestDay12Part2Example2(t *testing.T) {
-	t.Skip("flaky test - passes individually but fails in full suite")
 	want := 4686774924
 	u, err := day12FromFile("testdata/day12_example2_input.txt")
 	if err != nil {

@@ -95,13 +95,15 @@ func (a universe) dimension(dim int) [4]point {
 func (a universe) cycle() int {
 	c := make(chan int, 3)
 	fn := func(dim int, c chan int) {
+		// Create a copy of universe for this goroutine to avoid data races
+		u := a
 		// Preallocate with reasonable capacity to reduce allocations
 		history := make(map[[4]point]bool, 100000)
 		n := 0
 		for {
-			a.step(dim)
+			u.step(dim)
 			n++
-			d := a.dimension(dim)
+			d := u.dimension(dim)
 			if _, ok := history[d]; ok {
 				n--
 				c <- n
@@ -116,11 +118,9 @@ func (a universe) cycle() int {
 	c1 := <-c
 	c2 := <-c
 	c3 := <-c
-	// Multiplying creates a number ten times too high
-	// d1 := gcd(c1, c2)
-	d2 := gcd(c2, c3)
-	d3 := gcd(c3, c1)
-	return c1 * c2 / d2 * c3 / d3
+	// Calculate LCM(c1, c2, c3) = LCM(LCM(c1, c2), c3)
+	lcm12 := c1 * c2 / gcd(c1, c2)
+	return lcm12 * c3 / gcd(lcm12, c3)
 }
 
 func gcd(a, b int) int {
