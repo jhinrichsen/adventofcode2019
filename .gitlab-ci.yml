@@ -1,4 +1,4 @@
-image: golang:1.24
+image: golang:1.25
 
 stages:
   - test
@@ -7,6 +7,7 @@ test-job:
   stage: test
   script:
     - make tidy
+    - make total
     - make coverage.xml junit.xml gl-code-quality-report.json
   coverage: '/coverage: \d+\.\d+%/'
   artifacts:
