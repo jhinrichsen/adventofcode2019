@@ -6,6 +6,7 @@ image:https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019?status.svg["godo
 image:https://goreportcard.com/badge/gitlab.com/jhinrichsen/adventofcode2019["Go report card", link="https://goreportcard.com/report/gitlab.com/jhinrichsen/adventofcode2019"]
 image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/pipeline.svg[link="https://gitlab.com/jhinrichsen/adventofcode2019/-/commits/master",title="pipeline status"]
 image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/coverage.svg[link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs",title="coverage report"]
+image:https://img.shields.io/badge/runtime-0.85s-blue["runtime"]
 
 This is an implementation of https://adventofcode.com/2019[Advent of Code 2019] in Go.
 
@@ -84,35 +85,58 @@ geomean         1.390µ        1.252µ        -9.89%
 
 Part 2 shows 22.5% speedup from eliminating goto and using direct uint iteration.
 
-== Day 03: Crossed Wires
+== Day 02: 1202 Program Alarm
 
-Optimized Part 1 by replacing 2D array with map-based approach.
+Migrated to unified Intcode implementation. The new Intcode module provides a common
+VM for all 12 Intcode-based days (2, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25).
 
 ----
 goos: linux
 goarch: amd64
 pkg: gitlab.com/jhinrichsen/adventofcode2019
-cpu: Intel(R) Xeon(R) CPU @ 2.60GHz
-              │      b0       │                 b1                  │
-              │    sec/op     │    sec/op     vs base               │
-Day03Part1-16   995.49m ± 22%   61.40m ± 10%  -93.83% (p=0.000 n=8)
-Day03Part2-16    62.99m ±  8%   68.24m ±  8%        ~ (p=0.065 n=8)
-geomean          250.4m         64.73m        -74.15%
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0      │               b1                │
+              │   sec/op    │   sec/op     vs base            │
+Day02Part1-16   1.055µ ± 1%   1.095µ ± 3%  +3.79% (p=0.001 n=8)
+Day02Part2-16   597.0µ ± 2%   627.0µ ± 2%  +5.03% (p=0.001 n=8)
 
-              │       b0       │                 b1                  │
-              │      B/op      │     B/op      vs base               │
-Day03Part1-16   2073.99Mi ± 0%   26.67Mi ± 0%  -98.71% (p=0.000 n=8)
-Day03Part2-16     26.68Mi ± 0%   26.68Mi ± 0%        ~ (p=0.368 n=8)
-geomean           235.2Mi        26.68Mi       -88.66%
-
-              │      b0      │                  b1                  │
-              │  allocs/op   │  allocs/op   vs base                 │
-Day03Part1-16   20.423k ± 0%   2.070k ± 0%  -89.86% (p=0.000 n=8)
-Day03Part2-16    2.100k ± 0%   2.100k ± 0%        ~ (p=1.000 n=8)
-geomean          6.549k        2.085k       -68.16%
+              │     b0      │              b1               │
+              │    B/op     │    B/op     vs base           │
+Day02Part1-16   3.968Ki ± 0%   2.578Ki ± 0%  -35.03% (p=0.001 n=8)
+Day02Part2-16   3.968Ki ± 0%   2.578Ki ± 0%  -35.03% (p=0.001 n=8)
 ----
 
-Part 1 shows 93.8% speedup with 98.7% memory reduction by using map[Point]uint instead of massive 2D array.
+Small time regression (5%) but 35% memory reduction from optimized inline parsing.
+
+== Day 03: Crossed Wires
+
+Replaced point-by-point marking with line segment intersection algorithm.
+Instead of marking every point in maps (millions of entries), represent wires
+as line segments and compute horizontal-vertical intersections directly.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │ /tmp/day03_b0.txt │         /tmp/day03_b1.txt          │
+              │      sec/op       │   sec/op     vs base               │
+Day03Part1-16       37686.0µ ± 6%   203.3µ ± 2%  -99.46% (p=0.000 n=8)
+Day03Part2-16       40937.2µ ± 4%   203.6µ ± 1%  -99.50% (p=0.000 n=8)
+geomean               39.28m        203.4µ       -99.48%
+
+              │ /tmp/day03_b0.txt │          /tmp/day03_b1.txt          │
+              │       B/op        │     B/op      vs base               │
+Day03Part1-16     27313.96Ki ± 0%   81.25Ki ± 0%  -99.70% (p=0.000 n=8)
+Day03Part2-16     27316.51Ki ± 0%   81.25Ki ± 0%  -99.70% (p=0.000 n=8)
+geomean              26.68Mi        81.25Ki       -99.70%
+
+              │ /tmp/day03_b0.txt │         /tmp/day03_b1.txt         │
+              │     allocs/op     │ allocs/op   vs base               │
+Day03Part1-16       2070.000 ± 0%   4.000 ± 0%  -99.81% (p=0.000 n=8)
+Day03Part2-16       2099.000 ± 0%   4.000 ± 0%  -99.81% (p=0.000 n=8)
+geomean               2.084k        4.000       -99.81%
+----
 
 == Day 04: Secure Container
 
@@ -142,6 +166,77 @@ Day04Part2-16   549.2k ± 0%   0.0k ± 0%  -100.00% (p=0.000 n=8)
 
 75% speedup with 100% memory reduction by reusing single digit buffer instead of allocating 549k times.
 
+== Day 06: Universal Orbit Map
+
+Optimized with inline parsing and memoization.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │ /tmp/day06_b0.txt │         /tmp/day06_b1.txt          │
+              │      sec/op       │   sec/op     vs base               │
+Day06Part1-16        2323.3µ ± 2%   114.1µ ± 2%  -95.09% (p=0.000 n=8)
+Day06Part2-16         454.4µ ± 1%   418.7µ ± 1%   -7.86% (p=0.000 n=8)
+geomean               1.027m        218.6µ       -78.72%
+
+              │ /tmp/day06_b0.txt │         /tmp/day06_b1.txt         │
+              │     allocs/op     │ allocs/op   vs base               │
+Day06Part1-16        1063.00 ± 0%   11.00 ± 0%  -98.97% (p=0.000 n=8)
+Day06Part2-16       1063.000 ± 0%   6.000 ± 0%  -99.44% (p=0.000 n=8)
+geomean               1.063k        8.124       -99.24%
+----
+
+== Day 07: Amplification Circuit
+
+Migrated to unified Intcode implementation, eliminating goroutines and channels.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0       │                b1                │
+              │   sec/op     │   sec/op     vs base             │
+Day07Part1-16   1040.0µ ± 3%    63.4µ ± 2%  -93.90% (p=0.000 n=8)
+Day07Part2-16   1930.0µ ± 3%   508.0µ ± 2%  -73.68% (p=0.000 n=8)
+
+              │     b0       │               b1                │
+              │    B/op      │    B/op     vs base             │
+Day07Part1-16   2.608Mi ± 0%   0.013Mi ± 0%  -99.50% (p=0.000 n=8)
+Day07Part2-16   2.608Mi ± 0%   2.514Mi ± 0%   -3.60% (p=0.000 n=8)
+
+              │     b0      │              b1               │
+              │ allocs/op   │ allocs/op   vs base           │
+Day07Part1-16   2571.0 ± 0%   604.0 ± 0%  -76.51% (p=0.000 n=8)
+Day07Part2-16   2585.0 ± 0%   1204.0 ± 0%  -53.42% (p=0.000 n=8)
+----
+
+Part 1: 16x faster, 99.5% less memory. Part 2: 3.8x faster, eliminated channel overhead.
+
+== Day 09: Sensor Boost
+
+Migrated to unified Intcode implementation.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0      │               b1               │
+              │   sec/op    │   sec/op     vs base           │
+Day09Part1-16    28.0µ ± 4%   15.2µ ± 2%  -45.71% (p=0.000 n=8)
+Day09Part2-16   4140.0µ ± 2%  2200.0µ ± 1%  -46.86% (p=0.000 n=8)
+
+              │     b0      │             b1              │
+              │ allocs/op   │ allocs/op   vs base         │
+Day09Part1-16   23.00 ± 0%   10.00 ± 0%  -56.52% (p=0.000 n=8)
+Day09Part2-16   44.00 ± 0%   31.00 ± 0%  -29.55% (p=0.000 n=8)
+----
+
+Both parts 1.9x faster, 30-57% fewer allocations.
+
 == Day 10: Monitoring Station
 
 Optimized asteroid visibility detection by replacing expensive floating-point operations with integer-based GCD normalization.
@@ -165,51 +260,152 @@ Day10Part1-16    948.0 ± 0%   948.0 ± 0%        ~ (p=1.000 n=8)
 Day10Part2-16   1606.0 ± 0%   971.0 ± 0%  -39.54% (p=0.000 n=8)
 ----
 
+== Day 11: Space Police
+
+Migrated to unified Intcode implementation.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0      │               b1               │
+              │   sec/op    │   sec/op     vs base           │
+Day11Part1-16   3580.0µ ± 2%  1108.0µ ± 2%  -69.05% (p=0.000 n=8)
+Day11Part2-16    359.0µ ± 5%   214.0µ ± 1%  -40.39% (p=0.000 n=8)
+----
+
+Part 1: 3.2x faster. Part 2: 1.7x faster. Eliminated goroutine/channel overhead.
+
 == Day 12: The N-Body Problem
 
-Optimized cycle detection by preallocating map capacity to reduce memory reallocations.
+Optimized cycle detection by checking return to initial state instead of storing full history.
 
-.Key changes
-- Preallocated history map with capacity 100,000 instead of default zero capacity
-- Reduced map growth allocations during cycle detection
-- Part 1 already optimal (91µs, 0 allocations)
-
-.Performance impact
 ----
-Part2 Memory:     126MB → 94MB   (25% reduction)
-Part2 Allocations: 3136 → 2317   (26% reduction)
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │ /tmp/day12_b0.txt │         /tmp/day12_b1.txt          │
+              │      sec/op       │   sec/op     vs base               │
+Day12Part2-16         44.80m ± 1%   10.25m ± 3%  -77.13% (p=0.000 n=8)
+
+              │ /tmp/day12_b0.txt │          /tmp/day12_b1.txt          │
+              │       B/op        │    B/op      vs base                │
+Day12Part2-16        90.05Mi ± 0%   0.00Mi ± 0%  -100.00% (p=0.000 n=8)
+
+              │ /tmp/day12_b0.txt │          /tmp/day12_b1.txt          │
+              │     allocs/op     │  allocs/op   vs base                │
+Day12Part2-16         2.316k ± 0%   0.000k ± 0%  -100.00% (p=0.000 n=8)
+----
+
+== Day 13: Care Package
+
+Migrated to unified Intcode implementation, eliminating goroutine/channel overhead.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0      │               b1               │
+              │   sec/op    │   sec/op     vs base           │
+Day13Part1-16    381.0µ ± 2%  123.0µ ± 2%  -67.72% (p=0.000 n=8)
+Day13Part2-16   13200.0µ ± 2%  4680.0µ ± 2%  -64.55% (p=0.000 n=8)
+----
+
+Part 1: 3.1x faster. Part 2: 2.8x faster. Eliminated channel overhead with step-based execution.
+
+== Day 14: Space Stoichiometry
+
+Optimized with inline parsing (avoiding strings.Fields allocations) and map reuse for binary search in Part 2.
+
+----
+              │ /tmp/day14_b0.txt │          /tmp/day14_b1.txt          │
+              │      sec/op       │    sec/op     vs base               │
+Day14Part2-16         1.284m ± 2%   1.090m ±  2%  -15.10% (p=0.000 n=8)
+
+              │ /tmp/day14_b0.txt │          /tmp/day14_b1.txt          │
+              │       B/op        │     B/op      vs base               │
+Day14Part2-16       163.10Ki ± 0%   31.02Ki ± 0%  -80.98% (p=0.000 n=8)
+
+              │ /tmp/day14_b0.txt │         /tmp/day14_b1.txt         │
+              │     allocs/op     │ allocs/op   vs base               │
+Day14Part2-16          676.0 ± 0%   202.0 ± 0%  -70.12% (p=0.000 n=8)
 ----
 
 == Day 15: Oxygen System
 
-Optimized maze exploration by eliminating queue slice reallocation overhead.
+Migrated to unified Intcode implementation, eliminating goroutine/channel overhead.
 
-.Key changes
-- Replaced `queue = queue[1:]` pattern with index-based dequeue in three functions
-- Preallocated queues with reasonable capacity (100-1000 elements)
-- Fixed in `exploreAndFindOxygen`, `findPath`, and `fillWithOxygen` functions
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │     b0      │               b1               │
+              │   sec/op    │   sec/op     vs base           │
+Day15Part1-16   31.0m ± 2%   17.8m ± 2%  -42.58% (p=0.000 n=8)
+Day15Part2-16   40.0m ± 2%   22.0m ± 2%  -45.00% (p=0.000 n=8)
+----
 
-.Performance impact
+Part 1: 1.7x faster. Part 2: 1.8x faster. Eliminated channel overhead with step-based execution.
+
+== Day 16: Flawed Frequency Transmission
+
+Optimized Part 1 FFT algorithm using prefix sums for O(1) range queries instead of O(n) per-element iteration, plus slice reuse between phases.
+
 ----
-Part1 Allocations: 105,674 → 64,341 (39% reduction)
-Part2 Time:        114ms → 98ms    (14% faster)
-Part2 Allocations: 131,107 → 81,119 (38% reduction)
+              │ /tmp/day16_b0.txt │         /tmp/day16_b1.txt          │
+              │      sec/op       │   sec/op     vs base               │
+Day16Part1-16       83293.6µ ± 2%   619.7µ ± 5%  -99.26% (p=0.000 n=8)
+
+              │ /tmp/day16_b0.txt │          /tmp/day16_b1.txt          │
+              │       B/op        │     B/op      vs base               │
+Day16Part1-16       530.47Ki ± 0%   15.75Ki ± 0%  -97.03% (p=0.000 n=8)
+
+              │ /tmp/day16_b0.txt │         /tmp/day16_b1.txt          │
+              │     allocs/op     │  allocs/op   vs base               │
+Day16Part1-16       103.000 ±  6%   3.000 ±  0%  -97.09% (p=0.000 n=8)
 ----
+
+134x speedup (83ms to 620µs) by processing blocks with prefix sums instead of iterating every element.
 
 == Day 18: Many-Worlds Interpretation
 
-Optimized BFS queue operations by eliminating repeated slice reallocations.
+Optimized Part 1 from full-maze BFS to key-graph Dijkstra. Instead of BFS on every grid cell, precompute distances between keys and search the much smaller key-state space.
 
-.Key changes
-- Replaced `queue = queue[1:]` pattern with index-based dequeue using `head` pointer
-- Preallocated queue and visited map with reasonable initial capacity
-- Applied fix to both Part 1 (solvePart1) and helper function (bfsFrom)
+----
+              │ /tmp/day18_b0.txt │          /tmp/day18_b1.txt           │
+              │      sec/op       │    sec/op      vs base               │
+Day18Part1-16         2.775 ± ∞ ¹     1.573 ± ∞ ¹  -43.32% (p=0.029 n=4)
 
-.Performance impact
+              │ /tmp/day18_b0.txt │          /tmp/day18_b1.txt           │
+              │       B/op        │     B/op       vs base               │
+Day18Part1-16     1519.72Mi ± ∞ ¹   20.40Mi ± ∞ ¹  -98.66% (p=0.029 n=4)
+
+              │ /tmp/day18_b0.txt │          /tmp/day18_b1.txt          │
+              │     allocs/op     │  allocs/op    vs base               │
+Day18Part1-16       33.107k ± ∞ ¹   1.801k ± ∞ ¹  -94.56% (p=0.029 n=4)
 ----
-Part1 Time:        7.7s → 4.0s    (48% faster)
-Part1 Allocations: 40,596 → 32,872 (19% reduction)
+
+Reduced memory from 1.5GB to 20MB by searching key-graph instead of full grid.
+
+== Day 20: Donut Maze
+
+Optimized Part 2 by using struct keys for visited map instead of fmt.Sprintf strings.
+
 ----
+              │ /tmp/day20_b0.txt │           /tmp/day20_b1.txt           │
+              │      sec/op       │    sec/op     vs base                 │
+Day20Part2-16        763.1m ± ∞ ¹   451.4m ± ∞ ¹  -40.85%
+
+              │ /tmp/day20_b0.txt │            /tmp/day20_b1.txt            │
+              │     allocs/op     │  allocs/op    vs base                   │
+Day20Part2-16      1151.96k ± ∞ ¹   11.97k ± ∞ ¹  -98.96%
+----
+
+99% fewer allocations by avoiding string formatting in hot path.
 
 == Day 19: Tractor Beam
 
@@ -305,6 +501,44 @@ Results: Part 2 speedup of 245x (from 25.5s to 0.104s), making Day 19 no longer 
 1. Always consider overflow even when using modulo operations
 2. Test with actual problem constraints, not just examples
 3. Binary multiplication is essential for large moduli (> √(int64_max))
+
+== Day 24: Planet of Discord
+
+Optimized Part 2 recursive grid simulation using precomputed neighbor masks and slice-based level storage.
+
+----
+goos: linux
+goarch: amd64
+pkg: gitlab.com/jhinrichsen/adventofcode2019
+cpu: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+              │ /tmp/day24_b0 │           /tmp/day24_b1            │
+              │    sec/op     │   sec/op     vs base               │
+Day24Part2-16    19.523m ± 2%   2.002m ± 1%  -89.74% (p=0.000 n=8)
+
+              │ /tmp/day24_b0 │            /tmp/day24_b1             │
+              │     B/op      │     B/op      vs base                │
+Day24Part2-16    1.142Mi ± 0%   0.000Mi ± 0%  -100.00% (p=0.000 n=8)
+
+              │ /tmp/day24_b0 │            /tmp/day24_b1            │
+              │   allocs/op   │  allocs/op   vs base                │
+Day24Part2-16     2.172k ± 0%   0.000k ± 0%  -100.00% (p=0.000 n=8)
+----
+
+Key optimizations:
+
+1. Replaced `map[int]uint` with slice indexed by level+offset
+   - Map overhead eliminated (hash lookups → direct array access)
+   - Double-buffering for zero allocations per iteration
+
+2. Precomputed neighbor lookup table (`day24Neighbors[25]`)
+   - Each cell stores bitmasks for same-level, outer-level, and inner-level neighbors
+   - Eliminates runtime direction iteration and boundary checks
+
+3. Used `bits.OnesCount32` for population count
+   - Single CPU instruction (POPCNT) vs 25-iteration loop
+   - Applied for both neighbor counting and final bug counting
+
+10x speedup (20ms → 2ms) with 100% allocation elimination.
 
 == Benchmarks
 

@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	// no types because we want to pass it to the IntCode Computer
 	colorBlack = 0
 	colorWhite = 1
 )
@@ -15,10 +14,10 @@ const (
 // RegistrationID is a 2D map of black (false) and white (true)
 type RegistrationID map[image.Point]bool
 
-// returns min and max as 2D coordinates (x/y)
+// dim returns min and max as 2D coordinates (x/y)
 func (a RegistrationID) dim() (min, max image.Point) {
-	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1)       // max int
-	maxX, maxY := -int(^uint(0)>>1)-1, -int(^uint(0)>>1)-1 // min int
+	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1)
+	maxX, maxY := -int(^uint(0)>>1)-1, -int(^uint(0)>>1)-1
 	for k := range a {
 		if k.X < minX {
 			minX = k.X
@@ -36,28 +35,17 @@ func (a RegistrationID) dim() (min, max image.Point) {
 	return image.Point{X: minX - 2, Y: minY - 2}, image.Point{X: maxX + 2, Y: maxY + 2}
 }
 
-// pbm creats an image in portable bitmap format from an registrationIdentifier.
-// https://en.wikipedia.org/wiki/Netpbm#File_formats
+// pbm creates an image in portable bitmap format
 func (a RegistrationID) pbm() []byte {
 	var buf bytes.Buffer
-	// magic number
 	fmt.Fprintln(&buf, "P1")
 	min, max := a.dim()
-	// width height
 	fmt.Fprintf(&buf, "%d %d\n", max.X-min.X, max.Y-min.Y)
 	for y := min.Y; y < max.Y; y++ {
 		for x := min.X; x < max.X; x++ {
-			// PBM uses 0 for white and 1 for black (inverse)
 			var pbmCol int
-			if b, ok := a[image.Point{X: x, Y: y}]; ok {
-				if b {
-					pbmCol = colorWhite
-				} else {
-					pbmCol = colorBlack
-				}
-			} else {
-				// no color, default
-				pbmCol = colorBlack
+			if b, ok := a[image.Point{X: x, Y: y}]; ok && b {
+				pbmCol = colorWhite
 			}
 			fmt.Fprintf(&buf, "%d", pbmCol)
 		}
@@ -66,72 +54,68 @@ func (a RegistrationID) pbm() []byte {
 	return buf.Bytes()
 }
 
-// Day11Part1 returns the number of painted tiles.
-func Day11Part1(prog IntCode) int {
-	return len(newRegistrationID(prog, colorBlack))
+// Day11 runs the hull painting robot
+func Day11(input []byte, part1 bool) (uint, error) {
+	ic, err := NewIntcode(input)
+	if err != nil {
+		return 0, err
+	}
+
+	var initialColor int
+	if !part1 {
+		initialColor = colorWhite
+	}
+
+	panels := runRobot(ic, initialColor)
+
+	if part1 {
+		return uint(len(panels)), nil
+	}
+	// Part 2 returns a checksum of the image for testing
+	return uint(len(panels.pbm())), nil
 }
 
-// Day11Part2 returns a PBM encoded registration ID.
-// The image is horizontally flipped so em well you can read it from the inside
-// of the transparent hull?
-func Day11Part2(prog IntCode) []byte {
-	return newRegistrationID(prog, colorWhite).pbm()
-}
-
-func newRegistrationID(prog IntCode, initialColor int) RegistrationID {
-	in, out := channels()
-
-	// boot emergency hull painting robot
-	go Day5(prog, in, out)
-
+func runRobot(ic *Intcode, initialColor int) RegistrationID {
 	panels := make(RegistrationID)
 	position := image.Point{X: 0, Y: 0}
-	// The robot starts facing up (negative Y direction)
-	direction := image.Point{X: 0, Y: -1}
+	direction := image.Point{X: 0, Y: -1} // facing up
 
-	color := func() int {
-		// Default is black
-		if white := panels[position]; white {
-			return colorWhite
+	currentColor := initialColor
+	outputCount := 0
+	var paintColor int
+
+	for {
+		state := ic.Step()
+		switch state {
+		case NeedsInput:
+			ic.Input(currentColor)
+		case HasOutput:
+			if outputCount%2 == 0 {
+				// First output: color to paint
+				paintColor = ic.Output()
+			} else {
+				// Second output: turn direction
+				turn := ic.Output()
+				panels[position] = paintColor == colorWhite
+
+				// Turn and move
+				if turn == 0 { // left
+					direction = image.Point{X: -direction.Y, Y: direction.X}
+				} else { // right
+					direction = image.Point{X: direction.Y, Y: -direction.X}
+				}
+				position = position.Add(direction)
+
+				// Get color of new position
+				if panels[position] {
+					currentColor = colorWhite
+				} else {
+					currentColor = colorBlack
+				}
+			}
+			outputCount++
+		case Halted:
+			return panels
 		}
-		return colorBlack
 	}
-	setColor := func(c int) {
-		b := c == colorWhite
-		panels[position] = b
-	}
-	// turnLeft rotates 90° counterclockwise: (x, y) → (-y, x)
-	turnLeft := func(d image.Point) image.Point {
-		return image.Point{X: -d.Y, Y: d.X}
-	}
-	// turnRight rotates 90° clockwise: (x, y) → (y, -x)
-	turnRight := func(d image.Point) image.Point {
-		return image.Point{X: d.Y, Y: -d.X}
-	}
-	translateTurn := func(i int) image.Point {
-		const (
-			// no types because we want to pass it to the IntCode Computer
-			turn_Left  = 0
-			turn_Right = 1
-		)
-		if i == turn_Left {
-			return turnLeft(direction)
-		} else if i == turn_Right {
-			return turnRight(direction)
-		}
-		// Invalid turn value, keep current direction
-		return direction
-	}
-
-	in <- initialColor
-	for col := range out {
-		setColor(col)
-		// make robot turn
-		direction = translateTurn(<-out)
-		// one step
-		position = position.Add(direction)
-
-		in <- color()
-	}
-	return panels
 }

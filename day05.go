@@ -210,12 +210,12 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 }
 
 func instruction(instr int) (byte, ParameterMode, ParameterMode, ParameterMode) {
-	var buf [5]byte
-	DigitsInto(instr, buf[:])
-	opcode := 10*buf[3] + buf[4]
-	mode3 := ParameterMode(buf[0])
-	mode2 := ParameterMode(buf[1])
-	mode1 := ParameterMode(buf[2])
+	opcode := byte(instr % 100)
+	instr /= 100
+	mode1 := ParameterMode(instr % 10)
+	instr /= 10
+	mode2 := ParameterMode(instr % 10)
+	mode3 := ParameterMode(instr / 10)
 	return opcode, mode1, mode2, mode3
 }
 
@@ -248,29 +248,27 @@ func channels() (chan int, chan int) {
 	return make(chan int, 2), make(chan int, 2)
 }
 
-// NewDay05 parses IntCode program from input
-func NewDay05(input []byte) IntCode {
-	return MustSplit(string(input))
-}
-
 // Day05 runs the diagnostic program and returns the diagnostic code
-func Day05(input []byte, part1 bool) uint {
-	program := NewDay05(input)
-	in, out := channels()
-
-	go Day5(program, in, out)
-
-	if part1 {
-		in <- 1 // Air conditioner unit
-		// Drain all outputs, last one is diagnostic code
-		var diagnostic int
-		for v := range out {
-			diagnostic = v
-		}
-		return uint(diagnostic)
+func Day05(input []byte, part1 bool) (uint, error) {
+	ic, err := NewIntcode(input)
+	if err != nil {
+		return 0, err
 	}
 
-	in <- 5 // Thermal radiator controller
-	diagnostic := <-out
-	return uint(diagnostic)
+	var systemID int
+	if part1 {
+		systemID = 1 // Air conditioner unit
+	} else {
+		systemID = 5 // Thermal radiator controller
+	}
+
+	outputs, err := ic.Run(systemID)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(outputs) == 0 {
+		return 0, nil
+	}
+	return uint(outputs[len(outputs)-1]), nil
 }

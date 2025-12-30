@@ -213,31 +213,21 @@ func TestDay5Part2(t *testing.T) {
 func BenchmarkDay05Part2(b *testing.B) {
 	buf := fileFromFilename(b, filename, 5)
 	for b.Loop() {
-		_ = Day05(buf, false)
+		_, _ = Day05(buf, false)
 	}
 }
 
 func TestDay05Part1(t *testing.T) {
-	buf := fileFromFilename(t, filename, 5)
-	want := uint(16225258)
-	got := Day05(buf, true)
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+	testSolver(t, 5, filename, true, Day05, uint(16225258))
 }
 
 func TestDay05Part2(t *testing.T) {
-	buf := fileFromFilename(t, filename, 5)
-	want := uint(2808771)
-	got := Day05(buf, false)
-	if want != got {
-		t.Fatalf("want %d but got %d", want, got)
-	}
+	testSolver(t, 5, filename, false, Day05, uint(2808771))
 }
 
 func BenchmarkDay05Part1(b *testing.B) {
 	buf := fileFromFilename(b, filename, 5)
 	for b.Loop() {
-		_ = Day05(buf, true)
+		_, _ = Day05(buf, true)
 	}
 }

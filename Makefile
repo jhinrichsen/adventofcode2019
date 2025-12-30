@@ -1,7 +1,7 @@
 GO ?= CGO_ENABLED=0 go
 
 .cpuname:
-	@$(GO) run ./cmd/cpuname > .cpuname
+	@$(GO) test -bench=BenchmarkDetectCPU -benchtime=1ns ./cmd/cpuname | $(GO) run ./cmd/cpuname > .cpuname
 
 BENCH_FILE := benches/$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)-$(shell cat .cpuname 2>/dev/null || echo unknown).txt
 
@@ -62,8 +62,9 @@ else
 endif
 
 .PHONY: total
-total: $(BENCH_FILE) ## Run benchmarks and show total runtime
-	@awk -f total.awk < $(BENCH_FILE)
+total: .cpuname ## Run benchmarks and show total runtime
+	@BENCH_FILE="benches/$$($(GO) env GOOS)-$$($(GO) env GOARCH)-$$(cat .cpuname).txt"; \
+	$(MAKE) --no-print-directory "$$BENCH_FILE" && awk -f total.awk < "$$BENCH_FILE"
 
 .PHONY: total-nogc
 total-nogc: ## Run benchmarks with GOGC=off and show total runtime

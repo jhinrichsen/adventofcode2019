@@ -63,19 +63,36 @@ func ParseReactions(lines []string) (ReactionMap, error) {
 }
 
 // parseChemical parses a string like "10 ORE" into a Chemical
+// Inline parsing to avoid allocations from strings.Fields
 func parseChemical(s string) (Chemical, error) {
-	parts := strings.Fields(s)
-	if len(parts) != 2 {
+	// Skip leading whitespace
+	i := 0
+	for i < len(s) && (s[i] == ' ' || s[i] == '\t') {
+		i++
+	}
+	// Parse quantity
+	start := i
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		i++
+	}
+	if i == start {
 		return Chemical{}, fmt.Errorf("invalid chemical format: %s", s)
 	}
-
-	quantity, err := strconv.ParseUint(parts[0], 10, 64)
+	quantity, err := strconv.ParseUint(s[start:i], 10, 64)
 	if err != nil {
-		return Chemical{}, fmt.Errorf("invalid quantity: %s", parts[0])
+		return Chemical{}, err
 	}
-
+	// Skip whitespace between quantity and name
+	for i < len(s) && (s[i] == ' ' || s[i] == '\t') {
+		i++
+	}
+	// Rest is name (trim trailing whitespace)
+	end := len(s)
+	for end > i && (s[end-1] == ' ' || s[end-1] == '\t') {
+		end--
+	}
 	return Chemical{
-		Name:     parts[1],
+		Name:     s[i:end],
 		Quantity: uint(quantity),
 	}, nil
 }
@@ -83,12 +100,17 @@ func parseChemical(s string) (Chemical, error) {
 // calculateOre calculates the minimum ORE needed to produce the target chemical
 // using an iterative algorithm with explicit dependency tracking
 func calculateOre(reactions ReactionMap, target string, targetQty uint) uint {
-	// Track what we need to produce
 	needs := make(map[string]uint)
-	needs[target] = targetQty
-
-	// Track surplus materials from over-production
 	surplus := make(map[string]uint)
+	return calculateOreWithMaps(reactions, target, targetQty, needs, surplus)
+}
+
+// calculateOreWithMaps allows reusing maps to avoid allocations
+func calculateOreWithMaps(reactions ReactionMap, target string, targetQty uint, needs, surplus map[string]uint) uint {
+	// Clear maps for reuse
+	clear(needs)
+	clear(surplus)
+	needs[target] = targetQty
 
 	// Iteratively resolve dependencies until only ORE remains
 	for {
@@ -162,9 +184,12 @@ func Day14(lines []string, part1 bool) uint {
 	// Part 2: maximum FUEL that can be produced from 1 trillion ORE
 	totalOre := uint(1000000000000) // 1 trillion
 
-	// Binary search for the maximum fuel
+	// Reusable maps for binary search
+	needs := make(map[string]uint)
+	surplus := make(map[string]uint)
+
 	// First get the ORE per fuel as a baseline
-	orePerFuel := calculateOre(reactions, "FUEL", 1)
+	orePerFuel := calculateOreWithMaps(reactions, "FUEL", 1, needs, surplus)
 
 	// Lower bound estimate
 	low := totalOre / orePerFuel
@@ -174,7 +199,7 @@ func Day14(lines []string, part1 bool) uint {
 	var result uint
 	for low <= high {
 		mid := (low + high) / 2
-		ore := calculateOre(reactions, "FUEL", mid)
+		ore := calculateOreWithMaps(reactions, "FUEL", mid, needs, surplus)
 
 		if ore <= totalOre {
 			result = mid

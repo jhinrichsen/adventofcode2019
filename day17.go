@@ -1,45 +1,43 @@
 package adventofcode2019
 
-import (
-	"bytes"
-)
-
 // Day17 analyzes scaffolding map from ASCII camera
 // Part 1: Sum of alignment parameters at intersections
 // Part 2: Collect dust by visiting all scaffold
-func Day17(program []byte, part1 bool) uint {
-	code := MustSplit(string(bytes.TrimSpace(program)))
+func Day17(program []byte, part1 bool) (uint, error) {
+	ic, err := NewIntcode(program)
+	if err != nil {
+		return 0, err
+	}
 
 	if part1 {
-		return calculateAlignmentSum(code)
+		return calculateAlignmentSum(ic), nil
 	}
-	return collectDust(code)
+	return collectDust(ic), nil
 }
 
-func calculateAlignmentSum(code IntCode) uint {
+func calculateAlignmentSum(ic *Intcode) uint {
 	// Run the Intcode program to get ASCII output
-	input := make(chan int)
-	output := make(chan int, 10000)
-
-	prog := code.Copy()
-	go Day5(prog, input, output)
-	close(input)
-
-	// Read ASCII output and build map
 	var grid [][]byte
 	var row []byte
 
-	for val := range output {
-		ch := byte(val)
-		if ch == '\n' {
-			if len(row) > 0 {
-				grid = append(grid, row)
-				row = nil
+	for {
+		state := ic.Step()
+		switch state {
+		case HasOutput:
+			ch := byte(ic.Output())
+			if ch == '\n' {
+				if len(row) > 0 {
+					grid = append(grid, row)
+					row = nil
+				}
+			} else {
+				row = append(row, ch)
 			}
-		} else {
-			row = append(row, ch)
+		case Halted:
+			goto done
 		}
 	}
+done:
 
 	// Find intersections and calculate alignment parameters
 	sum := uint(0)
@@ -47,7 +45,6 @@ func calculateAlignmentSum(code IntCode) uint {
 	for y := 1; y < len(grid)-1; y++ {
 		for x := 1; x < len(grid[y])-1; x++ {
 			if isIntersection(grid, x, y) {
-				// Alignment parameter is x * y
 				sum += uint(x * y)
 			}
 		}
@@ -57,70 +54,55 @@ func calculateAlignmentSum(code IntCode) uint {
 }
 
 // isIntersection checks if position (x, y) is a scaffold intersection
-// An intersection is a scaffold (#) with scaffolds on all 4 sides
 func isIntersection(grid [][]byte, x, y int) bool {
-	// Check if current position is a scaffold
 	if grid[y][x] != '#' {
 		return false
 	}
-
-	// Check all 4 directions
-	if grid[y-1][x] != '#' { // North
+	if grid[y-1][x] != '#' {
 		return false
 	}
-	if grid[y+1][x] != '#' { // South
+	if grid[y+1][x] != '#' {
 		return false
 	}
-	if x > 0 && grid[y][x-1] != '#' { // West
+	if x > 0 && grid[y][x-1] != '#' {
 		return false
 	}
-	if x < len(grid[y])-1 && grid[y][x+1] != '#' { // East
+	if x < len(grid[y])-1 && grid[y][x+1] != '#' {
 		return false
 	}
-
 	return true
 }
 
-func collectDust(code IntCode) uint {
+func collectDust(ic *Intcode) uint {
 	// Wake up the robot by changing address 0 from 1 to 2
-	prog := code.Copy()
-	prog[0] = 2
-
-	input := make(chan int, 1000)
-	output := make(chan int, 10000)
-
-	go Day5(prog, input, output)
+	ic.SetMem(0, 2)
 
 	// Movement routine - compressed from path analysis
-	// Full path: R,8,L,12,R,8,R,8,L,12,R,8,L,10,L,10,R,8,L,12,L,12,L,10,R,10,L,10,L,10,R,8,L,12,L,12,L,10,R,10,L,10,L,10,R,8,R,8,L,12,R,8,L,12,L,12,L,10,R,10,R,8,L,12,R,8
 	// Main routine: A,A,B,C,B,C,B,A,C,A
 	// Function A: R,8,L,12,R,8
 	// Function B: L,10,L,10,R,8
 	// Function C: L,12,L,12,L,10,R,10
 	// Video feed: n
-
-	sendASCII := func(s string) {
-		for _, ch := range s {
-			input <- int(ch)
-		}
-		input <- 10 // newline
-	}
-
-	sendASCII("A,A,B,C,B,C,B,A,C,A")
-	sendASCII("R,8,L,12,R,8")
-	sendASCII("L,10,L,10,R,8")
-	sendASCII("L,12,L,12,L,10,R,10")
-	sendASCII("n")
-
-	close(input)
+	commands := "A,A,B,C,B,C,B,A,C,A\nR,8,L,12,R,8\nL,10,L,10,R,8\nL,12,L,12,L,10,R,10\nn\n"
+	cmdIdx := 0
 
 	var lastOutput uint
-	for val := range output {
-		if val > 255 {
-			// This is the dust collection amount (non-ASCII)
-			lastOutput = uint(val)
+
+	for {
+		state := ic.Step()
+		switch state {
+		case NeedsInput:
+			if cmdIdx < len(commands) {
+				ic.Input(int(commands[cmdIdx]))
+				cmdIdx++
+			}
+		case HasOutput:
+			val := ic.Output()
+			if val > 255 {
+				lastOutput = uint(val)
+			}
+		case Halted:
+			return lastOutput
 		}
 	}
-
-	return lastOutput
 }

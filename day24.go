@@ -1,5 +1,7 @@
 package adventofcode2019
 
+import "math/bits"
+
 // Day24 simulates bug evolution on a 5x5 grid.
 // For part 1, it returns the biodiversity rating of the first repeated layout.
 // For part 2, it returns the number of bugs after 200 minutes in recursive grids.
@@ -7,7 +9,7 @@ func Day24(lines []string, part1 bool) uint {
 	if part1 {
 		return findFirstRepeatingBiodiversity(lines)
 	}
-	return simulateRecursive(lines, 200)
+	return simulateRecursiveOptimized(lines, 200)
 }
 
 // findFirstRepeatingBiodiversity simulates bug evolution until a layout repeats.
@@ -99,24 +101,6 @@ func countAdjacentBugs(grid uint, x, y, size int) int {
 	return count
 }
 
-// simulateRecursive simulates bug evolution across recursive grid levels.
-func simulateRecursive(lines []string, minutes int) uint {
-	// Use a map to track grids at each depth level
-	grids := make(map[int]uint)
-	grids[0] = parseGridPart2(lines)
-
-	for range minutes {
-		grids = evolveRecursive(grids)
-	}
-
-	// Count total bugs across all levels
-	total := uint(0)
-	for _, grid := range grids {
-		total += countBugs(grid)
-	}
-	return total
-}
-
 // parseGridPart2 parses the initial grid, treating center tile as always empty.
 func parseGridPart2(lines []string) uint {
 	grid := uint(0)
@@ -142,39 +126,133 @@ func parseGridPart2(lines []string) uint {
 	return grid
 }
 
-// evolveRecursive evolves all grid levels simultaneously.
-func evolveRecursive(grids map[int]uint) map[int]uint {
-	// Find min and max levels, and expand range to check adjacent levels
-	minLevel, maxLevel := 0, 0
-	for level := range grids {
-		if level < minLevel {
-			minLevel = level
-		}
-		if level > maxLevel {
-			maxLevel = level
+// countBugs counts the number of bugs in a grid.
+func countBugs(grid uint) uint {
+	return uint(bits.OnesCount(grid))
+}
+
+// Precomputed neighbor information for recursive grids.
+// For each of 25 cells, stores masks for neighbors at same/outer/inner levels.
+type day24NeighborInfo struct {
+	sameLevelMask uint32 // Bitmask of same-level neighbors
+	outerMask     uint32 // Bitmask of outer-level cells to check
+	innerMask     uint32 // Bitmask of inner-level cells to check
+}
+
+var day24Neighbors [25]day24NeighborInfo
+
+func init() {
+	// Outer level tile indices for edge cells
+	// Going left off grid → tile 11 (2*5+1), right → tile 13 (2*5+3)
+	// Going up off grid → tile 7 (1*5+2), down → tile 17 (3*5+2)
+	const outerLeft = 1 << (2*5 + 1)
+	const outerRight = 1 << (2*5 + 3)
+	const outerUp = 1 << (1*5 + 2)
+	const outerDown = 1 << (3*5 + 2)
+
+	// Inner level masks for cells adjacent to center
+	// Right column (x=4): bits 4,9,14,19,24
+	const innerRightCol = (1 << 4) | (1 << 9) | (1 << 14) | (1 << 19) | (1 << 24)
+	// Left column (x=0): bits 0,5,10,15,20
+	const innerLeftCol = (1 << 0) | (1 << 5) | (1 << 10) | (1 << 15) | (1 << 20)
+	// Bottom row (y=4): bits 20,21,22,23,24
+	const innerBottomRow = (1 << 20) | (1 << 21) | (1 << 22) | (1 << 23) | (1 << 24)
+	// Top row (y=0): bits 0,1,2,3,4
+	const innerTopRow = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4)
+
+	for y := range 5 {
+		for x := range 5 {
+			bit := y*5 + x
+			if x == 2 && y == 2 {
+				continue // Skip center
+			}
+
+			var info day24NeighborInfo
+
+			// Check 4 directions: up, down, left, right
+			dirs := [4][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
+			for _, dir := range dirs {
+				nx, ny := x+dir[0], y+dir[1]
+
+				if nx == 2 && ny == 2 {
+					// Going to center → need inner level
+					if dir[0] == -1 { // moving left to center
+						info.innerMask |= innerRightCol
+					} else if dir[0] == 1 { // moving right to center
+						info.innerMask |= innerLeftCol
+					} else if dir[1] == -1 { // moving up to center
+						info.innerMask |= innerBottomRow
+					} else { // moving down to center
+						info.innerMask |= innerTopRow
+					}
+				} else if nx < 0 {
+					info.outerMask |= outerLeft
+				} else if nx >= 5 {
+					info.outerMask |= outerRight
+				} else if ny < 0 {
+					info.outerMask |= outerUp
+				} else if ny >= 5 {
+					info.outerMask |= outerDown
+				} else {
+					// Same level neighbor
+					nbit := ny*5 + nx
+					info.sameLevelMask |= (1 << nbit)
+				}
+			}
+
+			day24Neighbors[bit] = info
 		}
 	}
+}
 
-	// Expand the range to check outer and inner levels
-	minLevel--
-	maxLevel++
+// simulateRecursiveOptimized uses slices and precomputed neighbors.
+func simulateRecursiveOptimized(lines []string, minutes int) uint {
+	// Use slices with offset indexing instead of map
+	// After N minutes, levels range from -N to +N
+	const maxLevels = 201 // supports up to 200 minutes
+	const offset = maxLevels
 
-	newGrids := make(map[int]uint)
+	// Double-buffer for grids: current and next
+	grids := make([]uint32, 2*maxLevels+1)
+	nextGrids := make([]uint32, 2*maxLevels+1)
 
-	for level := minLevel; level <= maxLevel; level++ {
-		grid := grids[level] // Will be 0 if not present
-		newGrid := uint(0)
+	// Parse initial grid
+	grids[offset] = uint32(parseGridPart2(lines))
 
-		for y := range 5 {
-			for x := range 5 {
-				// Skip center tile
-				if x == 2 && y == 2 {
+	// Track active level range
+	minLevel, maxLevel := 0, 0
+
+	for range minutes {
+		// Expand range to check adjacent levels
+		checkMin := minLevel - 1
+		checkMax := maxLevel + 1
+
+		// Reset next grids in active range
+		for level := checkMin; level <= checkMax; level++ {
+			nextGrids[level+offset] = 0
+		}
+
+		newMinLevel, newMaxLevel := checkMax, checkMin // Will be updated
+
+		for level := checkMin; level <= checkMax; level++ {
+			idx := level + offset
+			grid := grids[idx]
+			outerGrid := grids[idx-1]
+			innerGrid := grids[idx+1]
+
+			var newGrid uint32
+
+			for bit := range 25 {
+				if bit == 12 { // Center (2,2)
 					continue
 				}
 
-				bit := y*5 + x
+				info := &day24Neighbors[bit]
+				adjacentBugs := bits.OnesCount32(grid&info.sameLevelMask) +
+					bits.OnesCount32(outerGrid&info.outerMask) +
+					bits.OnesCount32(innerGrid&info.innerMask)
+
 				hasBug := (grid & (1 << bit)) != 0
-				adjacentBugs := countAdjacentBugsRecursive(grids, x, y, level)
 
 				if hasBug {
 					if adjacentBugs == 1 {
@@ -186,94 +264,27 @@ func evolveRecursive(grids map[int]uint) map[int]uint {
 					}
 				}
 			}
+
+			if newGrid != 0 {
+				nextGrids[idx] = newGrid
+				if level < newMinLevel {
+					newMinLevel = level
+				}
+				if level > newMaxLevel {
+					newMaxLevel = level
+				}
+			}
 		}
 
-		if newGrid != 0 {
-			newGrids[level] = newGrid
-		}
+		// Swap buffers
+		grids, nextGrids = nextGrids, grids
+		minLevel, maxLevel = newMinLevel, newMaxLevel
 	}
 
-	return newGrids
-}
-
-// countAdjacentBugsRecursive counts bugs in adjacent cells across recursive levels.
-func countAdjacentBugsRecursive(grids map[int]uint, x, y, level int) int {
-	count := 0
-
-	// Check all 4 directions
-	directions := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
-
-	for _, dir := range directions {
-		nx, ny := x+dir[0], y+dir[1]
-
-		// Check if we're going to the center tile
-		if nx == 2 && ny == 2 {
-			// Add tiles from inner level (level + 1)
-			innerGrid := grids[level+1]
-			if dir[0] == -1 { // moving left to center, so right column of inner
-				for innerY := range 5 {
-					bit := innerY*5 + 4
-					if (innerGrid & (1 << bit)) != 0 {
-						count++
-					}
-				}
-			} else if dir[0] == 1 { // moving right to center, so left column of inner
-				for innerY := range 5 {
-					bit := innerY*5 + 0
-					if (innerGrid & (1 << bit)) != 0 {
-						count++
-					}
-				}
-			} else if dir[1] == -1 { // moving up to center, so bottom row of inner
-				for innerX := range 5 {
-					bit := 4*5 + innerX
-					if (innerGrid & (1 << bit)) != 0 {
-						count++
-					}
-				}
-			} else if dir[1] == 1 { // moving down to center, so top row of inner
-				for innerX := range 5 {
-					bit := 0*5 + innerX
-					if (innerGrid & (1 << bit)) != 0 {
-						count++
-					}
-				}
-			}
-		} else if nx < 0 || nx >= 5 || ny < 0 || ny >= 5 {
-			// Out of bounds, so we need to look at outer level (level - 1)
-			outerGrid := grids[level-1]
-			var bit int
-			if nx < 0 { // left edge, so tile to the left of center in outer
-				bit = 2*5 + 1
-			} else if nx >= 5 { // right edge, so tile to the right of center in outer
-				bit = 2*5 + 3
-			} else if ny < 0 { // top edge, so tile above center in outer
-				bit = 1*5 + 2
-			} else if ny >= 5 { // bottom edge, so tile below center in outer
-				bit = 3*5 + 2
-			}
-			if (outerGrid & (1 << bit)) != 0 {
-				count++
-			}
-		} else {
-			// Normal case, same level
-			bit := ny*5 + nx
-			if (grids[level] & (1 << bit)) != 0 {
-				count++
-			}
-		}
+	// Count total bugs across all levels
+	total := uint(0)
+	for level := minLevel; level <= maxLevel; level++ {
+		total += uint(bits.OnesCount32(grids[level+offset]))
 	}
-
-	return count
-}
-
-// countBugs counts the number of bugs in a grid.
-func countBugs(grid uint) uint {
-	count := uint(0)
-	for i := range 25 {
-		if (grid & (1 << i)) != 0 {
-			count++
-		}
-	}
-	return count
+	return total
 }

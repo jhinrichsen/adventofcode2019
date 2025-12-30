@@ -2,7 +2,6 @@ package adventofcode2019
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 )
 
@@ -20,14 +19,20 @@ func Day20(input []byte, part1 bool) uint {
 }
 
 type Maze20 struct {
-	grid      [][]byte
-	dimX      int
-	dimY      int
-	portals   map[string][]image.Point // portal name -> list of positions
-	start     image.Point
-	end       image.Point
-	innerEdge image.Point // Track inner boundary for determining inner/outer portals
-	outerEdge image.Point
+	grid       [][]byte
+	dimX       int
+	dimY       int
+	portals    map[string][]image.Point // portal name -> list of positions
+	portalByPos map[image.Point]*portalInfo // position -> portal info (for fast lookup)
+	start      image.Point
+	end        image.Point
+	innerEdge  image.Point // Track inner boundary for determining inner/outer portals
+	outerEdge  image.Point
+}
+
+type portalInfo struct {
+	dest    image.Point // destination position
+	isOuter bool        // true if this is an outer portal
 }
 
 func parseMaze20(input []byte) Maze20 {
@@ -69,6 +74,21 @@ func parseMaze20(input []byte) Maze20 {
 			if maze.grid[y][x] >= 'A' && maze.grid[y][x] <= 'Z' {
 				// Check if this is the start of a portal label
 				maze.checkPortal(x, y)
+			}
+		}
+	}
+
+	// Build position-to-portal lookup for fast access
+	maze.portalByPos = make(map[image.Point]*portalInfo)
+	for _, positions := range maze.portals {
+		if len(positions) == 2 {
+			maze.portalByPos[positions[0]] = &portalInfo{
+				dest:    positions[1],
+				isOuter: maze.isOuterPortal(positions[0]),
+			}
+			maze.portalByPos[positions[1]] = &portalInfo{
+				dest:    positions[0],
+				isOuter: maze.isOuterPortal(positions[1]),
 			}
 		}
 	}
@@ -219,6 +239,9 @@ func solveMaze20Part1(maze Maze20) uint {
 
 func solveMaze20Part2(maze Maze20) uint {
 	// BFS from start to end with recursive levels
+	type visitedKey struct {
+		x, y, level int
+	}
 	type state struct {
 		pos   image.Point
 		level int
@@ -226,11 +249,8 @@ func solveMaze20Part2(maze Maze20) uint {
 	}
 
 	queue := []state{{maze.start, 0, 0}}
-	visited := make(map[string]bool)
-	visitKey := func(pos image.Point, level int) string {
-		return fmt.Sprintf("%d,%d,%d", pos.X, pos.Y, level)
-	}
-	visited[visitKey(maze.start, 0)] = true
+	visited := make(map[visitedKey]bool)
+	visited[visitedKey{maze.start.X, maze.start.Y, 0}] = true
 
 	dirs := []image.Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
 	const maxLevel = 500 // Reasonable depth limit
@@ -256,7 +276,7 @@ func solveMaze20Part2(maze Maze20) uint {
 				continue
 			}
 
-			key := visitKey(newPos, curr.level)
+			key := visitedKey{newPos.X, newPos.Y, curr.level}
 			if visited[key] {
 				continue
 			}
@@ -265,52 +285,34 @@ func solveMaze20Part2(maze Maze20) uint {
 			queue = append(queue, state{newPos, curr.level, curr.steps + 1})
 		}
 
-		// Try portal teleport
-		for _, positions := range maze.portals {
-			if len(positions) != 2 {
-				continue
-			}
-
-			var fromPos, toPos image.Point
-			var isOuter bool
-
-			if positions[0] == curr.pos {
-				fromPos = positions[0]
-				toPos = positions[1]
-				isOuter = maze.isOuterPortal(fromPos)
-			} else if positions[1] == curr.pos {
-				fromPos = positions[1]
-				toPos = positions[0]
-				isOuter = maze.isOuterPortal(fromPos)
-			} else {
-				continue
-			}
-
+		// Try portal teleport using fast lookup
+		if portal, ok := maze.portalByPos[curr.pos]; ok {
 			// Determine new level
 			newLevel := curr.level
-			if isOuter {
+			canUsePortal := true
+			if portal.isOuter {
 				// Outer portal: go up a level (outward)
 				newLevel--
 				if newLevel < 0 {
 					// Can't go beyond level 0
-					continue
+					canUsePortal = false
 				}
 			} else {
 				// Inner portal: go down a level (inward)
 				newLevel++
 				if newLevel > maxLevel {
 					// Don't go too deep
-					continue
+					canUsePortal = false
 				}
 			}
 
-			key := visitKey(toPos, newLevel)
-			if visited[key] {
-				continue
+			if canUsePortal {
+				key := visitedKey{portal.dest.X, portal.dest.Y, newLevel}
+				if !visited[key] {
+					visited[key] = true
+					queue = append(queue, state{portal.dest, newLevel, curr.steps + 1})
+				}
 			}
-
-			visited[key] = true
-			queue = append(queue, state{toPos, newLevel, curr.steps + 1})
 		}
 	}
 

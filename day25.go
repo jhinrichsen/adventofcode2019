@@ -740,7 +740,6 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 			return output
 
 		default:
-			// Unknown opcode - halt and return current output
 			return output
 		}
 	}

@@ -18,33 +18,79 @@ func Day16(input []byte, part1 bool) uint {
 
 func fftPart1(input []byte) uint {
 	// Parse input to get digits
-	digits := parseDigits(input)
+	n := len(input)
+	current := make([]int, n)
+	next := make([]int, n)
+	prefix := make([]int, n+1)
 
-	// Run 100 phases of FFT
+	for i, b := range input {
+		current[i] = int(b - '0')
+	}
+
+	// Run 100 phases of FFT using prefix sums
 	for range 100 {
-		digits = applyFFTPhase(digits)
+		// Build prefix sums: prefix[i] = sum of current[0:i]
+		prefix[0] = 0
+		for i := range n {
+			prefix[i+1] = prefix[i] + current[i]
+		}
+
+		// For each output position, process blocks of the pattern
+		for i := range n {
+			blockSize := i + 1
+			sum := 0
+			pos := i // Start at position i (skip first element of pattern)
+
+			// Pattern cycles: +1 block, skip, -1 block, skip, +1 block, ...
+			sign := 1
+			for pos < n {
+				// Add/subtract this block using prefix sums
+				end := pos + blockSize
+				if end > n {
+					end = n
+				}
+				sum += sign * (prefix[end] - prefix[pos])
+				pos += blockSize
+
+				// Skip zero block
+				pos += blockSize
+
+				// Flip sign for next non-zero block
+				sign = -sign
+			}
+
+			// Keep only ones digit (absolute value)
+			if sum < 0 {
+				sum = -sum
+			}
+			next[i] = sum % 10
+		}
+
+		// Swap current and next
+		current, next = next, current
 	}
 
 	// Extract first 8 digits and convert to uint
 	result := uint(0)
-	for i := 0; i < 8 && i < len(digits); i++ {
-		result = result*10 + uint(digits[i])
+	for i := 0; i < 8 && i < n; i++ {
+		result = result*10 + uint(current[i])
 	}
 
 	return result
 }
 
 func fftPart2(input []byte) uint {
-	digits := parseDigits(input)
+	// Parse digits inline
+	n := len(input)
 
 	// Extract offset from first 7 digits
 	offset := 0
-	for i := 0; i < 7 && i < len(digits); i++ {
-		offset = offset*10 + digits[i]
+	for i := 0; i < 7 && i < n; i++ {
+		offset = offset*10 + int(input[i]-'0')
 	}
 
 	// Repeat input 10000 times
-	repeatedLength := len(digits) * 10000
+	repeatedLength := n * 10000
 
 	// Key insight: if offset is in second half, FFT pattern simplifies
 	// Each output digit is sum of all digits from that position to end (mod 10)
@@ -56,13 +102,12 @@ func fftPart2(input []byte) uint {
 		return 0
 	}
 
-	// Build the relevant portion (from offset to end)
+	// Build the relevant portion (from offset to end) using bytes
 	relevantLength := repeatedLength - offset
-	signal := make([]int, relevantLength)
+	signal := make([]byte, relevantLength)
 
-	for i := 0; i < relevantLength; i++ {
-		actualPos := offset + i
-		signal[i] = digits[actualPos%len(digits)]
+	for i := range relevantLength {
+		signal[i] = input[(offset+i)%n] - '0'
 	}
 
 	// Apply 100 phases using the simplified algorithm
@@ -71,8 +116,8 @@ func fftPart2(input []byte) uint {
 		// Calculate from right to left
 		sum := 0
 		for i := len(signal) - 1; i >= 0; i-- {
-			sum += signal[i]
-			signal[i] = sum % 10
+			sum += int(signal[i])
+			signal[i] = byte(sum % 10)
 		}
 	}
 

@@ -1,10 +1,5 @@
 package adventofcode2019
 
-import (
-	"sync"
-	"time"
-)
-
 // Packet represents a network packet with X and Y values.
 type Packet struct {
 	X, Y int
@@ -13,121 +8,119 @@ type Packet struct {
 // Day23 simulates a network of 50 Intcode computers.
 // For part 1, it returns the Y value of the first packet sent to address 255.
 // For part 2, it returns the first Y value delivered by the NAT twice in a row.
-func Day23(prog IntCode, part1 bool) uint {
+func Day23(input []byte, part1 bool) (uint, error) {
+	ic, err := NewIntcode(input)
+	if err != nil {
+		return 0, err
+	}
+
 	const networkSize = 50
 	const natAddress = 255
 
-	// Packet queues for each computer
-	queues := make([][]Packet, networkSize)
-	var queuesMutex sync.Mutex
-
-	// Create channels for each computer
-	inputs := make([]chan int, networkSize)
-	outputs := make([]chan int, networkSize)
+	// Create 50 computers
+	computers := make([]*Intcode, networkSize)
 	for i := range networkSize {
-		inputs[i] = make(chan int, 10)
-		outputs[i] = make(chan int, 10)
+		computers[i] = ic.Clone()
 	}
 
-	// Start all computers
+	// Packet queues for each computer (X,Y pairs)
+	queues := make([][]int, networkSize)
+
+	// Output buffers for each computer (collecting dest, X, Y)
+	outBuffers := make([][]int, networkSize)
+
+	// Track if each computer has received its address
+	needsAddress := make([]bool, networkSize)
 	for i := range networkSize {
-		go Day5(prog.Copy(), inputs[i], outputs[i])
-		// Send network address as initial input
-		inputs[i] <- i
+		needsAddress[i] = true
 	}
 
-	// Input feeder goroutines
-	for i := range networkSize {
-		addr := i
-		go func() {
-			for {
-				queuesMutex.Lock()
-				if len(queues[addr]) > 0 {
-					// Send packet from queue
-					p := queues[addr][0]
-					queues[addr] = queues[addr][1:]
-					queuesMutex.Unlock()
-					inputs[addr] <- p.X
-					inputs[addr] <- p.Y
-				} else {
-					queuesMutex.Unlock()
-					// Queue empty, send -1
-					inputs[addr] <- -1
-				}
-				// Small delay to avoid busy loop
-				time.Sleep(time.Microsecond)
-			}
-		}()
-	}
-
-	// Track NAT state for part 2
-	var natPacket *Packet
-	var lastNATY *int
+	// NAT state for part 2
+	var natX, natY int
+	hasNAT := false
+	var lastNATY int
+	hasLastNATY := false
 	idleCycles := 0
 
-	// Packet routing loop
+	// Run each computer to next I/O point
+	runToIO := func(addr int) State {
+		for {
+			state := computers[addr].Step()
+			if state != Running {
+				return state
+			}
+		}
+	}
+
 	for {
-		packetSent := false
+		activity := false
 
-		// Process outputs from all computers
 		for addr := range networkSize {
-			select {
-			case dest := <-outputs[addr]:
-				packetSent = true
-				// Read X and Y values
-				x := <-outputs[addr]
-				y := <-outputs[addr]
+			state := runToIO(addr)
 
-				if dest == natAddress {
-					if part1 {
-						return uint(y)
-					}
-					// Part 2: NAT stores the packet
-					natPacket = &Packet{X: x, Y: y}
-				} else if dest >= 0 && dest < networkSize {
-					// Queue packet for destination
-					queuesMutex.Lock()
-					queues[dest] = append(queues[dest], Packet{X: x, Y: y})
-					queuesMutex.Unlock()
+			switch state {
+			case NeedsInput:
+				if needsAddress[addr] {
+					computers[addr].Input(addr)
+					needsAddress[addr] = false
+					activity = true
+				} else if len(queues[addr]) > 0 {
+					computers[addr].Input(queues[addr][0])
+					queues[addr] = queues[addr][1:]
+					activity = true
+				} else {
+					computers[addr].Input(-1)
 				}
-			default:
-				// No output from this computer
+			case HasOutput:
+				activity = true
+				outBuffers[addr] = append(outBuffers[addr], computers[addr].Output())
+				if len(outBuffers[addr]) == 3 {
+					dest := outBuffers[addr][0]
+					x := outBuffers[addr][1]
+					y := outBuffers[addr][2]
+					outBuffers[addr] = outBuffers[addr][:0]
+
+					if dest == natAddress {
+						if part1 {
+							return uint(y), nil
+						}
+						natX, natY = x, y
+						hasNAT = true
+					} else if dest >= 0 && dest < networkSize {
+						queues[dest] = append(queues[dest], x, y)
+					}
+				}
+			case Halted:
+				// Computer halted
 			}
 		}
 
-		// Part 2: Check if network is idle
-		if !part1 && natPacket != nil {
-			// Check if all queues are empty
-			queuesMutex.Lock()
-			allQueuesEmpty := true
+		// Part 2: Check for network idle
+		if !part1 && hasNAT && !activity {
+			queuesEmpty := true
 			for i := range networkSize {
 				if len(queues[i]) > 0 {
-					allQueuesEmpty = false
+					queuesEmpty = false
 					break
 				}
 			}
 
-			if !packetSent && allQueuesEmpty {
+			if queuesEmpty {
 				idleCycles++
-				// Network appears idle - wait a bit to confirm
-				if idleCycles > 100 {
-					// Send NAT packet to address 0
-					y := natPacket.Y
-					if lastNATY != nil && *lastNATY == y {
-						queuesMutex.Unlock()
-						return uint(y)
+				if idleCycles > 2 {
+					if hasLastNATY && lastNATY == natY {
+						return uint(natY), nil
 					}
-					lastNATY = &y
-					queues[0] = append(queues[0], *natPacket)
+					lastNATY = natY
+					hasLastNATY = true
+					queues[0] = append(queues[0], natX, natY)
 					idleCycles = 0
 				}
 			} else {
 				idleCycles = 0
 			}
-			queuesMutex.Unlock()
+		} else {
+			idleCycles = 0
 		}
-
-		// Small delay to avoid busy loop
-		time.Sleep(time.Microsecond * 10)
 	}
 }

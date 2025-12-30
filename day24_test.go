@@ -19,7 +19,7 @@ func TestDay24Part1(t *testing.T) {
 
 func TestDay24Part2Example(t *testing.T) {
 	lines := testLinesFromFilename(t, exampleFilename(24))
-	got := simulateRecursive(lines, 10)
+	got := simulateRecursiveOptimized(lines, 10)
 	want := uint(99)
 	if got != want {
 		t.Fatalf("want %d bugs after 10 minutes but got %d", want, got)

@@ -19,13 +19,13 @@ func NewDay6(ss []string) (Day6, error) {
 		orbits: make(map[string]string, len(ss)),
 	}
 	for i, s := range ss {
-		parts := strings.Split(s, ")")
-		if len(parts) != 2 {
+		// Inline parsing instead of strings.Split
+		idx := strings.IndexByte(s, ')')
+		if idx < 0 {
 			return d, fmt.Errorf("bad input in line %d: %s", i, s)
 		}
-
-		// Save object
-		d.orbits[parts[1]] = parts[0]
+		// Save object: orbits[child] = parent
+		d.orbits[s[idx+1:]] = s[:idx]
 	}
 	return d, nil
 }
@@ -47,10 +47,24 @@ func (a Day6) OrbitCount(object string) int {
 
 // OrbitCountChecksum returns the checksum for a complete orbit.
 func (a Day6) OrbitCountChecksum() int {
+	// Memoize orbit counts to avoid repeated tree traversals
+	cache := make(map[string]int, len(a.orbits))
+	var orbitCount func(object string) int
+	orbitCount = func(object string) int {
+		if object == COM {
+			return 0
+		}
+		if n, ok := cache[object]; ok {
+			return n
+		}
+		n := 1 + orbitCount(a.orbits[object])
+		cache[object] = n
+		return n
+	}
+
 	sum := 0
 	for object := range a.orbits {
-		n := a.OrbitCount(object)
-		sum += n
+		sum += orbitCount(object)
 	}
 	return sum
 }

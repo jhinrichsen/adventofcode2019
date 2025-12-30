@@ -1,34 +1,48 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
-	"regexp"
 	"strings"
 )
 
+func sanitizeCPUName(input string) string {
+	var result strings.Builder
+
+	for _, r := range input {
+		switch {
+		case r == ' ':
+			result.WriteRune('-')
+		case (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9'):
+			result.WriteRune(r)
+		case r == '@' || r == '_' || r == '-':
+			result.WriteRune(r)
+		default:
+			// Skip any other character
+		}
+	}
+
+	return result.String()
+}
+
 func main() {
-	cmd := exec.Command("go", "test", "-run=^$", "-bench=BenchmarkDetectCPU", "-benchtime=1ns", "./cmd/cpuname")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to detect CPU: %v\n", err)
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "cpu: ") {
+			cpuName := strings.TrimPrefix(line, "cpu: ")
+			cpuName = strings.TrimSpace(cpuName)
+			fmt.Print(sanitizeCPUName(cpuName))
+			return
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "error reading input: %v\n", err)
 		os.Exit(1)
 	}
 
-	re := regexp.MustCompile(`(?m)^cpu:\s+(.+)$`)
-	matches := re.FindStringSubmatch(string(output))
-	if len(matches) < 2 {
-		fmt.Fprintf(os.Stderr, "could not find CPU info in benchmark output\n")
-		os.Exit(1)
-	}
-
-	cpuName := matches[1]
-	// Remove only parentheses (interfere with Make)
-	cpuName = strings.ReplaceAll(cpuName, "(", "")
-	cpuName = strings.ReplaceAll(cpuName, ")", "")
-	// Replace spaces with underscores (Make requirement)
-	cpuName = strings.ReplaceAll(cpuName, " ", "_")
-
-	fmt.Print(cpuName)
+	fmt.Fprintf(os.Stderr, "no 'cpu: ' line found in input\n")
+	os.Exit(1)
 }
