@@ -7,89 +7,89 @@ import (
 )
 
 const (
-	OpcodeAdd = 1
-	OpcodeMul = 2
+	opcodeAdd = 1
+	opcodeMul = 2
 
-	// Input takes a single integer as input and saves it to the position
+	// opInput takes a single integer as input and saves it to the position
 	// given by its only parameter.
-	Input = 3
+	opInput = 3
 
-	// Output outputs the value of its only parameter.
-	Output = 4
+	// opOutput outputs the value of its only parameter.
+	opOutput = 4
 
-	// JumpIfTrue sets the instruction pointer to the value from the second
+	// jumpIfTrue sets the instruction pointer to the value from the second
 	// parameter if the first parameter is non-zero.
-	JumpIfTrue = 5
+	jumpIfTrue = 5
 
-	// JumpIfFalse sets the instruction pointer to the value from the second
+	// jumpIfFalse sets the instruction pointer to the value from the second
 	// parameter if the first parameter is zero.
-	JumpIfFalse = 6
+	jumpIfFalse = 6
 
-	// LessThan stores 1 in the position given by the third parameter if
+	// lessThan stores 1 in the position given by the third parameter if
 	// the first parameter is less than the second parameter, otherwise
 	// it stores 0.
-	LessThan = 7
+	lessThan = 7
 
-	// Equals stores 1 in the position given by the third parameter if
+	// equals stores 1 in the position given by the third parameter if
 	// the first parameter is equal to the second parameter, otherwise
 	// it stores 0.
-	Equals = 8
+	equals = 8
 
-	// AdjustRelBase changes the relative base
-	AdjustRelBase = 9
+	// adjustRelBase changes the relative base
+	adjustRelBase = 9
 
-	OpcodeRet = 99
+	opcodeRet = 99
 )
 
-// IntCode is both a low-level interpreted language used in bootstrapping the
+// intCode is both a low-level interpreted language used in bootstrapping the
 // BCPL compiler, and a virtual language in advent of code.
-type IntCode []int
+type intCode []int
 
 // Copy provides a master copy because most programs are self modifying
-func (master IntCode) Copy() IntCode {
-	prog := make(IntCode, len(master))
+func (master intCode) Copy() intCode {
+	prog := make(intCode, len(master))
 	copy(prog, master)
 	return prog
 }
 
-// IntCodeProcessor can run IntCode
-type IntCodeProcessor func(IntCode, <-chan int, chan<- int)
+// intCodeProcessor can run IntCode
+type intCodeProcessor func(intCode, <-chan int, chan<- int)
 
-// ParameterMode is part of the opcode and controls parameter handling
-type ParameterMode int
+// parameterMode is part of the opcode and controls parameter handling
+type parameterMode int
 
 const (
-	// PositionMode reads memory via index
-	PositionMode ParameterMode = iota
+	// positionMode reads memory via index
+	positionMode parameterMode = iota
 
-	// ImmediateMode uses values directly
-	ImmediateMode
+	// immediateMode uses values directly
+	immediateMode
 
-	// RelativeMode addresses via relative base
-	RelativeMode
+	// relativeMode addresses via relative base
+	relativeMode
 )
 
-// Boolean is a C style Boolean: false -> 0, true -> 1.
-func Boolean(b bool) int {
+// boolean is a C style boolean: false -> 0, true -> 1.
+func boolean(b bool) int {
 	if b {
 		return 1
 	}
 	return 0
 }
 
-// False returns false for 0, true otherwise.
-func False(boolean int) bool {
+// isFalse returns false for 0, true otherwise.
+func isFalse(boolean int) bool {
 	return boolean == 0
 }
 
-// True returns false for 0, true otherwise.
-func True(boolean int) bool {
+// isTrue returns false for 0, true otherwise.
+func isTrue(boolean int) bool {
 	return boolean != 0
 }
 
-// Day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,
+// day5 supports running IntCode for day 2 (ADD, MUL, RET) and adds input,
 // output, parameter mode and immediate mode.
-func Day5(program IntCode, input <-chan int, output chan<- int) {
+func day5(program intCode, input <-chan int, output chan<- int) {
 	// instruction pointer, aka program counter
 	ip := 0
 
@@ -108,39 +108,39 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 			return
 		}
 		if idx >= len(program) {
-			bigger := make(IntCode, idx+1)
+			bigger := make(intCode, idx+1)
 			copy(bigger, program)
 			program = bigger
 		}
 	}
 
-	load := func(idx int, mode ParameterMode) int {
+	load := func(idx int, mode parameterMode) int {
 		// good old 6502
 		lda := func(idx int) int {
 			realloc(idx)
 			return program[idx]
 		}
 		switch mode {
-		case ImmediateMode:
+		case immediateMode:
 			return lda(idx)
-		case PositionMode:
+		case positionMode:
 			return lda(lda(idx))
-		case RelativeMode:
+		case relativeMode:
 			return lda(relBase + lda(idx))
 		}
 		return -1
 	}
 
-	store := func(idx int, val int, mode ParameterMode) {
+	store := func(idx int, val int, mode parameterMode) {
 		switch mode {
-		case ImmediateMode:
+		case immediateMode:
 			realloc(idx)
 			program[idx] = val
-		case PositionMode:
+		case positionMode:
 			adr := program[idx]
 			realloc(adr)
 			program[adr] = val
-		case RelativeMode:
+		case relativeMode:
 			adr := relBase + program[idx]
 			realloc(adr)
 			program[adr] = val
@@ -151,55 +151,55 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 	for !halt {
 		opcode, mode1, mode2, mode3 := instruction(program[ip])
 		switch opcode {
-		case OpcodeAdd:
+		case opcodeAdd:
 			val := load(ip+1, mode1) + load(ip+2, mode2)
 			store(ip+3, val, mode3)
 			ip += 4
-		case OpcodeMul:
+		case opcodeMul:
 			val := load(ip+1, mode1) * load(ip+2, mode2)
 			store(ip+3, val, mode3)
 			ip += 4
-		case Input:
+		case opInput:
 			val := <-input
 			store(ip+1, val, mode1)
 			ip += 2
-		case Output:
+		case opOutput:
 			val := load(ip+1, mode1)
 			output <- val
 			ip += 2
-		case JumpIfTrue:
+		case jumpIfTrue:
 			p := load(ip+1, mode1)
-			if True(p) {
+			if isTrue(p) {
 				ip = load(ip+2, mode2)
 				// No IP alignment for jumps
 				continue
 			}
 			ip += 3
-		case JumpIfFalse:
+		case jumpIfFalse:
 			p := load(ip+1, mode1)
-			if False(p) {
+			if isFalse(p) {
 				ip = load(ip+2, mode2)
 				// No IP alignment for jumps
 				continue
 			}
 			ip += 3
-		case LessThan:
+		case lessThan:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			val := Boolean(p1 < p2)
+			val := boolean(p1 < p2)
 			store(ip+3, val, mode3)
 			ip += 4
-		case Equals:
+		case equals:
 			p1 := load(ip+1, mode1)
 			p2 := load(ip+2, mode2)
-			val := Boolean(p1 == p2)
+			val := boolean(p1 == p2)
 			store(ip+3, val, mode3)
 			ip += 4
-		case AdjustRelBase:
+		case adjustRelBase:
 			p1 := load(ip+1, mode1)
 			relBase += p1
 			ip += 2
-		case OpcodeRet:
+		case opcodeRet:
 			halt = true
 		default:
 			// Unknown opcode - halt execution gracefully
@@ -209,19 +209,19 @@ func Day5(program IntCode, input <-chan int, output chan<- int) {
 	close(output)
 }
 
-func instruction(instr int) (byte, ParameterMode, ParameterMode, ParameterMode) {
+func instruction(instr int) (byte, parameterMode, parameterMode, parameterMode) {
 	opcode := byte(instr % 100)
 	instr /= 100
-	mode1 := ParameterMode(instr % 10)
+	mode1 := parameterMode(instr % 10)
 	instr /= 10
-	mode2 := ParameterMode(instr % 10)
-	mode3 := ParameterMode(instr / 10)
+	mode2 := parameterMode(instr % 10)
+	mode3 := parameterMode(instr / 10)
 	return opcode, mode1, mode2, mode3
 }
 
-// MustSplit converts IntCode in string representation (a comma separated list
+// mustSplit converts IntCode in string representation (a comma separated list
 // of token) into IntCode. Invalid values are converted to 0.
-func MustSplit(program string) (ic IntCode) {
+func mustSplit(program string) (ic intCode) {
 	for _, s := range strings.Split(program, ",") {
 		n, err := strconv.Atoi(s)
 		if err != nil {
@@ -232,8 +232,8 @@ func MustSplit(program string) (ic IntCode) {
 	return
 }
 
-// ToString converts opcodes back to comma-separated string
-func ToString(opcodes []int) string {
+// toString converts opcodes back to comma-separated string
+func toString(opcodes []int) string {
 	result := ""
 	for i, opcode := range opcodes {
 		if i > 0 {
@@ -249,8 +249,8 @@ func channels() (chan int, chan int) {
 }
 
 // Day05 runs the diagnostic program and returns the diagnostic code
-func Day05(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day05(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}

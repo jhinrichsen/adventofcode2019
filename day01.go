@@ -4,22 +4,22 @@ import (
 	"fmt"
 )
 
-// fuel computes required fuel for given mass. Both mass and fuel have no units.
-func fuel(mass uint) int {
-	return int(mass)/3 - 2
-}
-
-// completeFuel computes required fuel for given mass, including fuel for fuel.
-func completeFuel(mass uint) uint {
-	sum := uint(0)
-	for f := fuel(mass); f > 0; f = fuel(uint(f)) {
-		sum += uint(f)
-	}
-	return sum
-}
-
 // Day01 returns sum of fuel for all modules
 func Day01(input []byte, part1 bool) (uint, error) {
+	// fuel computes required fuel for given mass
+	fuel := func(mass uint) int {
+		return int(mass)/3 - 2
+	}
+
+	// completeFuel computes required fuel for given mass, including fuel for fuel.
+	// Loop terminates when f <= 0 (fuel can be negative for small masses).
+	completeFuel := func(mass uint) (sum uint) {
+		for f := fuel(mass); f > 0; f = fuel(uint(f)) {
+			sum += uint(f)
+		}
+		return
+	}
+
 	sum := uint(0)
 	num := 0
 	hasDigits := false
@@ -53,14 +53,4 @@ func Day01(input []byte, part1 bool) (uint, error) {
 	}
 
 	return sum, nil
-}
-
-// Fuel computes required fuel for given mass (wrapper for tests)
-func Fuel(mass int) int {
-	return fuel(uint(mass))
-}
-
-// CompleteFuel computes required fuel for given mass, including fuel for fuel (wrapper for tests)
-func CompleteFuel(mass int) int {
-	return int(completeFuel(uint(mass)))
 }

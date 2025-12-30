@@ -18,11 +18,13 @@ func TestDay02Part1Examples(t *testing.T) {
 	for _, tt := range tests {
 		id := fmt.Sprintf("Example(%s)", tt.in)
 		t.Run(id, func(t *testing.T) {
-			ic, err := NewIntcode([]byte(tt.in))
+			ic, err := newIntcode([]byte(tt.in))
 			if err != nil {
 				t.Fatal(err)
 			}
-			ic.Run()
+			if _, err := ic.Run(); err != nil {
+				t.Fatal(err)
+			}
 			for i, want := range tt.out {
 				if got := ic.Mem(i); got != want {
 					t.Fatalf("%s: mem[%d] want %d but got %d", id, i, want, got)

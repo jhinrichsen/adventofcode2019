@@ -14,7 +14,7 @@ func TestDay8Part1(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := 1463
-	got, err := Day8Part1(digits)
+	got, err := day8Part1(digits)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestDay8Part2(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := Day8Part2(digits)
+	got, err := day8Part2(digits)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -34,8 +34,8 @@ func normalize(dx, dy int) direction {
 	return direction{dx / g, dy / g}
 }
 
-// ParseAsteroidMap parses newline separated strings into asteroids.
-func ParseAsteroidMap(asteroids []byte) []image.Point {
+// parseAsteroidMap parses newline separated strings into asteroids.
+func parseAsteroidMap(asteroids []byte) []image.Point {
 	isAsteroid := func(b byte) bool {
 		return b == '#'
 	}
@@ -80,9 +80,9 @@ func ParseAsteroidMap(asteroids []byte) []image.Point {
 	return as
 }
 
-// Day10Part1 returns the asteroid that can see most asteroids, and the number of
+// day10Part1 returns the asteroid that can see most asteroids, and the number of
 // visible asteroids.
-func Day10Part1(as []image.Point) (image.Point, int) {
+func day10Part1(as []image.Point) (image.Point, int) {
 	var best image.Point
 	maxVisible := 0
 	for i := range as {
@@ -114,8 +114,8 @@ type asteroidWithAngle struct {
 	dist     int
 }
 
-// Day10Part2 determines the 200th asteroid that gets vaporized.
-func Day10Part2(as []image.Point, base image.Point) int {
+// day10Part2 determines the 200th asteroid that gets vaporized.
+func day10Part2(as []image.Point, base image.Point) int {
 	// Build list of asteroids with their angles and distances
 	var targets []asteroidWithAngle
 	for _, a := range as {
@@ -166,17 +166,14 @@ func Day10Part2(as []image.Point, base image.Point) int {
 	return a.X*100 + a.Y
 }
 
-// NewDay10 parses asteroid map from input
-var NewDay10 = ParseAsteroidMap
-
 // Day10 solves Monitoring Station puzzle
 func Day10(input []byte, part1 bool) uint {
-	asteroids := NewDay10(input)
-	base, maxVisible := Day10Part1(asteroids)
+	asteroids := parseAsteroidMap(input)
+	base, maxVisible := day10Part1(asteroids)
 
 	if part1 {
 		return uint(maxVisible)
 	}
 
-	return uint(Day10Part2(asteroids, base))
+	return uint(day10Part2(asteroids, base))
 }

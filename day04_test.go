@@ -5,49 +5,29 @@ import (
 	"testing"
 )
 
-var day4ExamplesPart1 = []struct {
-	in  int
-	out bool
-}{
-	{111111, true},
-	{223450, false},
-	{123789, false},
-}
-
-var day4ExamplesPart2 = []struct {
-	in  int
-	out bool
-}{
-	{112233, true},
-	{123444, false},
-	{111122, true},
-	{111223, true},
-	{144456, false},
-}
-
-func TestDay4Part1Examples(t *testing.T) {
-	// range criteria must not be used for examples
-	crits := []Criteria{
-		CritSixDigits,
-		CritIncreasing,
-		CritTwoOrMoreAdjacent,
+func TestDay04Part1Examples(t *testing.T) {
+	tests := []struct {
+		in  int
+		out bool
+	}{
+		{111111, true},
+		{223450, false},
+		{123789, false},
 	}
-	for _, tt := range day4ExamplesPart1 {
-		id := fmt.Sprintf("%d", tt.in)
-		t.Run(id, func(t *testing.T) {
-			want := tt.out
-			got := MeetsCriteria(tt.in, Digits(tt.in), crits)
-			if want != got {
-				t.Fatalf("%s: want %v but got %v", id,
-					want, got)
+	crits := []criteria{critSixDigits, critIncreasing, critTwoOrMoreAdjacent}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%d", tt.in), func(t *testing.T) {
+			got := meetsCriteria(tt.in, digits(tt.in), crits)
+			if tt.out != got {
+				t.Fatalf("want %v but got %v", tt.out, got)
 			}
 		})
 	}
 }
 
-func TestDay4Part1(t *testing.T) {
-	want := 1919
-	got := Day4Part1()
+func TestDay04Part1(t *testing.T) {
+	want := uint(1919)
+	got := Day04(true)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
@@ -59,29 +39,31 @@ func BenchmarkDay04Part1(b *testing.B) {
 	}
 }
 
-func TestDay4Part2Examples(t *testing.T) {
-	// range criteria must not be used for examples
-	crits := []Criteria{
-		CritSixDigits,
-		CritIncreasing,
-		CritExactlyTwoAdjacent,
+func TestDay04Part2Examples(t *testing.T) {
+	tests := []struct {
+		in  int
+		out bool
+	}{
+		{112233, true},
+		{123444, false},
+		{111122, true},
+		{111223, true},
+		{144456, false},
 	}
-	for _, tt := range day4ExamplesPart2 {
-		id := fmt.Sprintf("%d", tt.in)
-		t.Run(id, func(t *testing.T) {
-			want := tt.out
-			got := MeetsCriteria(tt.in, Digits(tt.in), crits)
-			if want != got {
-				t.Fatalf("%s: want %v but got %v", id,
-					want, got)
+	crits := []criteria{critSixDigits, critIncreasing, critExactlyTwoAdjacent}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%d", tt.in), func(t *testing.T) {
+			got := meetsCriteria(tt.in, digits(tt.in), crits)
+			if tt.out != got {
+				t.Fatalf("want %v but got %v", tt.out, got)
 			}
 		})
 	}
 }
 
-func TestDay4Part2(t *testing.T) {
-	want := 1291
-	got := Day4Part2()
+func TestDay04Part2(t *testing.T) {
+	want := uint(1291)
+	got := Day04(false)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}

@@ -1,8 +1,8 @@
 package adventofcode2019
 
 // Day07 computes maximum thruster signal for amplifier circuits
-func Day07(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day07(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -12,7 +12,7 @@ func Day07(input []byte, part1 bool) (uint, error) {
 	return uint(day7Part2(ic)), nil
 }
 
-func day7Part1(ic *Intcode) int {
+func day7Part1(ic *intcode) int {
 	maxThrust := 0
 	phases := []int{0, 1, 2, 3, 4}
 
@@ -33,13 +33,13 @@ func day7Part1(ic *Intcode) int {
 	return maxThrust
 }
 
-func day7Part2(ic *Intcode) int {
+func day7Part2(ic *intcode) int {
 	maxThrust := 0
 	phases := []int{5, 6, 7, 8, 9}
 
 	permute(phases, func(perm []int) {
 		// Create 5 amplifiers
-		amps := make([]*Intcode, 5)
+		amps := make([]*intcode, 5)
 		for i := range 5 {
 			amps[i] = ic.Clone()
 		}
@@ -53,9 +53,9 @@ func day7Part2(ic *Intcode) int {
 		// Run feedback loop
 		signal := 0
 		lastOutput := 0
-		halted := 0
+		done := 0
 
-		for halted < 5 {
+		for done < 5 {
 			for i := range 5 {
 				if amps[i] == nil {
 					continue
@@ -65,14 +65,14 @@ func day7Part2(ic *Intcode) int {
 				for {
 					state := amps[i].Step()
 					switch state {
-					case NeedsInput:
+					case needsInput:
 						amps[i].Input(signal)
-					case HasOutput:
+					case hasOutput:
 						signal = amps[i].Output()
 						lastOutput = signal
 						goto nextAmp
-					case Halted:
-						halted++
+					case halted:
+						done++
 						amps[i] = nil
 						goto nextAmp
 					}
@@ -89,10 +89,10 @@ func day7Part2(ic *Intcode) int {
 	return maxThrust
 }
 
-func runUntilNeedsInput(ic *Intcode) {
+func runUntilNeedsInput(ic *intcode) {
 	for {
 		state := ic.Step()
-		if state == NeedsInput || state == Halted {
+		if state == needsInput || state == halted {
 			return
 		}
 	}

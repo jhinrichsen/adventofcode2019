@@ -23,33 +23,33 @@ func TestDay12GanymedeCallisto(t *testing.T) {
 	)
 	var u universe
 
-	u.moons[X][ganymede].pos = 3
-	u.moons[Y][ganymede].pos = v
-	u.moons[Z][ganymede].pos = 0
+	u.moons[x][ganymede].pos = 3
+	u.moons[y][ganymede].pos = v
+	u.moons[z][ganymede].pos = 0
 
-	u.moons[X][callisto].pos = 5
-	u.moons[Y][callisto].pos = v
-	u.moons[Z][callisto].pos = 0
-	for dim := range DIMS {
+	u.moons[x][callisto].pos = 5
+	u.moons[y][callisto].pos = v
+	u.moons[z][callisto].pos = 0
+	for dim := range dims {
 		u.gravity(dim, ganymede, callisto)
 	}
-	w1 := u.moons[X][ganymede].vel
+	w1 := u.moons[x][ganymede].vel
 	const g1 = 1
 	if w1 != g1 {
 		t.Fatalf("ganymede's X velocity: want %d but got %d", w1, g1)
 	}
 
-	if u.moons[X][callisto].vel != -1 {
+	if u.moons[x][callisto].vel != -1 {
 		t.Fatalf("callisto's X velocity: want %d but got %d",
-			-1, u.moons[X][callisto].vel)
+			-1, u.moons[x][callisto].vel)
 	}
-	if u.moons[Y][ganymede].vel != 0 {
+	if u.moons[y][ganymede].vel != 0 {
 		t.Fatalf("ganymede's Y velocity: want %d but got %d",
-			0, u.moons[Y][ganymede].vel)
+			0, u.moons[y][ganymede].vel)
 	}
-	if u.moons[Y][callisto].vel != 0 {
+	if u.moons[y][callisto].vel != 0 {
 		t.Fatalf("callisto's Y velocity: want %d but got %d",
-			0, u.moons[Y][callisto].vel)
+			0, u.moons[y][callisto].vel)
 	}
 }
 
@@ -58,17 +58,17 @@ func TestDay12GanymedeCallisto(t *testing.T) {
 // y=0,z=3, then its new position would be x=-1, y=2, z=6. This process does not
 // modify the velocity of any moon.
 func TestDay12Europa(t *testing.T) {
-	want := [DIMS]point{
+	want := [dims]point{
 		{-1, -2},
 		{2, 0},
 		{6, 3},
 	}
-	got := [DIMS]point{
+	got := [dims]point{
 		{1, -2},
 		{2, 0},
 		{3, 3},
 	}
-	for i := range DIMS {
+	for i := range dims {
 		got[i].velocity()
 	}
 	if want != got {
@@ -107,7 +107,7 @@ func TestDay12Example1Timeline(t *testing.T) {
 		if i+1 < n {
 			sb.WriteString("\n")
 		}
-		for dim := range DIMS {
+		for dim := range dims {
 			u.step(dim)
 		}
 	}
@@ -149,7 +149,7 @@ func EnergyFromFile(filename string, steps int) (int, error) {
 		return 0, err
 	}
 	for ; steps > 0; steps-- {
-		for dim := range DIMS {
+		for dim := range dims {
 			u.step(dim)
 		}
 	}
@@ -226,7 +226,7 @@ func parseUsingParser(lines []string) (universe, error) {
 			n, err := strconv.Atoi(string(buf[from:idx]))
 			return int(n), err
 		}
-		for i := range DIMS {
+		for i := range dims {
 			var err error
 			u.moons[i][j].pos, err = nextNum()
 			if err != nil {
@@ -252,7 +252,7 @@ func BenchmarkDay12Example2(b *testing.B) {
 			continue
 		}
 		for range 1000 {
-			for dim := range DIMS {
+			for dim := range dims {
 				u.step(dim)
 			}
 		}
@@ -313,7 +313,7 @@ func BenchmarkDay12Part1(b *testing.B) {
 			continue
 		}
 		for range 1000 {
-			for dim := range DIMS {
+			for dim := range dims {
 				u.step(dim)
 			}
 		}

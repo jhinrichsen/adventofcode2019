@@ -5,9 +5,10 @@
 ### Function Signatures (PRIMARY RULE)
 - **MUST** implement: `func DayXX(<input>) uint`
 - **SHOULD** use: `func DayXX(<input>, part1 bool) uint` unless alternatives are more elegant
+- **IF** solver accepts `[]byte` directly: `(uint, error)` return is acceptable
 - **IF** parser required (input cannot be directly processed by `input_test.go` functions):
-  - Parser: `func NewDayXX(<input>) DayXXPuzzle` (return by value)
-  - Combined: `func DayXX(puzzle DayXXPuzzle) uint`
+  - Parser: `func NewDayXX(<input>) (DayXXPuzzle, error)` (return by value)
+  - Solver: `func DayXX(puzzle DayXXPuzzle) uint`
 - **NEVER** use methods: `func (p *DayXXPuzzle) DayXX() uint`
 
 ### File Access Prohibition

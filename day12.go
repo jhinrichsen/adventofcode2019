@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-// DIMS has three dimensions (x, y, z)
+// dims has three dimensions (x, y, z)
 const (
-	X     = 0
-	Y     = 1
-	Z     = 2
-	DIMS  = 3
-	MOONS = 4
+	x     = 0
+	y     = 1
+	z     = 2
+	dims  = 3
+	moons = 4
 )
 
 type point struct {
@@ -54,7 +54,7 @@ type universe struct {
 // pos=<x= 2, y= 2, z= 0>, vel=<x=-1, y=-3, z= 1>
 func (a universe) String() string {
 	var sb strings.Builder
-	for i := range MOONS {
+	for i := range moons {
 		sb.WriteString(a.moon(i))
 		sb.WriteString("\n")
 	}
@@ -64,8 +64,8 @@ func (a universe) String() string {
 func (a universe) moon(i int) string {
 	return fmt.Sprintf("pos=<x=%2d, y=%1d, z=%2d>, "+
 		"vel=<x=%2d, y=%1d, z=%2d>",
-		a.moons[X][i].pos, a.moons[Y][i].pos, a.moons[Z][i].pos,
-		a.moons[X][i].vel, a.moons[Y][i].vel, a.moons[Z][i].vel)
+		a.moons[x][i].pos, a.moons[y][i].pos, a.moons[z][i].pos,
+		a.moons[x][i].vel, a.moons[y][i].vel, a.moons[z][i].vel)
 }
 
 // gravity changes velocity of two moons for one axis
@@ -106,9 +106,9 @@ func (a universe) cycle() int {
 		}
 	}
 
-	c1 := cycleDim(X)
-	c2 := cycleDim(Y)
-	c3 := cycleDim(Z)
+	c1 := cycleDim(x)
+	c2 := cycleDim(y)
+	c3 := cycleDim(z)
 
 	// Calculate LCM(c1, c2, c3) = LCM(LCM(c1, c2), c3)
 	lcm12 := c1 * c2 / gcd(c1, c2)
@@ -139,14 +139,14 @@ func (a *universe) step(dim int) {
 	// A      *   *
 	// B          *
 	// C
-	for i := range MOONS {
-		for j := i + 1; j < MOONS; j++ {
+	for i := range moons {
+		for j := i + 1; j < moons; j++ {
 			a.moons[dim][i].gravity(&a.moons[dim][j])
 		}
 	}
 
 	// apply velocity
-	for i := range MOONS {
+	for i := range moons {
 		a.moons[dim][i].velocity()
 	}
 }
@@ -158,9 +158,9 @@ func (a *universe) step(dim int) {
 // values of its velocity coordinates.
 func (a universe) energy() int {
 	var sum int
-	for j := range MOONS {
+	for j := range moons {
 		var pot, kin int
-		for i := range DIMS {
+		for i := range dims {
 			moon := a.moons[i][j]
 			pot += abs(moon.pos)
 			kin += abs(moon.vel)

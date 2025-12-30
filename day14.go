@@ -6,24 +6,24 @@ import (
 	"strings"
 )
 
-// Chemical represents a chemical with its quantity
-type Chemical struct {
+// chemical represents a chemical with its quantity
+type chemical struct {
 	Name     string
 	Quantity uint
 }
 
-// Reaction represents a chemical reaction
-type Reaction struct {
-	Inputs []Chemical
-	Output Chemical
+// reaction represents a chemical reaction
+type reaction struct {
+	Inputs []chemical
+	Output chemical
 }
 
-// ReactionMap maps chemical names to their reactions
-type ReactionMap map[string]Reaction
+// reactionMap maps chemical names to their reactions
+type reactionMap map[string]reaction
 
-// ParseReactions parses the input lines into a reaction map
-func ParseReactions(lines []string) (ReactionMap, error) {
-	reactions := make(ReactionMap)
+// parseReactions parses the input lines into a reaction map
+func parseReactions(lines []string) (reactionMap, error) {
+	reactions := make(reactionMap)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -44,7 +44,7 @@ func ParseReactions(lines []string) (ReactionMap, error) {
 
 		// Parse inputs
 		inputStrs := strings.Split(parts[0], ",")
-		inputs := make([]Chemical, 0, len(inputStrs))
+		inputs := make([]chemical, 0, len(inputStrs))
 		for _, inputStr := range inputStrs {
 			input, err := parseChemical(strings.TrimSpace(inputStr))
 			if err != nil {
@@ -53,7 +53,7 @@ func ParseReactions(lines []string) (ReactionMap, error) {
 			inputs = append(inputs, input)
 		}
 
-		reactions[output.Name] = Reaction{
+		reactions[output.Name] = reaction{
 			Inputs: inputs,
 			Output: output,
 		}
@@ -64,7 +64,7 @@ func ParseReactions(lines []string) (ReactionMap, error) {
 
 // parseChemical parses a string like "10 ORE" into a Chemical
 // Inline parsing to avoid allocations from strings.Fields
-func parseChemical(s string) (Chemical, error) {
+func parseChemical(s string) (chemical, error) {
 	// Skip leading whitespace
 	i := 0
 	for i < len(s) && (s[i] == ' ' || s[i] == '\t') {
@@ -76,11 +76,11 @@ func parseChemical(s string) (Chemical, error) {
 		i++
 	}
 	if i == start {
-		return Chemical{}, fmt.Errorf("invalid chemical format: %s", s)
+		return chemical{}, fmt.Errorf("invalid chemical format: %s", s)
 	}
 	quantity, err := strconv.ParseUint(s[start:i], 10, 64)
 	if err != nil {
-		return Chemical{}, err
+		return chemical{}, err
 	}
 	// Skip whitespace between quantity and name
 	for i < len(s) && (s[i] == ' ' || s[i] == '\t') {
@@ -91,7 +91,7 @@ func parseChemical(s string) (Chemical, error) {
 	for end > i && (s[end-1] == ' ' || s[end-1] == '\t') {
 		end--
 	}
-	return Chemical{
+	return chemical{
 		Name:     s[i:end],
 		Quantity: uint(quantity),
 	}, nil
@@ -99,14 +99,14 @@ func parseChemical(s string) (Chemical, error) {
 
 // calculateOre calculates the minimum ORE needed to produce the target chemical
 // using an iterative algorithm with explicit dependency tracking
-func calculateOre(reactions ReactionMap, target string, targetQty uint) uint {
+func calculateOre(reactions reactionMap, target string, targetQty uint) uint {
 	needs := make(map[string]uint)
 	surplus := make(map[string]uint)
 	return calculateOreWithMaps(reactions, target, targetQty, needs, surplus)
 }
 
 // calculateOreWithMaps allows reusing maps to avoid allocations
-func calculateOreWithMaps(reactions ReactionMap, target string, targetQty uint, needs, surplus map[string]uint) uint {
+func calculateOreWithMaps(reactions reactionMap, target string, targetQty uint, needs, surplus map[string]uint) uint {
 	// Clear maps for reuse
 	clear(needs)
 	clear(surplus)
@@ -171,7 +171,7 @@ func calculateOreWithMaps(reactions ReactionMap, target string, targetQty uint, 
 // Day14 calculates either minimum ORE for 1 FUEL (part1) or
 // maximum FUEL from 1 trillion ORE (part2)
 func Day14(lines []string, part1 bool) uint {
-	reactions, err := ParseReactions(lines)
+	reactions, err := parseReactions(lines)
 	if err != nil {
 		return 0
 	}

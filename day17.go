@@ -4,7 +4,7 @@ package adventofcode2019
 // Part 1: Sum of alignment parameters at intersections
 // Part 2: Collect dust by visiting all scaffold
 func Day17(program []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(program)
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -15,7 +15,7 @@ func Day17(program []byte, part1 bool) (uint, error) {
 	return collectDust(ic), nil
 }
 
-func calculateAlignmentSum(ic *Intcode) uint {
+func calculateAlignmentSum(ic *intcode) uint {
 	// Run the Intcode program to get ASCII output
 	var grid [][]byte
 	var row []byte
@@ -23,7 +23,7 @@ func calculateAlignmentSum(ic *Intcode) uint {
 	for {
 		state := ic.Step()
 		switch state {
-		case HasOutput:
+		case hasOutput:
 			ch := byte(ic.Output())
 			if ch == '\n' {
 				if len(row) > 0 {
@@ -33,7 +33,7 @@ func calculateAlignmentSum(ic *Intcode) uint {
 			} else {
 				row = append(row, ch)
 			}
-		case Halted:
+		case halted:
 			goto done
 		}
 	}
@@ -73,7 +73,7 @@ func isIntersection(grid [][]byte, x, y int) bool {
 	return true
 }
 
-func collectDust(ic *Intcode) uint {
+func collectDust(ic *intcode) uint {
 	// Wake up the robot by changing address 0 from 1 to 2
 	ic.SetMem(0, 2)
 
@@ -91,17 +91,17 @@ func collectDust(ic *Intcode) uint {
 	for {
 		state := ic.Step()
 		switch state {
-		case NeedsInput:
+		case needsInput:
 			if cmdIdx < len(commands) {
 				ic.Input(int(commands[cmdIdx]))
 				cmdIdx++
 			}
-		case HasOutput:
+		case hasOutput:
 			val := ic.Output()
 			if val > 255 {
 				lastOutput = uint(val)
 			}
-		case Halted:
+		case halted:
 			return lastOutput
 		}
 	}

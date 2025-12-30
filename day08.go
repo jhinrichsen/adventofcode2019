@@ -2,9 +2,9 @@ package adventofcode2019
 
 import "fmt"
 
-// Day8Part1 returns number of 1s multiplied by number of 2s in the layer having
+// day8Part1 returns number of 1s multiplied by number of 2s in the layer having
 // minimal number of 0s.
-func Day8Part1(digits []byte) (int, error) {
+func day8Part1(digits []byte) (int, error) {
 	width := 25
 	height := 6
 	size := width * height
@@ -41,8 +41,8 @@ func Day8Part1(digits []byte) (int, error) {
 	return ones * twos, nil
 }
 
-// Day8Part2 returns rendered layer.
-func Day8Part2(digits []byte) ([]byte, error) {
+// day8Part2 returns rendered layer.
+func day8Part2(digits []byte) ([]byte, error) {
 	width := 25
 	height := 6
 	size := width * height
@@ -70,13 +70,13 @@ func Day8Part2(digits []byte) ([]byte, error) {
 // Day08 solves Space Image Format puzzle
 func Day08(input []byte, part1 bool) uint {
 	if part1 {
-		checksum, err := Day8Part1(input)
+		checksum, err := day8Part1(input)
 		if err != nil {
 			return 0
 		}
 		return uint(checksum)
 	}
 	// Part2 renders ASCII art, no numeric return value
-	_, _ = Day8Part2(input)
+	_, _ = day8Part2(input)
 	return 0
 }

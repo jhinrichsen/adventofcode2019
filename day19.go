@@ -2,8 +2,8 @@ package adventofcode2019
 
 // Day19 solves the "Tractor Beam" puzzle.
 // It tests how many points are affected by a tractor beam.
-func Day19(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day19(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -15,7 +15,7 @@ func Day19(input []byte, part1 bool) (uint, error) {
 }
 
 // testPoint checks if a point (x, y) is affected by the tractor beam
-func testPoint(ic *Intcode, x, y int) bool {
+func testPoint(ic *intcode, x, y int) bool {
 	ic.Reset()
 	inputIdx := 0
 	inputs := [2]int{x, y}
@@ -23,19 +23,19 @@ func testPoint(ic *Intcode, x, y int) bool {
 	for {
 		state := ic.Step()
 		switch state {
-		case NeedsInput:
+		case needsInput:
 			ic.Input(inputs[inputIdx])
 			inputIdx++
-		case HasOutput:
+		case hasOutput:
 			return ic.Output() == 1
-		case Halted:
+		case halted:
 			return false
 		}
 	}
 }
 
 // countBeamPoints counts how many points in a size×size grid are affected
-func countBeamPoints(ic *Intcode, size int) uint {
+func countBeamPoints(ic *intcode, size int) uint {
 	count := uint(0)
 	for y := range size {
 		for x := range size {
@@ -47,7 +47,7 @@ func countBeamPoints(ic *Intcode, size int) uint {
 	return count
 }
 
-func findSquare(ic *Intcode, square int) uint {
+func findSquare(ic *intcode, square int) uint {
 	// y represents the BOTTOM row of the square
 	y := square - 1
 

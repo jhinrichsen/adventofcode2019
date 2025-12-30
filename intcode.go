@@ -2,30 +2,30 @@ package adventofcode2019
 
 import "errors"
 
-// State represents the current state of the Intcode machine after a Step.
-type State int
+// state represents the current state of the Intcode machine after a Step.
+type state int
 
 const (
-	Running    State = iota // Still executing, call Step again
-	NeedsInput              // Waiting for input, call Input then Step
-	HasOutput               // Output available, call Output then Step
-	Halted                  // Program finished (opcode 99)
+	running    state = iota // Still executing, call Step again
+	needsInput              // Waiting for input, call Input then Step
+	hasOutput               // Output available, call Output then Step
+	halted                  // Program finished (opcode 99)
 )
 
-// Intcode is a synchronous Intcode virtual machine.
+// intcode is a synchronous intcode virtual machine.
 // Use Step for fine-grained control or Run for batch execution.
-type Intcode struct {
+type intcode struct {
 	original []int // pristine copy for Reset
 	mem      []int // working memory
 	ip       int   // instruction pointer
 	relBase  int   // relative base for mode 2
 	output   int   // last output value
-	state    State // current state
+	state    state // current state
 	dirty    bool  // true if program memory was modified
 }
 
-// NewIntcode parses the input and returns a new Intcode machine.
-func NewIntcode(input []byte) (*Intcode, error) {
+// newIntcode parses the input and returns a new Intcode machine.
+func newIntcode(input []byte) (*intcode, error) {
 	// Count commas to pre-allocate
 	count := 1
 	for _, b := range input {
@@ -65,7 +65,7 @@ func NewIntcode(input []byte) (*Intcode, error) {
 		original = append(original, num)
 	}
 
-	ic := &Intcode{
+	ic := &intcode{
 		original: original,
 		mem:      make([]int, len(original)),
 	}
@@ -74,7 +74,7 @@ func NewIntcode(input []byte) (*Intcode, error) {
 }
 
 // Reset restores the machine to its initial state.
-func (ic *Intcode) Reset() {
+func (ic *intcode) Reset() {
 	// Only copy memory if it was modified
 	if ic.dirty {
 		// Reuse existing memory if capacity is sufficient
@@ -89,12 +89,12 @@ func (ic *Intcode) Reset() {
 	ic.ip = 0
 	ic.relBase = 0
 	ic.output = 0
-	ic.state = Running
+	ic.state = running
 }
 
 // Clone returns a fresh Intcode machine sharing the same parsed program.
-func (ic *Intcode) Clone() *Intcode {
-	clone := &Intcode{
+func (ic *intcode) Clone() *intcode {
+	clone := &intcode{
 		original: ic.original, // share original (never modified)
 		mem:      make([]int, len(ic.original)),
 	}
@@ -103,7 +103,7 @@ func (ic *Intcode) Clone() *Intcode {
 }
 
 // Mem returns the value at memory address addr.
-func (ic *Intcode) Mem(addr int) int {
+func (ic *intcode) Mem(addr int) int {
 	if addr >= len(ic.mem) {
 		return 0
 	}
@@ -111,20 +111,20 @@ func (ic *Intcode) Mem(addr int) int {
 }
 
 // SetMem sets the value at memory address addr.
-func (ic *Intcode) SetMem(addr, val int) {
+func (ic *intcode) SetMem(addr, val int) {
 	ic.grow(addr)
 	ic.markDirty(addr)
 	ic.mem[addr] = val
 }
 
 // Output returns the last output value.
-func (ic *Intcode) Output() int {
+func (ic *intcode) Output() int {
 	return ic.output
 }
 
 // Input provides a value for the next input instruction.
-func (ic *Intcode) Input(val int) {
-	if ic.state != NeedsInput {
+func (ic *intcode) Input(val int) {
+	if ic.state != needsInput {
 		return
 	}
 	opcode := ic.mem[ic.ip] % 100
@@ -136,12 +136,12 @@ func (ic *Intcode) Input(val int) {
 	ic.markDirty(addr)
 	ic.mem[addr] = val
 	ic.ip += 2
-	ic.state = Running
+	ic.state = running
 }
 
 // Step executes one instruction and returns the new state.
-func (ic *Intcode) Step() State {
-	if ic.state == Halted || ic.state == NeedsInput {
+func (ic *intcode) Step() state {
+	if ic.state == halted || ic.state == needsInput {
 		return ic.state
 	}
 
@@ -167,13 +167,13 @@ func (ic *Intcode) Step() State {
 		ic.ip += 4
 
 	case 3: // input
-		ic.state = NeedsInput
+		ic.state = needsInput
 		return ic.state
 
 	case 4: // output
 		ic.output = ic.read(1)
 		ic.ip += 2
-		ic.state = HasOutput
+		ic.state = hasOutput
 		return ic.state
 
 	case 5: // jump-if-true
@@ -217,20 +217,20 @@ func (ic *Intcode) Step() State {
 		ic.ip += 2
 
 	case 99: // halt
-		ic.state = Halted
+		ic.state = halted
 		return ic.state
 	}
 
-	ic.state = Running
+	ic.state = running
 	return ic.state
 }
 
-// ErrNeedsInput is returned when Run exhausts inputs before the program halts.
-var ErrNeedsInput = errors.New("program needs input but none provided")
+// errNeedsInput is returned when Run exhausts inputs before the program halts.
+var errNeedsInput = errors.New("program needs input but none provided")
 
 // Run executes the program with the given inputs and returns all outputs.
 // Returns ErrNeedsInput if the program needs more inputs than provided.
-func (ic *Intcode) Run(inputs ...int) ([]int, error) {
+func (ic *intcode) Run(inputs ...int) ([]int, error) {
 	// Fast path for programs with no I/O (like Day 2)
 	if len(inputs) == 0 {
 		return ic.runNoIO()
@@ -242,24 +242,24 @@ func (ic *Intcode) Run(inputs ...int) ([]int, error) {
 	for {
 		state := ic.Step()
 		switch state {
-		case Halted:
+		case halted:
 			return outputs, nil
-		case NeedsInput:
+		case needsInput:
 			if inputIdx < len(inputs) {
 				ic.Input(inputs[inputIdx])
 				inputIdx++
 			} else {
-				return outputs, ErrNeedsInput
+				return outputs, errNeedsInput
 			}
-		case HasOutput:
+		case hasOutput:
 			outputs = append(outputs, ic.output)
-			ic.state = Running
+			ic.state = running
 		}
 	}
 }
 
 // runNoIO is an optimized path for programs without input/output.
-func (ic *Intcode) runNoIO() ([]int, error) {
+func (ic *intcode) runNoIO() ([]int, error) {
 	mem := ic.mem
 	ip := 0
 
@@ -282,7 +282,7 @@ func (ic *Intcode) runNoIO() ([]int, error) {
 				ip += 4
 			case 99:
 				ic.ip = ip
-				ic.state = Halted
+				ic.state = halted
 				return nil, nil
 			default:
 				ic.ip = ip
@@ -313,7 +313,7 @@ func (ic *Intcode) runNoIO() ([]int, error) {
 			ip += 4
 		case 99:
 			ic.ip = ip
-			ic.state = Halted
+			ic.state = halted
 			return nil, nil
 		default:
 			ic.ip = ip
@@ -323,31 +323,31 @@ func (ic *Intcode) runNoIO() ([]int, error) {
 }
 
 // runWithStep continues execution using Step() for complex programs.
-func (ic *Intcode) runWithStep(inputs []int) ([]int, error) {
+func (ic *intcode) runWithStep(inputs []int) ([]int, error) {
 	inputIdx := 0
 	var outputs []int
 
 	for {
 		state := ic.Step()
 		switch state {
-		case Halted:
+		case halted:
 			return outputs, nil
-		case NeedsInput:
+		case needsInput:
 			if inputIdx < len(inputs) {
 				ic.Input(inputs[inputIdx])
 				inputIdx++
 			} else {
-				return outputs, ErrNeedsInput
+				return outputs, errNeedsInput
 			}
-		case HasOutput:
+		case hasOutput:
 			outputs = append(outputs, ic.output)
-			ic.state = Running
+			ic.state = running
 		}
 	}
 }
 
 // readAt reads parameter n at instruction pointer ip.
-func (ic *Intcode) readAt(ip, n int) int {
+func (ic *intcode) readAt(ip, n int) int {
 	mode := (ic.mem[ip] / pow10(n+1)) % 10
 	param := ic.mem[ip+n]
 	switch mode {
@@ -369,7 +369,7 @@ func (ic *Intcode) readAt(ip, n int) int {
 }
 
 // writeAddrAt returns write address for parameter n at instruction pointer ip.
-func (ic *Intcode) writeAddrAt(ip, n int) int {
+func (ic *intcode) writeAddrAt(ip, n int) int {
 	mode := (ic.mem[ip] / pow10(n+1)) % 10
 	param := ic.mem[ip+n]
 	switch mode {
@@ -381,7 +381,7 @@ func (ic *Intcode) writeAddrAt(ip, n int) int {
 }
 
 // read returns the value of parameter n based on its mode.
-func (ic *Intcode) read(n int) int {
+func (ic *intcode) read(n int) int {
 	mode := (ic.mem[ic.ip] / pow10(n+1)) % 10
 	param := ic.mem[ic.ip+n]
 
@@ -404,7 +404,7 @@ func (ic *Intcode) read(n int) int {
 }
 
 // writeAddr returns the address where parameter n should write.
-func (ic *Intcode) writeAddr(n int) int {
+func (ic *intcode) writeAddr(n int) int {
 	mode := (ic.mem[ic.ip] / pow10(n+1)) % 10
 	param := ic.mem[ic.ip+n]
 
@@ -418,7 +418,7 @@ func (ic *Intcode) writeAddr(n int) int {
 }
 
 // grow expands memory if needed.
-func (ic *Intcode) grow(addr int) {
+func (ic *intcode) grow(addr int) {
 	if addr >= len(ic.mem) {
 		newMem := make([]int, addr+1)
 		copy(newMem, ic.mem)
@@ -427,7 +427,7 @@ func (ic *Intcode) grow(addr int) {
 }
 
 // markDirty sets the dirty flag if writing to original program space
-func (ic *Intcode) markDirty(addr int) {
+func (ic *intcode) markDirty(addr int) {
 	if addr < len(ic.original) {
 		ic.dirty = true
 	}

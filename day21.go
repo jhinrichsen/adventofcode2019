@@ -4,8 +4,8 @@ import "strings"
 
 // Day21 solves the "Springdroid Adventure" puzzle.
 // Part 1 uses WALK mode, Part 2 uses RUN mode.
-func Day21(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day21(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -47,21 +47,21 @@ func Day21(input []byte, part1 bool) (uint, error) {
 	return executeSpringdroid(ic, springscript), nil
 }
 
-func executeSpringdroid(ic *Intcode, springscript string) uint {
+func executeSpringdroid(ic *intcode, springscript string) uint {
 	scriptIdx := 0
 	var lastOutput int
 
 	for {
 		state := ic.Step()
 		switch state {
-		case NeedsInput:
+		case needsInput:
 			if scriptIdx < len(springscript) {
 				ic.Input(int(springscript[scriptIdx]))
 				scriptIdx++
 			}
-		case HasOutput:
+		case hasOutput:
 			lastOutput = ic.Output()
-		case Halted:
+		case halted:
 			return uint(lastOutput)
 		}
 	}

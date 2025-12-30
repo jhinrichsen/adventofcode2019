@@ -1,15 +1,10 @@
 package adventofcode2019
 
-// Packet represents a network packet with X and Y values.
-type Packet struct {
-	X, Y int
-}
-
 // Day23 simulates a network of 50 Intcode computers.
 // For part 1, it returns the Y value of the first packet sent to address 255.
 // For part 2, it returns the first Y value delivered by the NAT twice in a row.
-func Day23(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day23(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -18,7 +13,7 @@ func Day23(input []byte, part1 bool) (uint, error) {
 	const natAddress = 255
 
 	// Create 50 computers
-	computers := make([]*Intcode, networkSize)
+	computers := make([]*intcode, networkSize)
 	for i := range networkSize {
 		computers[i] = ic.Clone()
 	}
@@ -43,10 +38,10 @@ func Day23(input []byte, part1 bool) (uint, error) {
 	idleCycles := 0
 
 	// Run each computer to next I/O point
-	runToIO := func(addr int) State {
+	runToIO := func(addr int) state {
 		for {
 			state := computers[addr].Step()
-			if state != Running {
+			if state != running {
 				return state
 			}
 		}
@@ -59,7 +54,7 @@ func Day23(input []byte, part1 bool) (uint, error) {
 			state := runToIO(addr)
 
 			switch state {
-			case NeedsInput:
+			case needsInput:
 				if needsAddress[addr] {
 					computers[addr].Input(addr)
 					needsAddress[addr] = false
@@ -71,7 +66,7 @@ func Day23(input []byte, part1 bool) (uint, error) {
 				} else {
 					computers[addr].Input(-1)
 				}
-			case HasOutput:
+			case hasOutput:
 				activity = true
 				outBuffers[addr] = append(outBuffers[addr], computers[addr].Output())
 				if len(outBuffers[addr]) == 3 {
@@ -90,7 +85,7 @@ func Day23(input []byte, part1 bool) (uint, error) {
 						queues[dest] = append(queues[dest], x, y)
 					}
 				}
-			case Halted:
+			case halted:
 				// Computer halted
 			}
 		}

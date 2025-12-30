@@ -18,16 +18,16 @@ func Day20(input []byte, part1 bool) uint {
 	return solveMaze20Part2(maze)
 }
 
-type Maze20 struct {
-	grid       [][]byte
-	dimX       int
-	dimY       int
-	portals    map[string][]image.Point // portal name -> list of positions
+type day20Puzzle struct {
+	grid        [][]byte
+	dimX        int
+	dimY        int
+	portals     map[string][]image.Point    // portal name -> list of positions
 	portalByPos map[image.Point]*portalInfo // position -> portal info (for fast lookup)
-	start      image.Point
-	end        image.Point
-	innerEdge  image.Point // Track inner boundary for determining inner/outer portals
-	outerEdge  image.Point
+	start       image.Point
+	end         image.Point
+	innerEdge   image.Point // Track inner boundary for determining inner/outer portals
+	outerEdge   image.Point
 }
 
 type portalInfo struct {
@@ -35,7 +35,7 @@ type portalInfo struct {
 	isOuter bool        // true if this is an outer portal
 }
 
-func parseMaze20(input []byte) Maze20 {
+func parseMaze20(input []byte) day20Puzzle {
 	lines := bytes.Split(input, []byte{'\n'})
 	dimY := len(lines)
 	dimX := 0
@@ -45,7 +45,7 @@ func parseMaze20(input []byte) Maze20 {
 		}
 	}
 
-	maze := Maze20{
+	maze := day20Puzzle{
 		grid:    make([][]byte, dimY),
 		dimX:    dimX,
 		dimY:    dimY,
@@ -96,7 +96,7 @@ func parseMaze20(input []byte) Maze20 {
 	return maze
 }
 
-func (m *Maze20) findBoundaries() {
+func (m *day20Puzzle) findBoundaries() {
 	// Find the donut hole (area with no passages in the middle)
 	minHoleX, maxHoleX := m.dimX, 0
 	minHoleY, maxHoleY := m.dimY, 0
@@ -124,12 +124,12 @@ func (m *Maze20) findBoundaries() {
 	m.outerEdge = image.Point{X: maxHoleX, Y: maxHoleY}
 }
 
-func (m *Maze20) isOuterPortal(pos image.Point) bool {
+func (m *day20Puzzle) isOuterPortal(pos image.Point) bool {
 	// Check if position is on outer edge of maze (near the border)
 	return pos.X <= 2 || pos.X >= m.dimX-3 || pos.Y <= 2 || pos.Y >= m.dimY-4
 }
 
-func (m *Maze20) checkPortal(x, y int) {
+func (m *day20Puzzle) checkPortal(x, y int) {
 	cell := m.grid[y][x]
 
 	// Check horizontal portal (this letter + next letter)
@@ -179,7 +179,7 @@ func (m *Maze20) checkPortal(x, y int) {
 	}
 }
 
-func solveMaze20Part1(maze Maze20) uint {
+func solveMaze20Part1(maze day20Puzzle) uint {
 	// BFS from start to end
 	type state struct {
 		pos   image.Point
@@ -237,7 +237,7 @@ func solveMaze20Part1(maze Maze20) uint {
 	return 0
 }
 
-func solveMaze20Part2(maze Maze20) uint {
+func solveMaze20Part2(maze day20Puzzle) uint {
 	// BFS from start to end with recursive levels
 	type visitedKey struct {
 		x, y, level int

@@ -12,7 +12,7 @@ func Day25(lines []string, part1 bool) uint {
 		return 0
 	}
 
-	prog := MustSplit(strings.TrimSpace(lines[0]))
+	prog := mustSplit(strings.TrimSpace(lines[0]))
 
 	// Build room graph using checkpoint-based exploration
 	graph := buildRoomGraphFast(prog)
@@ -74,7 +74,7 @@ func (s *vmSnapshot) copy() *vmSnapshot {
 }
 
 // buildRoomGraphFast explores using checkpoint-based VM copies
-func buildRoomGraphFast(prog IntCode) map[string]*roomInfo {
+func buildRoomGraphFast(prog intCode) map[string]*roomInfo {
 	graph := make(map[string]*roomInfo)
 	visited := make(map[string]bool)
 
@@ -161,7 +161,7 @@ func buildRoomGraphFast(prog IntCode) map[string]*roomInfo {
 }
 
 // warmupVM runs program to first "Command?" prompt and returns snapshot + initial output
-func warmupVM(prog IntCode) (*vmSnapshot, string) {
+func warmupVM(prog intCode) (*vmSnapshot, string) {
 	// Allocate memory: program size + working space
 	// TODO: Profile actual max address usage
 	memSize := len(prog) * 2
@@ -191,29 +191,29 @@ func (vm *vmSnapshot) runUntilInput() []int {
 		opcode, mode1, mode2, mode3 := instruction(vm.mem[vm.ip])
 
 		switch opcode {
-		case OpcodeAdd:
+		case opcodeAdd:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
 			vm.mem[addr] = p1 + p2
 			vm.ip += 4
 
-		case OpcodeMul:
+		case opcodeMul:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
 			vm.mem[addr] = p1 * p2
 			vm.ip += 4
 
-		case Input:
+		case opInput:
 			return output // Wait for input
 
-		case Output:
+		case opOutput:
 			val := vm.loadParam(vm.ip+1, mode1)
 			output = append(output, val)
 			vm.ip += 2
 
-		case JumpIfTrue:
+		case jumpIfTrue:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			if p1 != 0 {
 				vm.ip = vm.loadParam(vm.ip+2, mode2)
@@ -221,7 +221,7 @@ func (vm *vmSnapshot) runUntilInput() []int {
 				vm.ip += 3
 			}
 
-		case JumpIfFalse:
+		case jumpIfFalse:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			if p1 == 0 {
 				vm.ip = vm.loadParam(vm.ip+2, mode2)
@@ -229,7 +229,7 @@ func (vm *vmSnapshot) runUntilInput() []int {
 				vm.ip += 3
 			}
 
-		case LessThan:
+		case lessThan:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
@@ -240,7 +240,7 @@ func (vm *vmSnapshot) runUntilInput() []int {
 			}
 			vm.ip += 4
 
-		case Equals:
+		case equals:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
@@ -251,11 +251,11 @@ func (vm *vmSnapshot) runUntilInput() []int {
 			}
 			vm.ip += 4
 
-		case AdjustRelBase:
+		case adjustRelBase:
 			vm.relBase += vm.loadParam(vm.ip+1, mode1)
 			vm.ip += 2
 
-		case OpcodeRet:
+		case opcodeRet:
 			return output
 
 		default:
@@ -281,21 +281,21 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 		opcode, mode1, mode2, mode3 := instruction(vm.mem[vm.ip])
 
 		switch opcode {
-		case OpcodeAdd:
+		case opcodeAdd:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
 			vm.mem[addr] = p1 + p2
 			vm.ip += 4
 
-		case OpcodeMul:
+		case opcodeMul:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
 			vm.mem[addr] = p1 * p2
 			vm.ip += 4
 
-		case Input:
+		case opInput:
 			if inputIdx >= len(input) {
 				// Input exhausted - return output so far
 				return intsToString(output)
@@ -305,12 +305,12 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 			inputIdx++
 			vm.ip += 2
 
-		case Output:
+		case opOutput:
 			val := vm.loadParam(vm.ip+1, mode1)
 			output = append(output, val)
 			vm.ip += 2
 
-		case JumpIfTrue:
+		case jumpIfTrue:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			if p1 != 0 {
 				vm.ip = vm.loadParam(vm.ip+2, mode2)
@@ -318,7 +318,7 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 				vm.ip += 3
 			}
 
-		case JumpIfFalse:
+		case jumpIfFalse:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			if p1 == 0 {
 				vm.ip = vm.loadParam(vm.ip+2, mode2)
@@ -326,7 +326,7 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 				vm.ip += 3
 			}
 
-		case LessThan:
+		case lessThan:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
@@ -337,7 +337,7 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 			}
 			vm.ip += 4
 
-		case Equals:
+		case equals:
 			p1 := vm.loadParam(vm.ip+1, mode1)
 			p2 := vm.loadParam(vm.ip+2, mode2)
 			addr := vm.storeAddr(vm.ip+3, mode3)
@@ -348,11 +348,11 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 			}
 			vm.ip += 4
 
-		case AdjustRelBase:
+		case adjustRelBase:
 			vm.relBase += vm.loadParam(vm.ip+1, mode1)
 			vm.ip += 2
 
-		case OpcodeRet:
+		case opcodeRet:
 			return intsToString(output)
 
 		default:
@@ -362,25 +362,25 @@ func (vm *vmSnapshot) sendCommand(cmd string) string {
 	}
 }
 
-func (vm *vmSnapshot) loadParam(addr int, mode ParameterMode) int {
+func (vm *vmSnapshot) loadParam(addr int, mode parameterMode) int {
 	val := vm.mem[addr]
 	switch mode {
-	case ImmediateMode:
+	case immediateMode:
 		return val
-	case PositionMode:
+	case positionMode:
 		return vm.mem[val]
-	case RelativeMode:
+	case relativeMode:
 		return vm.mem[vm.relBase+val]
 	}
 	return 0
 }
 
-func (vm *vmSnapshot) storeAddr(addr int, mode ParameterMode) int {
+func (vm *vmSnapshot) storeAddr(addr int, mode parameterMode) int {
 	val := vm.mem[addr]
 	switch mode {
-	case PositionMode:
+	case positionMode:
 		return val
-	case RelativeMode:
+	case relativeMode:
 		return vm.relBase + val
 	}
 	return addr
@@ -515,7 +515,7 @@ func findRoomPath(graph map[string]*roomInfo, start, target string) []string {
 }
 
 // tryItemCombos tries all combinations of items with all security directions.
-func tryItemCombos(prog IntCode, items []string, path []string, dirs []string) uint {
+func tryItemCombos(prog intCode, items []string, path []string, dirs []string) uint {
 	// Build input to reach security checkpoint with all items collected
 	baseInput := buildInput(path)
 
@@ -575,21 +575,21 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 		opcode, mode1, mode2, mode3 := instruction(mem[ip])
 
 		switch opcode {
-		case OpcodeAdd:
+		case opcodeAdd:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
 			mem[addr] = p1 + p2
 			ip += 4
 
-		case OpcodeMul:
+		case opcodeMul:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
 			mem[addr] = p1 * p2
 			ip += 4
 
-		case Input:
+		case opInput:
 			if inputIdx >= len(input) {
 				// Input exhausted - we're at checkpoint
 				return ip, relBase
@@ -599,11 +599,11 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 			inputIdx++
 			ip += 2
 
-		case Output:
+		case opOutput:
 			_ = loadParam(mem, ip+1, mode1, relBase)
 			ip += 2
 
-		case JumpIfTrue:
+		case jumpIfTrue:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			if p1 != 0 {
 				ip = loadParam(mem, ip+2, mode2, relBase)
@@ -611,7 +611,7 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 				ip += 3
 			}
 
-		case JumpIfFalse:
+		case jumpIfFalse:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			if p1 == 0 {
 				ip = loadParam(mem, ip+2, mode2, relBase)
@@ -619,7 +619,7 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 				ip += 3
 			}
 
-		case LessThan:
+		case lessThan:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
@@ -630,7 +630,7 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 			}
 			ip += 4
 
-		case Equals:
+		case equals:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
@@ -641,11 +641,11 @@ func runToCheckpoint(mem []int, input []int) (int, int) {
 			}
 			ip += 4
 
-		case AdjustRelBase:
+		case adjustRelBase:
 			relBase += loadParam(mem, ip+1, mode1, relBase)
 			ip += 2
 
-		case OpcodeRet:
+		case opcodeRet:
 			return ip, relBase
 
 		default:
@@ -666,21 +666,21 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 		opcode, mode1, mode2, mode3 := instruction(mem[ip])
 
 		switch opcode {
-		case OpcodeAdd:
+		case opcodeAdd:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
 			mem[addr] = p1 + p2
 			ip += 4
 
-		case OpcodeMul:
+		case opcodeMul:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
 			mem[addr] = p1 * p2
 			ip += 4
 
-		case Input:
+		case opInput:
 			if inputIdx >= len(input) {
 				return output
 			}
@@ -689,12 +689,12 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 			inputIdx++
 			ip += 2
 
-		case Output:
+		case opOutput:
 			val := loadParam(mem, ip+1, mode1, relBase)
 			output = append(output, val)
 			ip += 2
 
-		case JumpIfTrue:
+		case jumpIfTrue:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			if p1 != 0 {
 				ip = loadParam(mem, ip+2, mode2, relBase)
@@ -702,7 +702,7 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 				ip += 3
 			}
 
-		case JumpIfFalse:
+		case jumpIfFalse:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			if p1 == 0 {
 				ip = loadParam(mem, ip+2, mode2, relBase)
@@ -710,7 +710,7 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 				ip += 3
 			}
 
-		case LessThan:
+		case lessThan:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
@@ -721,7 +721,7 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 			}
 			ip += 4
 
-		case Equals:
+		case equals:
 			p1 := loadParam(mem, ip+1, mode1, relBase)
 			p2 := loadParam(mem, ip+2, mode2, relBase)
 			addr := storeAddr(mem, ip+3, mode3, relBase)
@@ -732,11 +732,11 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 			}
 			ip += 4
 
-		case AdjustRelBase:
+		case adjustRelBase:
 			relBase += loadParam(mem, ip+1, mode1, relBase)
 			ip += 2
 
-		case OpcodeRet:
+		case opcodeRet:
 			return output
 
 		default:
@@ -745,25 +745,25 @@ func runFromCheckpoint(mem []int, startIP, startRelBase int, input []int) []int 
 	}
 }
 
-func loadParam(mem []int, addr int, mode ParameterMode, relBase int) int {
+func loadParam(mem []int, addr int, mode parameterMode, relBase int) int {
 	val := mem[addr]
 	switch mode {
-	case ImmediateMode:
+	case immediateMode:
 		return val
-	case PositionMode:
+	case positionMode:
 		return mem[val]
-	case RelativeMode:
+	case relativeMode:
 		return mem[relBase+val]
 	}
 	return 0
 }
 
-func storeAddr(mem []int, addr int, mode ParameterMode, relBase int) int {
+func storeAddr(mem []int, addr int, mode parameterMode, relBase int) int {
 	val := mem[addr]
 	switch mode {
-	case PositionMode:
+	case positionMode:
 		return val
-	case RelativeMode:
+	case relativeMode:
 		return relBase + val
 	}
 	return addr

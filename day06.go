@@ -5,17 +5,17 @@ import (
 	"strings"
 )
 
-// COM is the Center of Mass
-const COM = "COM"
+// com is the Center of Mass
+const com = "COM"
 
-// Day6 holds an object and its orbit.
-type Day6 struct {
+// Day06Puzzle holds an object and its orbit.
+type Day06Puzzle struct {
 	orbits map[string]string
 }
 
-// NewDay6 creates a new Orbit from a list of 'a)b' lines.
-func NewDay6(ss []string) (Day6, error) {
-	d := Day6{
+// NewDay06 creates a new Orbit from a list of 'a)b' lines.
+func NewDay06(ss []string) (Day06Puzzle, error) {
+	d := Day06Puzzle{
 		orbits: make(map[string]string, len(ss)),
 	}
 	for i, s := range ss {
@@ -30,28 +30,28 @@ func NewDay6(ss []string) (Day6, error) {
 	return d, nil
 }
 
-// Orbit returns the orbit of an object.
-func (a Day6) Orbit(object string) string {
+// orbit returns the orbit of an object.
+func (a Day06Puzzle) orbit(object string) string {
 	return a.orbits[object]
 }
 
-// OrbitCount returns the number of orbits of a given object.
-func (a Day6) OrbitCount(object string) int {
+// orbitCount returns the number of orbits of a given object.
+func (a Day06Puzzle) orbitCount(object string) int {
 	n := 0
-	for object != COM {
-		object = a.Orbit(object)
+	for object != com {
+		object = a.orbit(object)
 		n++
 	}
 	return n
 }
 
-// OrbitCountChecksum returns the checksum for a complete orbit.
-func (a Day6) OrbitCountChecksum() int {
+// orbitCountChecksum returns the checksum for a complete orbit.
+func (a Day06Puzzle) orbitCountChecksum() int {
 	// Memoize orbit counts to avoid repeated tree traversals
 	cache := make(map[string]int, len(a.orbits))
 	var orbitCount func(object string) int
 	orbitCount = func(object string) int {
-		if object == COM {
+		if object == com {
 			return 0
 		}
 		if n, ok := cache[object]; ok {
@@ -69,46 +69,37 @@ func (a Day6) OrbitCountChecksum() int {
 	return sum
 }
 
-// CommonOrbit returns the nearest orbit of two objects, at least COM.
-func (a Day6) CommonOrbit(object1, object2 string) string {
+// commonOrbit returns the nearest orbit of two objects, at least COM.
+func (a Day06Puzzle) commonOrbit(object1, object2 string) string {
 	// align both objects to same orbit distance
-	for a.OrbitCount(object1) > a.OrbitCount(object2) {
-		object1 = a.Orbit(object1)
+	for a.orbitCount(object1) > a.orbitCount(object2) {
+		object1 = a.orbit(object1)
 	}
-	for a.OrbitCount(object2) > a.OrbitCount(object1) {
-		object2 = a.Orbit(object2)
+	for a.orbitCount(object2) > a.orbitCount(object1) {
+		object2 = a.orbit(object2)
 	}
-	for object1 != COM && object2 != COM {
+	for object1 != com && object2 != com {
 		if object1 == object2 {
 			return object1
 		}
-		object1 = a.Orbit(object1)
-		object2 = a.Orbit(object2)
+		object1 = a.orbit(object1)
+		object2 = a.orbit(object2)
 	}
-	return COM
+	return com
 }
 
-// Transfers counts the number of hops between an object up to the nearest
+// transfers counts the number of hops between an object up to the nearest
 // common orbit, and then down to the the second object.
-func (a Day6) Transfers(object1, object2 string) int {
-	c := a.CommonOrbit(object1, object2)
-	nc := a.OrbitCount(c)
-	return (a.OrbitCount(object1) - 1 - nc) + (a.OrbitCount(object2) - 1 - nc)
+func (a Day06Puzzle) transfers(object1, object2 string) int {
+	c := a.commonOrbit(object1, object2)
+	nc := a.orbitCount(c)
+	return (a.orbitCount(object1) - 1 - nc) + (a.orbitCount(object2) - 1 - nc)
 }
-
-// NewDay06 creates a new Orbit from a list of 'a)b' lines.
-var NewDay06 = NewDay6
 
 // Day06 solves Universal Orbit Map puzzle
-func Day06(input []string, part1 bool) uint {
-	puzzle, err := NewDay06(input)
-	if err != nil {
-		return 0
-	}
-
+func Day06(puzzle Day06Puzzle, part1 bool) uint {
 	if part1 {
-		return uint(puzzle.OrbitCountChecksum())
+		return uint(puzzle.orbitCountChecksum())
 	}
-
-	return uint(puzzle.Transfers("YOU", "SAN"))
+	return uint(puzzle.transfers("YOU", "SAN"))
 }

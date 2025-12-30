@@ -20,7 +20,7 @@ var day10Examples = []struct {
 
 func TestDay10Example1(t *testing.T) {
 	buf := fileFromFilename(t, example1Filename, 10)
-	as := ParseAsteroidMap(buf)
+	as := parseAsteroidMap(buf)
 
 	// Check number of asteroids
 	if len(as) != 10 {
@@ -39,9 +39,9 @@ func TestDay10Part1Examples(t *testing.T) {
 		id := fmt.Sprintf("Day10Part1 example #%d", i+1)
 		t.Run(id, func(t *testing.T) {
 			buf := fileFromFilename(t, tt.filenameFunc, 10)
-			as := ParseAsteroidMap(buf)
+			as := parseAsteroidMap(buf)
 			wantA, want := tt.best, tt.bestCount
-			gotA, got := Day10Part1(as)
+			gotA, got := day10Part1(as)
 			if tt.best != gotA {
 				t.Fatalf("%s: want %+v but got %+v",
 					id, wantA, gotA)
@@ -73,8 +73,8 @@ func TestDay10Part2Example(t *testing.T) {
 	want := 802
 	ex := day10Examples[4]
 	buf := fileFromFilename(t, ex.filenameFunc, 10)
-	as := ParseAsteroidMap(buf)
-	got := Day10Part2(as, ex.best)
+	as := parseAsteroidMap(buf)
+	got := day10Part2(as, ex.best)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}

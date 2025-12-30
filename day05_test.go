@@ -75,9 +75,9 @@ func TestDay5Part1Examples(t *testing.T) {
 		id := fmt.Sprintf("Day5(%s)", tt.in)
 		t.Run(id, func(t *testing.T) {
 			want := tt.out
-			proc := MustSplit(tt.in)
-			Day5(proc, make(chan int), make(chan int))
-			got := ToString(proc)
+			proc := mustSplit(tt.in)
+			day5(proc, make(chan int), make(chan int))
+			got := toString(proc)
 			if got != tt.out {
 				t.Fatalf("%s: want %s but got %s", id,
 					want, got)
@@ -93,7 +93,7 @@ func TestDay5Part1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	go Day5(MustSplit(lines[0]), in, out)
+	go day5(mustSplit(lines[0]), in, out)
 	in <- AirContitionerUnit
 	got := last(t, out)
 	if want != got {
@@ -105,8 +105,8 @@ func TestIdentity(t *testing.T) {
 	want := 42
 	i, o := channels()
 	// make sure Day5 implements interface
-	var cpu IntCodeProcessor = Day5
-	go cpu(MustSplit("3,0,4,0,99"), i, o)
+	var cpu intCodeProcessor = day5
+	go cpu(mustSplit("3,0,4,0,99"), i, o)
 	i <- want
 	got := <-o
 	if want != got {
@@ -138,9 +138,9 @@ func TestIdentity(t *testing.T) {
 // third parameter, 4 in position mode, which also works like it did before - 99
 // is written to address 4.
 func TestDay5Part2Example(t *testing.T) {
-	prog := MustSplit("1002,4,3,4,33")
+	prog := mustSplit("1002,4,3,4,33")
 	in, out := channels()
-	Day5(prog, in, out)
+	day5(prog, in, out)
 	// we would not be here if last code wasn't 99
 	want := 99
 	got := prog[4]
@@ -152,10 +152,10 @@ func TestDay5Part2Example(t *testing.T) {
 func TestDay5Part2Examples(t *testing.T) {
 	for _, tt := range day5Part2Examples {
 		id := fmt.Sprintf("Day5(%s)", tt.description)
-		prog := MustSplit(tt.prog)
+		prog := mustSplit(tt.prog)
 		t.Run(id, func(t *testing.T) {
 			in, out := channels()
-			go Day5(prog, in, out)
+			go day5(prog, in, out)
 			in <- tt.in
 			want := tt.out
 			// one or multiple outputs that must be 0?
@@ -202,7 +202,7 @@ func TestDay5Part2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	go Day5(MustSplit(lines[0]), in, out)
+	go day5(mustSplit(lines[0]), in, out)
 	in <- ThermalRadiatorController
 	got := <-out
 	if want != got {

@@ -29,11 +29,11 @@ var digitsExamples = []struct {
 func TestDigits(t *testing.T) {
 	for _, tt := range digitsExamples {
 		t.Run(strconv.Itoa(tt.in), func(t *testing.T) {
-			n := Ndigits(tt.in)
+			n := ndigits(tt.in)
 			if tt.ndigits != n {
 				t.Fatalf("want %d but got %d", tt.ndigits, n)
 			}
-			ds := Digits(tt.in)
+			ds := digits(tt.in)
 			if !reflect.DeepEqual(tt.digits, ds) {
 				t.Fatalf("want %v but got %v", tt.digits, ds)
 			}

@@ -7,8 +7,8 @@ const (
 )
 
 // Day13 runs the arcade game
-func Day13(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day13(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -19,7 +19,7 @@ func Day13(input []byte, part1 bool) (uint, error) {
 	return uint(day13Part2(ic)), nil
 }
 
-func day13Part1(ic *Intcode) int {
+func day13Part1(ic *intcode) int {
 	blocks := 0
 	outputIdx := 0
 	var x, y int
@@ -27,7 +27,7 @@ func day13Part1(ic *Intcode) int {
 	for {
 		state := ic.Step()
 		switch state {
-		case HasOutput:
+		case hasOutput:
 			val := ic.Output()
 			switch outputIdx % 3 {
 			case 0:
@@ -42,13 +42,13 @@ func day13Part1(ic *Intcode) int {
 				}
 			}
 			outputIdx++
-		case Halted:
+		case halted:
 			return blocks
 		}
 	}
 }
 
-func day13Part2(ic *Intcode) int {
+func day13Part2(ic *intcode) int {
 	// Play for free
 	ic.SetMem(0, 2)
 
@@ -60,7 +60,7 @@ func day13Part2(ic *Intcode) int {
 	for {
 		state := ic.Step()
 		switch state {
-		case NeedsInput:
+		case needsInput:
 			// Move paddle towards ball
 			joystick := 0
 			if paddleX < ballX {
@@ -69,7 +69,7 @@ func day13Part2(ic *Intcode) int {
 				joystick = -1
 			}
 			ic.Input(joystick)
-		case HasOutput:
+		case hasOutput:
 			val := ic.Output()
 			switch outputIdx % 3 {
 			case 0:
@@ -86,7 +86,7 @@ func day13Part2(ic *Intcode) int {
 				}
 			}
 			outputIdx++
-		case Halted:
+		case halted:
 			return score
 		}
 	}

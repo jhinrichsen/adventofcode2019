@@ -2,177 +2,123 @@ package adventofcode2019
 
 import "testing"
 
-func day6FromFile(filename string) (Day6, error) {
-	ss, err := linesFromFilename(filename)
+func day06Puzzle(tb testing.TB, filename string) Day06Puzzle {
+	tb.Helper()
+	lines := testLinesFromFilename(tb, filename)
+	puzzle, err := NewDay06(lines)
 	if err != nil {
-		return Day6{}, err
+		tb.Fatal(err)
 	}
-	d, err := NewDay6(ss)
-	if err != nil {
-		return d, err
-	}
-	return d, nil
-}
-
-func example1() (Day6, error) {
-	return day6FromFile(exampleInput(6))
-}
-
-func example1b(b *testing.B) Day6 {
-	d, err := example1()
-	if err != nil {
-		b.Fatal(err)
-	}
-	return d
-}
-
-func example1t(t *testing.T) Day6 {
-	d, err := example1()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return d
-}
-
-func example2() (Day6, error) {
-	return day6FromFile("testdata/day06_example2.txt")
-}
-
-func example2t(t *testing.T) Day6 {
-	d, err := example2()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return d
-}
-
-func example2b(b *testing.B) Day6 {
-	d, err := example2()
-	if err != nil {
-		b.Fatal(err)
-	}
-	return d
+	return puzzle
 }
 
 func TestDay6OrbitC(t *testing.T) {
-	d := example1t(t)
+	d := day06Puzzle(t, exampleFilename(6))
 	want := "B"
-	got := d.Orbit("C")
+	got := d.orbit("C")
 	if want != got {
 		t.Fatalf("want %q but got %q", want, got)
 	}
 }
 
 func BenchmarkDay6OrbitC(b *testing.B) {
-	d := example1b(b)
-	for i := 0; i < b.N; i++ {
-		d.Orbit("C")
+	d := day06Puzzle(b, exampleFilename(6))
+	for b.Loop() {
+		d.orbit("C")
 	}
 }
 
 func TestDay6OrbitCountCOM(t *testing.T) {
-	d := example1t(t)
+	d := day06Puzzle(t, exampleFilename(6))
 	want := 0
-	got := d.OrbitCount(COM)
+	got := d.orbitCount(com)
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay6OrbitCountD(t *testing.T) {
-	d := example1t(t)
+	d := day06Puzzle(t, exampleFilename(6))
 	want := 3
-	got := d.OrbitCount("D")
+	got := d.orbitCount("D")
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay6OrbitCountL(t *testing.T) {
-	d := example1t(t)
+	d := day06Puzzle(t, exampleFilename(6))
 	want := 7
-	got := d.OrbitCount("L")
+	got := d.orbitCount("L")
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay6Example(t *testing.T) {
-	d := example1t(t)
+	d := day06Puzzle(t, exampleFilename(6))
 	want := 42
-	got := d.OrbitCountChecksum()
+	got := d.orbitCountChecksum()
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay6Part1(t *testing.T) {
-	d, err := day6FromFile(input(6))
-	if err != nil {
-		t.Fatal(err)
-	}
+	d := day06Puzzle(t, filename(6))
 	want := 142497
-	got := d.OrbitCountChecksum()
+	got := d.orbitCountChecksum()
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay06Part1(t *testing.T) {
-	testLines(t, 6, filename, true, Day06, uint(142497))
+	testWithParser(t, 6, filename, true, NewDay06, Day06, uint(142497))
 }
 
 func BenchmarkDay06Part1(b *testing.B) {
-	lines := testLinesFromFilename(b, filename(6))
-	for b.Loop() {
-		_ = Day06(lines, true)
-	}
+	benchWithParser(b, 6, true, NewDay06, Day06)
 }
 
 func TestDay6CommonOrbit(t *testing.T) {
-	d := example2t(t)
+	d := day06Puzzle(t, example2Filename(6))
 	want := "D"
-	got := d.CommonOrbit("YOU", "SAN")
+	got := d.commonOrbit("YOU", "SAN")
 	if want != got {
 		t.Fatalf("want %q but got %q", want, got)
 	}
 }
 
 func BenchmarkDay6CommonOrbit(b *testing.B) {
-	d := example2b(b)
-	for i := 0; i < b.N; i++ {
-		d.CommonOrbit("YOU", "SAN")
+	d := day06Puzzle(b, example2Filename(6))
+	for b.Loop() {
+		d.commonOrbit("YOU", "SAN")
 	}
 }
 
 func TestDay6Part2Example(t *testing.T) {
-	d := example2t(t)
+	d := day06Puzzle(t, example2Filename(6))
 	want := 4
-	got := d.Transfers("YOU", "SAN")
+	got := d.transfers("YOU", "SAN")
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay6Part2(t *testing.T) {
-	d, err := day6FromFile(input(6))
-	if err != nil {
-		t.Fatal(err)
-	}
+	d := day06Puzzle(t, filename(6))
 	want := 301
-	got := d.Transfers("YOU", "SAN")
+	got := d.transfers("YOU", "SAN")
 	if want != got {
 		t.Fatalf("want %d but got %d", want, got)
 	}
 }
 
 func TestDay06Part2(t *testing.T) {
-	testLines(t, 6, filename, false, Day06, uint(301))
+	testWithParser(t, 6, filename, false, NewDay06, Day06, uint(301))
 }
 
 func BenchmarkDay06Part2(b *testing.B) {
-	lines := testLinesFromFilename(b, filename(6))
-	for b.Loop() {
-		_ = Day06(lines, false)
-	}
+	benchWithParser(b, 6, false, NewDay06, Day06)
 }

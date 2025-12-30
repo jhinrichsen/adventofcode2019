@@ -16,7 +16,7 @@ func Day18(input []byte, part1 bool) uint {
 	return solvePart2(maze)
 }
 
-type Maze struct {
+type day18Puzzle struct {
 	grid    [][]byte
 	dimX    int
 	dimY    int
@@ -26,15 +26,15 @@ type Maze struct {
 	robots4 [4]image.Point // For part 2
 }
 
-func parseMaze(input []byte) Maze {
+func parseMaze(input []byte) day18Puzzle {
 	lines := bytes.Split(bytes.TrimSpace(input), []byte{'\n'})
 	dimY := len(lines)
 	if dimY == 0 {
-		return Maze{}
+		return day18Puzzle{}
 	}
 	dimX := len(lines[0])
 
-	maze := Maze{
+	maze := day18Puzzle{
 		grid: make([][]byte, dimY),
 		dimX: dimX,
 		dimY: dimY,
@@ -61,17 +61,7 @@ func parseMaze(input []byte) Maze {
 	return maze
 }
 
-type state struct {
-	pos  image.Point
-	keys uint32 // bitmask of collected keys
-}
-
-type queueItem struct {
-	state
-	steps uint
-}
-
-func solvePart1(maze Maze) uint {
+func solvePart1(maze day18Puzzle) uint {
 	// Build key-to-bit mapping (deterministic order)
 	keyList := make([]byte, 0, len(maze.keys))
 	for key := range maze.keys {
@@ -195,7 +185,7 @@ func (h *day18Heap) Pop() any {
 }
 
 // modifyMazeForPart2 transforms the maze by replacing the 3x3 area around @ with 4 robots
-func modifyMazeForPart2(maze *Maze) {
+func modifyMazeForPart2(maze *day18Puzzle) {
 	// Find @ and replace 3x3 area:
 	// ... becomes @#@
 	// .@.         ###
@@ -229,7 +219,7 @@ type pathInfo struct {
 }
 
 // bfsFrom computes distances from a position to all reachable keys
-func bfsFrom(maze Maze, start image.Point, keyBits map[byte]uint32) map[byte]pathInfo {
+func bfsFrom(maze day18Puzzle, start image.Point, keyBits map[byte]uint32) map[byte]pathInfo {
 	result := make(map[byte]pathInfo)
 	visited := make(map[image.Point]bool)
 
@@ -289,7 +279,7 @@ type state4 struct {
 	collected uint32
 }
 
-func solvePart2(maze Maze) uint {
+func solvePart2(maze day18Puzzle) uint {
 	modifyMazeForPart2(&maze)
 
 	// Build key list and bits

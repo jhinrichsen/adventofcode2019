@@ -1,18 +1,11 @@
 package adventofcode2019
 
-// Abs returns absolute value for integer.
-func Abs(n int) int {
-	if n >= 0 {
-		return n
-	}
-	return -n
-}
-
-// Ndigits returns number of digits that n consists of. 0 has 1 digit, 42 has
+// ndigits returns number of digits that n consists of. 0 has 1 digit, 42 has
 // 2 digits, -4711 has 4 digits.
-// Naming convention taken from Julia
-func Ndigits(n int) int {
-	n = Abs(n)
+func ndigits(n int) int {
+	if n < 0 {
+		n = -n
+	}
 	divcount := 1
 	for n >= 10 {
 		n /= 10
@@ -21,22 +14,23 @@ func Ndigits(n int) int {
 	return divcount
 }
 
-// Digits splits n into its digits
-func Digits(n int) []byte {
-	n = Abs(n)
-	buf := make([]byte, Ndigits(n))
-	DigitsInto(n, buf)
+// digits splits n into its digits
+func digits(n int) []byte {
+	if n < 0 {
+		n = -n
+	}
+	buf := make([]byte, ndigits(n))
+	digitsInto(n, buf)
 	return buf
 }
 
-// DigitsInto will write digits of n into buf
-func DigitsInto(n int, buf []byte) {
-	n = Abs(n)
-	idx := len(buf) - 1
-	for n > 0 {
-		d := n % 10
-		buf[idx] = byte(d)
-		idx--
+// digitsInto writes digits of n into buf
+func digitsInto(n int, buf []byte) {
+	if n < 0 {
+		n = -n
+	}
+	for i := len(buf) - 1; i >= 0 && n > 0; i-- {
+		buf[i] = byte(n % 10)
 		n /= 10
 	}
 }

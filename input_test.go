@@ -73,19 +73,6 @@ func filename(day uint8) string {
 	return fmt.Sprintf("testdata/day%02d.txt", int(day))
 }
 
-// file reads the main input file bytes for day N (zero-padded).
-func file(tb testing.TB, day uint8) []byte {
-	tb.Helper()
-	buf, err := os.ReadFile(filename(day))
-	if err != nil {
-		tb.Fatal(err)
-	}
-	if b, ok := tb.(*testing.B); ok {
-		b.ResetTimer()
-	}
-	return buf
-}
-
 // fileFromFilename reads file bytes using a filename function (e.g., filename or exampleFilename).
 func fileFromFilename(tb testing.TB, filenameFunc func(uint8) string, day uint8) []byte {
 	tb.Helper()
@@ -120,10 +107,6 @@ func linesFromReader(r io.Reader) ([]string, error) {
 		return lines, err
 	}
 	return lines, nil
-}
-
-func exampleInput(day int) string {
-	return fmt.Sprintf("testdata/day%02d_example.txt", day)
 }
 
 func input(day int) string {

@@ -7,18 +7,18 @@ import (
 	"strings"
 )
 
-// Direction type
-type Direction int
+// wireDirection type
+type wireDirection int
 
 const (
-	// Up represents 'U'
-	Up Direction = iota
-	// Right represents 'R'
-	Right
-	// Down represents 'D'
-	Down
-	// Left represents 'L'
-	Left
+	// up represents 'U'
+	up wireDirection = iota
+	// right represents 'R'
+	right
+	// down represents 'D'
+	down
+	// left represents 'L'
+	left
 )
 
 // segment represents a horizontal or vertical line segment
@@ -152,47 +152,47 @@ func abs03(n int) int {
 	return n
 }
 
-// Day3Part1 computes the minimal manhattan distance of two crossing wires
-func Day3Part1(wires []string) (int, error) {
+// day3Part1 computes the minimal manhattan distance of two crossing wires
+func day3Part1(wires []string) (int, error) {
 	return int(Day03(wires, true)), nil
 }
 
-// Parse splits a path such as U32 into a direction North and a length 32
-func Parse(path string) (Direction, int, error) {
+// parse splits a path such as U32 into a direction North and a length 32
+func parse(path string) (wireDirection, int, error) {
 	n, err := strconv.Atoi(path[1:])
 	if err != nil {
-		return Up, 0, err
+		return up, 0, err
 	}
 	switch path[0] {
 	case 'U':
-		return Up, n, nil
+		return up, n, nil
 	case 'R':
-		return Right, n, nil
+		return right, n, nil
 	case 'D':
-		return Down, n, nil
+		return down, n, nil
 	case 'L':
-		return Left, n, nil
+		return left, n, nil
 	}
-	return Up, 0, fmt.Errorf("illegal path: %q", path)
+	return up, 0, fmt.Errorf("illegal path: %q", path)
 }
 
-// Size calculates width and height of a wiring
-func Size(wiring string) (int, int, error) {
+// size calculates width and height of a wiring
+func size(wiring string) (int, int, error) {
 	x, y, maxX, maxY := 0, 0, 0, 0
 	for _, wire := range strings.Split(wiring, ",") {
-		d, n, err := Parse(wire)
+		d, n, err := parse(wire)
 		if err != nil {
 			return maxX, maxY, err
 		}
 
 		switch d {
-		case Up:
+		case up:
 			y += n
-		case Down:
+		case down:
 			y -= n
-		case Right:
+		case right:
 			x += n
-		case Left:
+		case left:
 			x -= n
 		}
 
@@ -206,7 +206,7 @@ func Size(wiring string) (int, int, error) {
 	return maxX, maxY, nil
 }
 
-// Day3Part2 computes the minimal combined steps for intersections
-func Day3Part2(wires []string) (int, error) {
+// day3Part2 computes the minimal combined steps for intersections
+func day3Part2(wires []string) (int, error) {
 	return int(Day03(wires, false)), nil
 }

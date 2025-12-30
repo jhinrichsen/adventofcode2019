@@ -11,11 +11,11 @@ const (
 	colorWhite = 1
 )
 
-// RegistrationID is a 2D map of black (false) and white (true)
-type RegistrationID map[image.Point]bool
+// registrationID is a 2D map of black (false) and white (true)
+type registrationID map[image.Point]bool
 
 // dim returns min and max as 2D coordinates (x/y)
-func (a RegistrationID) dim() (min, max image.Point) {
+func (a registrationID) dim() (min, max image.Point) {
 	minX, minY := int(^uint(0)>>1), int(^uint(0)>>1)
 	maxX, maxY := -int(^uint(0)>>1)-1, -int(^uint(0)>>1)-1
 	for k := range a {
@@ -36,7 +36,7 @@ func (a RegistrationID) dim() (min, max image.Point) {
 }
 
 // pbm creates an image in portable bitmap format
-func (a RegistrationID) pbm() []byte {
+func (a registrationID) pbm() []byte {
 	var buf bytes.Buffer
 	fmt.Fprintln(&buf, "P1")
 	min, max := a.dim()
@@ -55,8 +55,8 @@ func (a RegistrationID) pbm() []byte {
 }
 
 // Day11 runs the hull painting robot
-func Day11(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day11(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}
@@ -75,8 +75,8 @@ func Day11(input []byte, part1 bool) (uint, error) {
 	return uint(len(panels.pbm())), nil
 }
 
-func runRobot(ic *Intcode, initialColor int) RegistrationID {
-	panels := make(RegistrationID)
+func runRobot(ic *intcode, initialColor int) registrationID {
+	panels := make(registrationID)
 	position := image.Point{X: 0, Y: 0}
 	direction := image.Point{X: 0, Y: -1} // facing up
 
@@ -87,9 +87,9 @@ func runRobot(ic *Intcode, initialColor int) RegistrationID {
 	for {
 		state := ic.Step()
 		switch state {
-		case NeedsInput:
+		case needsInput:
 			ic.Input(currentColor)
-		case HasOutput:
+		case hasOutput:
 			if outputCount%2 == 0 {
 				// First output: color to paint
 				paintColor = ic.Output()
@@ -114,7 +114,7 @@ func runRobot(ic *Intcode, initialColor int) RegistrationID {
 				}
 			}
 			outputCount++
-		case Halted:
+		case halted:
 			return panels
 		}
 	}

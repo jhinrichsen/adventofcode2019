@@ -1,8 +1,8 @@
 package adventofcode2019
 
 // Day09 runs the BOOST program and returns the output
-func Day09(input []byte, part1 bool) (uint, error) {
-	ic, err := NewIntcode(input)
+func Day09(program []byte, part1 bool) (uint, error) {
+	ic, err := newIntcode(program)
 	if err != nil {
 		return 0, err
 	}

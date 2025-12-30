@@ -66,7 +66,7 @@ func TestParseReactions(t *testing.T) {
 		"7 A, 1 B => 1 C",
 	}
 
-	reactions, err := ParseReactions(input)
+	reactions, err := parseReactions(input)
 	if err != nil {
 		t.Fatal(err)
 	}

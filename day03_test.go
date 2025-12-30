@@ -26,7 +26,7 @@ func Day3Part1Example(t *testing.T) {
 		id := fmt.Sprintf("Part 1 Example #%d", i)
 		t.Run(id, func(t *testing.T) {
 			want := tt.part1
-			got, err := Day3Part1(tt.in)
+			got, err := day3Part1(tt.in)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -39,8 +39,8 @@ func Day3Part1Example(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
-	wantD, wantN := Right, 10
-	gotD, gotN, err := Parse("R10")
+	wantD, wantN := right, 10
+	gotD, gotN, err := parse("R10")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestParse(t *testing.T) {
 
 func TestSize(t *testing.T) {
 	wantX, wantY := 7, 3
-	gotX, gotY, err := Size("R7,U1,L1,U1,L1,U1,L1")
+	gotX, gotY, err := size("R7,U1,L1,U1,L1,U1,L1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestDay3Part2Example(t *testing.T) {
 		id := fmt.Sprintf("Part 2 Example #%d", i)
 		t.Run(id, func(t *testing.T) {
 			want := tt.part2
-			got, err := Day3Part2(tt.in)
+			got, err := day3Part2(tt.in)
 			if err != nil {
 				t.Fatal(err)
 			}
