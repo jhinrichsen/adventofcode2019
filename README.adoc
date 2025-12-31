@@ -1,6 +1,7 @@
-= Advent of code 2019
+= Advent of Code 2019
 :doctype: book
-:toc:
+:toc: macro
+:sectnums:
 
 image:https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019?status.svg["godoc", link="https://godoc.org/gitlab.com/jhinrichsen/adventofcode2019"]
 image:https://goreportcard.com/badge/gitlab.com/jhinrichsen/adventofcode2019["Go report card", link="https://goreportcard.com/report/gitlab.com/jhinrichsen/adventofcode2019"]
@@ -8,7 +9,9 @@ image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/pipeline.svg
 image:https://gitlab.com/jhinrichsen/adventofcode2019/badges/master/coverage.svg[link="https://gitlab.com/jhinrichsen/adventofcode2019/-/jobs",title="coverage report"]
 image:https://img.shields.io/badge/runtime-0.85s-blue["runtime"]
 
-This is an implementation of https://adventofcode.com/2019[Advent of Code 2019] in Go.
+toc::[]
+
+My take on https://adventofcode.com/2019[Advent of Code 2019] in Go.
 
 == Build from source
 
@@ -16,21 +19,15 @@ This is an implementation of https://adventofcode.com/2019[Advent of Code 2019] 
 $ go get gitlab.com/jhinrichsen/adventofcode2019
 ----
 
-== Environment
+== Hardware
 
-=== 2019
+Benchmarks in this repository were run on different hardware:
 
-- Go 1.24
-- vim, vim-go, gopls, fed by an HHKB
-- VisualStudio Code for debugging
-- Linux (various distributions)
-- Prompts: Claude Code
+- Intel Xeon @ 2.60GHz: GitLab CI runner infrastructure
+- AMD Ryzen 7 7840HS: Framework 16 laptop
+- Intel Core i7-14700: Desktop
 
-== Intel Performance
-
-All benchmarks were executed on Intel(R) Xeon(R) CPU @ 2.60GHz architecture.
-Performance characteristics may vary on different CPU architectures, particularly
-on hybrid architectures with P-cores and E-cores.
+Absolute numbers are not comparable across machines, but each benchstat comparison (before/after) is always run on the same machine, so relative improvements are valid.
 
 == Overview
 
@@ -542,12 +539,26 @@ Key optimizations:
 
 == Benchmarks
 
-Results from `make total` on Intel(R) Xeon(R) CPU @ 2.60GHz:
+=== Current (AMD Ryzen 7 7840HS)
+
+Results from `make total`:
+
+[source]
+----
+include::benches/linux-amd64-AMD-Ryzen-7-7840HS-w-Radeon-780M-Graphics.txt[]
+----
+
+Total runtime: 0.73s
+
+=== Historical (Intel Xeon @ 2.60GHz)
+
+Original benchmark before optimizations (217s total):
 
 [source]
 ----
 include::benches/linux-amd64-IntelR_XeonR.txt[]
 ----
+
 == SAST (Static Application Security Testing)
 
 This project uses custom SAST tooling in GitLab CI, optimized for the free tier.
